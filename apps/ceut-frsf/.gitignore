@@ -1,0 +1,2 @@
+# Playwright e2e — generated authenticated storage states (contain session cookies)
+e2e/fixtures/states/*.json

@@ -1,0 +1,33 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@resetshop/util": ["../../packages/util/src/index.ts"],
+			"@resetshop/util/test-utils": ["../../packages/util/src/lib/test-utils.ts"],
+			"@resetshop/ui": ["../../packages/ui/src/index.ts"],
+			"@resetshop/ui/*": ["../../packages/ui/src/lib/*"],
+			"@resetshop/angular-core": ["../../packages/angular-core/src/index.ts"],
+			"@resetshop/angular-core/*": ["../../packages/angular-core/src/lib/*"],
+			"@resetshop/hono-core": ["../../packages/hono-core/src/index.ts"],
+			"@resetshop/hono-core/*": ["../../packages/hono-core/src/lib/*"],
+
+			"@components/*": ["src/app/components/*"],
+			"@config/*": ["src/api/config/*"],
+			"@configs/*": ["src/app/configs/*"],
+			"@contracts/*": ["src/contracts/*"],
+			"@directives/*": ["src/app/directives/*"],
+			"@domain/*": ["src/app/domain/*"],
+			"@guards/*": ["src/app/guards/*"],
+			"@pages/*": ["src/app/pages/*"],
+			"@providers/*": ["src/app/providers/*"],
+			"@schema/*": ["src/db/schema/*"],
+			"@store/*": ["src/app/store/*"]
+		}
+	},
+	"files": [],
+	"include": [],
+	"references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.spec.json" }],
+	"compileOnSave": false,
+	"exclude": ["node_modules", "tmp"]
+}

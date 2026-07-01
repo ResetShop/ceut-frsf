@@ -1,0 +1,190 @@
+{
+	"name": "ceut-frsf",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"includedScripts": [],
+	"projectType": "application",
+	"prefix": "app",
+	"sourceRoot": "apps/ceut-frsf/src",
+	"tags": ["type:app", "scope:app"],
+	"targets": {
+		"build": {
+			"executor": "@angular/build:application",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/ceut-frsf",
+				"browser": "apps/ceut-frsf/src/main.ts",
+				"polyfills": [],
+				"externalDependencies": ["awilix", "zod"],
+				"index": "apps/ceut-frsf/src/index.html",
+				"tsConfig": "apps/ceut-frsf/tsconfig.app.json",
+				"assets": [
+					"apps/ceut-frsf/src/assets",
+					{
+						"glob": "**/*",
+						"input": "public"
+					}
+				],
+				"styles": ["apps/ceut-frsf/src/styles.css"],
+				"server": "apps/ceut-frsf/src/main.server.ts",
+				"ssr": {
+					"entry": "apps/ceut-frsf/src/server.ts"
+				},
+				"outputMode": "server"
+			},
+			"configurations": {
+				"production": {
+					"budgets": [
+						{
+							"type": "initial",
+							"maximumWarning": "500kb",
+							"maximumError": "1mb"
+						},
+						{
+							"type": "anyComponentStyle",
+							"maximumWarning": "4kb",
+							"maximumError": "8kb"
+						}
+					],
+					"outputHashing": "all"
+				},
+				"development": {
+					"optimization": false,
+					"extractLicenses": false,
+					"sourceMap": true
+				}
+			},
+			"defaultConfiguration": "production"
+		},
+		"serve": {
+			"continuous": true,
+			"executor": "@angular/build:dev-server",
+			"configurations": {
+				"production": {
+					"buildTarget": "ceut-frsf:build:production"
+				},
+				"development": {
+					"buildTarget": "ceut-frsf:build:development"
+				}
+			},
+			"defaultConfiguration": "development"
+		},
+		"extract-i18n": {
+			"executor": "@angular/build:extract-i18n",
+			"options": {
+				"buildTarget": "ceut-frsf:build"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["apps/ceut-frsf/src"]
+			}
+		},
+		"test": {
+			"executor": "@nx/vitest:test",
+			"outputs": ["{workspaceRoot}/coverage/{projectName}"],
+			"options": {
+				"config": "apps/ceut-frsf/vitest.config.ts",
+				"reportsDirectory": "{projectRoot}/coverage/app"
+			},
+			"configurations": {
+				"ui": {
+					"watch": true
+				}
+			}
+		},
+		"serve-static": {
+			"continuous": true,
+			"executor": "@nx/web:file-server",
+			"options": {
+				"buildTarget": "ceut-frsf:build",
+				"port": 4200,
+				"staticFilePath": "dist/ceut-frsf/browser",
+				"spa": true
+			}
+		},
+		"e2e": {
+			"executor": "@nx/playwright:playwright",
+			"outputs": ["{workspaceRoot}/playwright-report"],
+			"options": {
+				"config": "{projectRoot}/playwright.config.ts"
+			},
+			"configurations": {
+				"ci": {
+					"ci": true
+				}
+			}
+		},
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["{projectRoot}/**/*.ts", "{projectRoot}/tsconfig*.json", "sharedGlobals"],
+			"options": {
+				"command": "tsc --noEmit -p apps/ceut-frsf/tsconfig.spec.json"
+			}
+		},
+		"test-integration": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"command": "vitest run --config apps/ceut-frsf/vitest.integration.config.ts"
+			}
+		},
+		"stylelint": {
+			"executor": "nx-stylelint:lint",
+			"outputs": ["{options.outputFile}"],
+			"options": {
+				"lintFilePatterns": ["**/*.css"]
+			}
+		},
+		"storybook": {
+			"executor": "@storybook/angular:start-storybook",
+			"options": {
+				"port": 4400,
+				"configDir": "./.storybook",
+				"browserTarget": "ceut-frsf:build",
+				"compodoc": false
+			},
+			"configurations": {
+				"ci": {
+					"quiet": true
+				}
+			}
+		},
+		"build-storybook": {
+			"executor": "@storybook/angular:build-storybook",
+			"outputs": ["{options.outputDir}"],
+			"options": {
+				"outputDir": "dist/storybook/app",
+				"configDir": "./.storybook",
+				"browserTarget": "ceut-frsf:build",
+				"compodoc": false
+			},
+			"configurations": {
+				"ci": {
+					"quiet": true
+				}
+			}
+		},
+		"test-storybook": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "test-storybook -c ./.storybook --url=http://localhost:4400"
+			}
+		},
+		"static-storybook": {
+			"executor": "@nx/web:file-server",
+			"dependsOn": ["build-storybook"],
+			"options": {
+				"buildTarget": "ceut-frsf:build-storybook",
+				"staticFilePath": "dist/storybook/app",
+				"spa": true
+			},
+			"configurations": {
+				"ci": {
+					"buildTarget": "ceut-frsf:build-storybook:ci"
+				}
+			}
+		}
+	}
+}

@@ -50,14 +50,14 @@ This guide covers all the setup steps needed to configure this starter repositor
 
 ### Quick Start Checklist
 
-- [ ] Clone repository and install dependencies
-- [ ] Configure environment variables **[Required]**
-- [ ] Generate and configure PASETO secret key **[Required]**
-- [ ] Choose and setup database **[Optional]**
+- [x] Clone repository and install dependencies
+- [x] Configure environment variables **[Required]**
+- [x] Generate and configure PASETO secret key **[Required]**
+- [x] Choose and setup database **[Optional]**
 - [ ] Configure CMS integration **[Optional]**
 - [ ] Setup analytics **[Optional]**
 - [ ] Configure development tools **[Optional]**
-- [ ] Post-setup cleanup **[Required]**
+- [x] Post-setup cleanup **[Required]**
 
 ---
 

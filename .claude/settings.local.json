@@ -77,7 +77,9 @@
 			"mcp__plugin_playwright_playwright__browser_take_screenshot",
 			"mcp__plugin_playwright_playwright__browser_snapshot",
 			"mcp__plugin_playwright_playwright__browser_wait_for",
-			"WebFetch(domain:api.github.com)"
+			"WebFetch(domain:api.github.com)",
+			"Read(//home/juanblas09/.claude/skills/**)",
+			"Read(//home/juanblas09/.claude/**)"
 		]
 	},
 	"enableAllProjectMcpServers": true,

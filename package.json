@@ -46,6 +46,8 @@
 		"ci:verify": "nx run-many -t check stylelint lint typecheck && nx run-many -t test test-integration build build-storybook --maxParallel=3",
 		"dev": "nx serve reference-app",
 		"build": "nx build reference-app --skip-nx-cache",
+		"dev:ceut-frsf": "nx serve ceut-frsf",
+		"build:ceut-frsf": "nx build ceut-frsf --skip-nx-cache",
 		"storybook": "nx run reference-app:storybook",
 		"storybook:build": "nx run reference-app:build-storybook",
 		"lint": "nx run-many -t lint --skip-nx-cache",

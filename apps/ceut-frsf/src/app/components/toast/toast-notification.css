@@ -1,0 +1,144 @@
+/* Base layout */
+:host {
+	@apply absolute inline-grid items-center gap-3 rounded-lg border px-4 py-3 opacity-0 shadow-lg;
+
+	grid-template-columns: auto 1fr auto;
+	touch-action: none;
+	box-sizing: border-box;
+	height: fit-content;
+	z-index: var(--ngp-toast-z-index, 9999);
+	transform: var(--y, translateY(0));
+	transition: all 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.toast-message {
+	@apply m-0 text-sm font-medium select-none;
+}
+
+.toast-dismiss {
+	@apply cursor-pointer rounded-md border-none bg-transparent p-0.5 opacity-70 hover:opacity-100;
+
+	color: inherit;
+}
+
+/* Horizontal positioning. ng-primitives' NgpToastManager wraps each placement in a zero-width
+ * fixed container at the corresponding anchor (e.g. left:50% of viewport for *-center). The toast
+ * itself is position:absolute inside that container, so per-toast CSS owns the horizontal align.
+ * Without an explicit rule for data-position-x='center' the toast defaults to left:0 of the
+ * zero-width container and overflows the right edge of the viewport. */
+:host[data-position-x='end'] {
+	@apply right-0;
+}
+
+:host[data-position-x='start'] {
+	@apply left-0;
+}
+
+/* Width formula mirrors the `w-[min(350px,calc(100vw-2rem))]` class on the host element. */
+:host[data-position-x='center'] {
+	left: 50%;
+	margin-left: calc(min(350px, 100vw - 2rem) / -2);
+}
+
+/* Vertical positioning */
+:host[data-position-y='top'] {
+	@apply top-0;
+
+	--lift: 1;
+	--lift-amount: calc(var(--lift) * var(--ngp-toast-gap, 16px));
+	--y: translateY(-100%);
+}
+
+:host[data-position-y='bottom'] {
+	@apply bottom-0;
+
+	--lift: -1;
+	--lift-amount: calc(var(--lift) * var(--ngp-toast-gap, 16px));
+	--y: translateY(100%);
+}
+
+/* Enter/exit states */
+:host[data-enter] {
+	@apply opacity-100;
+
+	--y: translateY(0);
+}
+
+:host[data-exit] {
+	@apply opacity-0;
+
+	--y: translateY(calc(calc(var(--lift) * var(--ngp-toast-gap, 16px)) * -1));
+}
+
+/* Visibility (max toasts limit) */
+:host[data-visible='false'] {
+	@apply pointer-events-none opacity-0;
+}
+
+/* Stacking behavior */
+:host[data-expanded='true']::after {
+	@apply absolute left-0 w-full;
+
+	content: '';
+	height: calc(var(--ngp-toast-gap, 16px) + 1px);
+	bottom: 100%;
+}
+
+:host[data-expanded='false'][data-front='false'] {
+	--scale: var(--ngp-toasts-before, 0) * 0.05 + 1;
+	--y: translateY(calc(var(--lift-amount, 0px) * var(--ngp-toasts-before, 0))) scale(calc(-1 * var(--scale)));
+
+	height: var(--ngp-toast-front-height, auto);
+}
+
+:host[data-expanded='true'] {
+	--y: translateY(calc(var(--lift) * var(--ngp-toast-offset, 0px)));
+
+	@apply h-auto;
+}
+
+/* Swipe gestures */
+:host[data-swiping='true'] {
+	@apply transition-none;
+
+	transform: var(--y) translateY(var(--ngp-toast-swipe-amount-y, 0)) translateX(var(--ngp-toast-swipe-amount-x, 0));
+}
+
+:host[data-swiping='true'][data-swipe-direction='left'] {
+	opacity: calc(1 - clamp(0, ((-1 * var(--ngp-toast-swipe-x, 0px)) - 45) / 55, 1));
+}
+
+:host[data-swiping='true'][data-swipe-direction='right'] {
+	opacity: calc(1 - clamp(0, (var(--ngp-toast-swipe-x, 0px) - 45) / 55, 1));
+}
+
+/* Truncate non-front collapsed toasts */
+:host[data-front='false'][data-expanded='false'] .toast-message {
+	@apply truncate;
+}
+
+/* Enter/leave animations */
+:host.toast-enter {
+	animation: toast-slide-in 400ms cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+:host.toast-leave {
+	@apply opacity-0;
+
+	transform: translateY(100%);
+	transition:
+		opacity 400ms cubic-bezier(0.215, 0.61, 0.355, 1),
+		transform 400ms cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+@keyframes toast-slide-in {
+	from {
+		opacity: 0;
+		transform: translateY(100%);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
