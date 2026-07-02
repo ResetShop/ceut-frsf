@@ -50,9 +50,9 @@ const es: TranslationSchema = {
 	LANDING: {
 		PAGE_TITLE: 'Bienvenido',
 		BRAND_NAME: 'CEUT FRSF',
-		HERO_HEADING: 'Centro de Estudiantes UTN FRSF',
+		HERO_HEADING: 'Tu facultad, en un solo lugar',
 		HERO_SUBHEADING:
-			'Información y recursos académicos y extracurriculares para los estudiantes de la Facultad Regional Santa Fe.',
+			'Todo lo que necesitás para cursar: trámites, recursos académicos y la vida estudiantil de la regional.',
 		HERO_CTA: 'Comenzar',
 		LOGIN_BUTTON: 'Iniciar sesión',
 		SKIP_TO_CONTENT: 'Saltar al contenido principal',
@@ -64,6 +64,63 @@ const es: TranslationSchema = {
 			RBAC_DESCRIPTION: 'Permisos granulares con roles, aplicados tanto a nivel de ruta como de API.',
 			SSR_TITLE: 'Renderizado del lado del servidor',
 			SSR_DESCRIPTION: 'Angular SSR listo para usar para una primera carga más rápida y un mejor SEO.',
+		},
+		PORTAL: {
+			EYEBROW: 'Centro de Estudiantes · UTN FRSF',
+			SEARCH_PLACEHOLDER: 'Buscar recursos, becas, herramientas...',
+			EMPTY_STATE: 'No encontramos resultados para “{query}”.',
+			INSTAGRAM_TITLE: 'Contactate vía Instagram',
+			FOOTER: {
+				TAGLINE: 'Centro de Estudiantes · UTN Facultad Regional Santa Fe',
+				INSTAGRAM_TITLE: 'Seguinos en Instagram',
+				DISCORD_TITLE: 'Sumate a nuestro Discord',
+			},
+			CARDS: {
+				BIBLIOTECA: {
+					TITLE: 'Biblioteca CEUT',
+					TEXT: 'Buscá y reservá libros del catálogo de la facultad.',
+					FOOTER: 'Catálogo · préstamos',
+				},
+				DONDE_CURSO: {
+					TITLE: '¿Dónde curso?',
+					TEXT: 'Encontrá el aula de cada materia y comisión.',
+				},
+				HORARIOS: {
+					TITLE: 'Horarios',
+					TEXT: 'Armá tu cronograma de cursada del cuatrimestre.',
+				},
+				CALCULADORA: {
+					TITLE: 'Calculadora de promedio',
+					TEXT: 'Estimá tu promedio con y sin aplazos.',
+					FOOTER: 'Herramienta',
+				},
+				BECAS: {
+					TITLE: 'Becas CEUT',
+					TEXT: 'Ayudas económicas y de apuntes para tu cursada.',
+				},
+				CAFE: {
+					TITLE: 'Café Tecnológico',
+					TEXT: 'Charlas y encuentros entre estudiantes.',
+				},
+				CORO: {
+					TITLE: 'Coro de la Facu',
+					TEXT: 'Sumate a cantar todos los miércoles.',
+					FOOTER: 'Extracurricular',
+				},
+				CALENDARIO: {
+					TITLE: 'Calendario Académico',
+					TEXT: 'Fechas de finales, inscripciones y feriados.',
+				},
+				CAMPUS_VIRTUAL: {
+					TITLE: 'Campus Virtual',
+					TEXT: 'Accedé al campus y a tus materias online.',
+				},
+				LIBROS_APUNTES: {
+					TITLE: 'Libros y apuntes',
+					TEXT: 'Material de estudio compartido por la comunidad.',
+					FOOTER: 'Comunidad',
+				},
+			},
 		},
 	},
 	COMMON: {

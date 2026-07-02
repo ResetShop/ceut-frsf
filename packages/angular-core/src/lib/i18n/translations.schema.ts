@@ -64,6 +64,31 @@ export interface TranslationSchema {
 			SSR_TITLE: string
 			SSR_DESCRIPTION: string
 		}
+		// Optional so fork apps can supply the CEUT portal home copy without
+		// forcing the key on apps (e.g. reference-app) that don't render it.
+		PORTAL?: {
+			EYEBROW: string
+			SEARCH_PLACEHOLDER: string
+			EMPTY_STATE: string
+			INSTAGRAM_TITLE: string
+			FOOTER: {
+				TAGLINE: string
+				INSTAGRAM_TITLE: string
+				DISCORD_TITLE: string
+			}
+			CARDS: {
+				BIBLIOTECA: { TITLE: string; TEXT: string; FOOTER: string }
+				DONDE_CURSO: { TITLE: string; TEXT: string }
+				HORARIOS: { TITLE: string; TEXT: string }
+				CALCULADORA: { TITLE: string; TEXT: string; FOOTER: string }
+				BECAS: { TITLE: string; TEXT: string }
+				CAFE: { TITLE: string; TEXT: string }
+				CORO: { TITLE: string; TEXT: string; FOOTER: string }
+				CALENDARIO: { TITLE: string; TEXT: string }
+				CAMPUS_VIRTUAL: { TITLE: string; TEXT: string }
+				LIBROS_APUNTES: { TITLE: string; TEXT: string; FOOTER: string }
+			}
+		}
 	}
 	COMMON: {
 		LOADING: string
