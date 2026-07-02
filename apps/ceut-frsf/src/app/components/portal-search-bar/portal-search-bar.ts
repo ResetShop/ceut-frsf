@@ -21,7 +21,7 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 				<ng-icon name="featherSearch" aria-hidden="true" />
 			</span>
 			<input
-				(input)="value.set($any($event.target).value)"
+				(input)="onInput($event)"
 				[value]="value()"
 				[placeholder]="'LANDING.PORTAL.SEARCH_PLACEHOLDER' | translate"
 				[attr.aria-label]="'LANDING.PORTAL.SEARCH_PLACEHOLDER' | translate"
@@ -34,4 +34,8 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 })
 export class PortalSearchBar {
 	public readonly value = model('')
+
+	protected onInput(event: Event): void {
+		this.value.set((event.target as HTMLInputElement).value)
+	}
 }
