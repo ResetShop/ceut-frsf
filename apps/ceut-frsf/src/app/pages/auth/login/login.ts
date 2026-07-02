@@ -37,9 +37,8 @@ import { createCountdown, formatCountdown } from '../countdown'
 		<form (submit)="onSubmit($event)" aria-labelledby="login-heading" class="w-full px-8 sm:w-[420px]">
 			<app-immersive-panel [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
 			<ng-template #cardTitle>
-				<!-- TODO: Replace the image for your system/company logo -->
 				<span class="mt-4 flex flex-col gap-4">
-					<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
+					<img ngSrc="favicon.ico" width="47" height="40" alt="CEUT FRSF" class="mx-auto h-10 w-auto" />
 					<span id="login-heading" class="text-foreground mb-8 block text-center">
 						{{ 'AUTH.LOGIN.TITLE' | translate }}
 					</span>

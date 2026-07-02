@@ -23,7 +23,7 @@ interface ResetPasswordForm {
 			<app-immersive-panel [titleTemplate]="cardTitle" [contentTemplate]="cardContent" [footerTemplate]="cardFooter" />
 			<ng-template #cardTitle>
 				<span class="mt-4 flex flex-col gap-4">
-					<img ngSrc="favicon.ico" width="47" height="40" alt="Your Company" class="mx-auto h-10 w-auto" />
+					<img ngSrc="favicon.ico" width="47" height="40" alt="CEUT FRSF" class="mx-auto h-10 w-auto" />
 					<span id="reset-password-heading" class="mb-8 block text-center">
 						{{ 'AUTH.RESET_PASSWORD.TITLE' | translate }}
 					</span>
