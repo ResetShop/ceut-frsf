@@ -1,0 +1,151 @@
+/* ===========================================================================
+   CEUT FRSF — app-scoped theme
+   Applies the CEUT visual identity (palette + Montserrat/JetBrains Mono type)
+   on top of the shared starter theme WITHOUT editing the root
+   `tailwind.config.css` (imported by apps/reference-app too). This file is
+   imported AFTER the root theme in `styles.css`, so its unlayered `:root` /
+   `.dark` declarations override the root's base tokens by source order — the
+   same mechanism the font variables already rely on.
+
+   The root theme exposes semantic tokens (`--background`, `--default`, …) that
+   its `@theme inline` block maps to Tailwind's `--color-*` utilities via
+   `var()` indirection. Re-declaring the base tokens here re-colours every
+   `bg-background` / `text-foreground` / `appButton` in the app for free.
+   =========================================================================== */
+
+:root {
+	/* ---- Brand: CEUT blue (logo lettering) ---- */
+	--ceut-blue-50: #eaf7fc;
+	--ceut-blue-100: #c6e9f6;
+	--ceut-blue-200: #93d6ef;
+	--ceut-blue-300: #5cc0e6;
+	--ceut-blue-400: #2ba8da;
+	--ceut-blue-500: #1f9bd1; /* core brand blue */
+	--ceut-blue-600: #1781b5;
+	--ceut-blue-700: #136890;
+	--ceut-blue-800: #114f6d;
+	--ceut-blue-900: #0d3a50;
+
+	/* ---- Action blue (interactive buttons / links) ---- */
+	--action-blue: #2563eb;
+	--action-blue-hover: #1d4ed8;
+	--action-blue-active: #1e40af;
+
+	/* ---- Career palette (categorical, do not alter hues) ---- */
+	--career-basicas: #09c;
+	--career-civil: #6e227d;
+	--career-electrica: #e61c32;
+	--career-industrial: #ee7114;
+	--career-mecanica: #22a438;
+	--career-sistemas: #fab000;
+
+	/* ---- Vibrant "hands" accents (raised-hands logo, community spirit) ---- */
+	--hands-red: #e23849;
+	--hands-orange: #f57c00;
+	--hands-yellow: #f6c700;
+	--hands-green: #2bbbad;
+	--hands-blue: #1f9bd1;
+	--hands-purple: #814cce;
+	--hands-pink: #e2399b;
+
+	/* ---- Neutrals (Tailwind-aligned gray scale) ---- */
+	--gray-0: #fff;
+	--gray-50: #f8f9fa;
+	--gray-100: #f3f4f6;
+	--gray-200: #e5e7eb;
+	--gray-300: #d1d5db;
+	--gray-400: #9ca3af;
+	--gray-500: #6b7280;
+	--gray-600: #4b5563;
+	--gray-700: #374151;
+	--gray-800: #1f2937;
+	--gray-900: #111827;
+	--ceut-black: #0b0f14;
+
+	/* ---- Semantic status ---- */
+	--success: #198754;
+	--warning: #f59e0b;
+	--danger: #e23849;
+	--info: #0dcaf0;
+
+	/* ---- Brand semantic aliases (prefixed `--ceut-` to stay clear of
+	   Tailwind's generated `--color-*` namespace) ---- */
+	--ceut-primary: var(--ceut-blue-500);
+	--ceut-primary-hover: var(--ceut-blue-600);
+	--ceut-primary-active: var(--ceut-blue-700);
+	--ceut-primary-soft: var(--ceut-blue-50);
+	--ceut-accent: var(--action-blue);
+	--ceut-accent-hover: var(--action-blue-hover);
+
+	/* ---- Radii (signature: 2xl cards) ---- */
+	--radius-sm: 0.25rem; /* 4 — inputs, chips */
+	--radius-md: 0.5rem; /* 8 — buttons */
+	--radius-lg: 0.75rem; /* 12 */
+	--radius-xl: 1rem; /* 16 — cards */
+	--radius-2xl: 1.5rem; /* 24 — feature cards */
+	--radius-pill: 9999px;
+
+	/* ---- Elevation ---- */
+	--shadow-card: 0 2px 4px -1px rgb(0 0 0 / 20%), 0 4px 5px 0 rgb(0 0 0 / 14%), 0 1px 10px 0 rgb(0 0 0 / 12%);
+
+	/* ---- Motion ---- */
+	--ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+	--dur-fast: 140ms;
+	--dur-base: 240ms;
+	--dur-slow: 360ms;
+
+	/* =====================================================================
+	   Base token overrides — light. These re-point the starter's semantic
+	   tokens (and the Tailwind utilities derived from them) to CEUT values.
+	   ===================================================================== */
+	--background: var(--gray-50);
+	--foreground: var(--gray-900);
+	--card: var(--gray-0);
+	--card-foreground: var(--gray-900);
+	--default: var(--action-blue);
+	--default-foreground: var(--gray-0);
+	--secondary: var(--gray-100);
+	--secondary-foreground: var(--gray-900);
+	--muted: var(--gray-100);
+	--muted-foreground: var(--gray-500);
+	--accent: var(--ceut-blue-50);
+	--accent-foreground: var(--ceut-primary);
+	--destructive: var(--danger);
+	--destructive-foreground: var(--gray-0);
+	--border: var(--gray-300);
+	--input: var(--gray-200);
+	--ring: var(--ceut-blue-400);
+	--interactive: var(--action-blue);
+
+	/* ---- Type: Montserrat everywhere, JetBrains Mono for code/data ---- */
+	--font-sans: var(--font-montserrat);
+	--font-mono: var(--font-jetbrains-mono);
+	--font-display: var(--font-montserrat);
+}
+
+/* =====================================================================
+   Base token overrides — dark. Mirrors the root theme's `.dark` pattern:
+   surfaces darken, the action colour lightens to keep AA contrast, and the
+   translucent-white hairline borders are kept (the design has no dark tone
+   for them). Brand career/hands accents are used verbatim in both themes.
+   ===================================================================== */
+.dark {
+	--background: var(--gray-900);
+	--foreground: var(--gray-50);
+	--card: var(--gray-800);
+	--card-foreground: var(--gray-50);
+	--default: var(--ceut-blue-400);
+	--default-foreground: var(--gray-900);
+	--secondary: var(--gray-700);
+	--secondary-foreground: var(--gray-50);
+	--muted: var(--gray-700);
+	--muted-foreground: var(--gray-400);
+	--accent: var(--gray-700);
+	--accent-foreground: var(--ceut-blue-300);
+	--destructive: var(--danger);
+	--destructive-foreground: var(--gray-0);
+	--border: oklch(100% 0 0deg / 10%);
+	--input: oklch(100% 0 0deg / 15%);
+	--ring: var(--ceut-blue-300);
+	--interactive: var(--ceut-blue-300);
+}
