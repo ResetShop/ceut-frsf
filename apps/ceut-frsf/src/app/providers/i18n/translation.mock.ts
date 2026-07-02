@@ -61,10 +61,10 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 
 	// Landing
 	'LANDING.PAGE_TITLE': 'Welcome',
-	'LANDING.BRAND_NAME': 'Angular Nx Starter',
-	'LANDING.HERO_HEADING': 'Angular + Nx SSR Starter',
+	'LANDING.BRAND_NAME': 'CEUT FRSF',
+	'LANDING.HERO_HEADING': 'UTN FRSF Student Center',
 	'LANDING.HERO_SUBHEADING':
-		'A production-ready starter with authentication, role-based access control, and server-side rendering built in.',
+		'Academic and extracurricular information and resources for Facultad Regional Santa Fe students.',
 	'LANDING.HERO_CTA': 'Get started',
 	'LANDING.LOGIN_BUTTON': 'Sign in',
 	'LANDING.SKIP_TO_CONTENT': 'Skip to main content',

@@ -48,10 +48,9 @@ const en: TranslationSchema = {
 	},
 	LANDING: {
 		PAGE_TITLE: 'Welcome',
-		BRAND_NAME: 'Angular Nx Starter',
-		HERO_HEADING: 'Angular + Nx SSR Starter',
-		HERO_SUBHEADING:
-			'A production-ready starter with authentication, role-based access control, and server-side rendering built in.',
+		BRAND_NAME: 'CEUT FRSF',
+		HERO_HEADING: 'UTN FRSF Student Center',
+		HERO_SUBHEADING: 'Academic and extracurricular information and resources for Facultad Regional Santa Fe students.',
 		HERO_CTA: 'Get started',
 		LOGIN_BUTTON: 'Sign in',
 		SKIP_TO_CONTENT: 'Skip to main content',
