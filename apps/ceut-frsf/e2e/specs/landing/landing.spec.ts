@@ -9,26 +9,40 @@ test.describe('Landing page (anonymous)', () => {
 		await landing.goto()
 	})
 
-	test('renders the public marketing page at / with no guard redirect', async ({ page }) => {
+	test('renders the public portal home at / with no guard redirect', async ({ page }) => {
 		await expect(page).toHaveURL('/')
 		await expect(landing.heroHeading).toBeVisible()
-		await expect(landing.featuresHeading).toBeVisible()
+		await expect(landing.eyebrow).toBeVisible()
 	})
 
-	test('shows the three feature cards', async () => {
-		await expect(landing.authFeatureHeading).toBeVisible()
-		await expect(landing.rbacFeatureHeading).toBeVisible()
-		await expect(landing.ssrFeatureHeading).toBeVisible()
+	test('lists the resource cards', async () => {
+		await expect(landing.libraryCard).toBeVisible()
+		await expect(landing.campusCard).toBeVisible()
 	})
 
-	test('the hero CTA navigates to the login page', async ({ page }) => {
-		await landing.heroCta.click()
-		await expect(page).toHaveURL(/\/auth\/login$/)
+	test('the search bar filters the cards live', async () => {
+		await landing.search('library')
+		await expect(landing.libraryCard).toBeVisible()
+		await expect(landing.campusCard).toBeHidden()
 	})
 
-	test('the header shows the theme toggle and a Sign in link', async () => {
+	test('a non-matching query shows the empty state', async () => {
+		await landing.search('zzzzz')
+		await expect(landing.emptyState).toBeVisible()
+		await expect(landing.libraryCard).toBeHidden()
+	})
+
+	test('the header shows the logo, Instagram, theme toggle and a Sign in link', async () => {
+		await expect(landing.brandLogoLink).toBeVisible()
+		await expect(landing.headerInstagramLink).toBeVisible()
 		await expect(landing.themeToggle).toBeVisible()
 		await expect(landing.signInLink).toBeVisible()
+	})
+
+	test('the footer links out to Instagram and Discord', async () => {
+		await expect(landing.footer).toBeVisible()
+		await expect(landing.footerInstagramLink).toBeVisible()
+		await expect(landing.footerDiscordLink).toBeVisible()
 	})
 
 	test('the skip-to-content link is present', async () => {
