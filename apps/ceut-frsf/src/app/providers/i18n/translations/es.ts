@@ -67,6 +67,7 @@ const es: TranslationSchema = {
 		},
 		PORTAL: {
 			EYEBROW: 'Centro de Estudiantes · UTN FRSF',
+			SECTION_HEADING: 'Recursos',
 			SEARCH_PLACEHOLDER: 'Buscar recursos, becas, herramientas...',
 			EMPTY_STATE: 'No encontramos resultados para “{query}”.',
 			INSTAGRAM_TITLE: 'Contactate vía Instagram',

@@ -68,6 +68,7 @@ export interface TranslationSchema {
 		// forcing the key on apps (e.g. reference-app) that don't render it.
 		PORTAL?: {
 			EYEBROW: string
+			SECTION_HEADING: string
 			SEARCH_PLACEHOLDER: string
 			EMPTY_STATE: string
 			INSTAGRAM_TITLE: string

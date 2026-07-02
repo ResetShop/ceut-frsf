@@ -66,6 +66,7 @@ const en: TranslationSchema = {
 		},
 		PORTAL: {
 			EYEBROW: 'Student Center · UTN FRSF',
+			SECTION_HEADING: 'Resources',
 			SEARCH_PLACEHOLDER: 'Search resources, scholarships, tools...',
 			EMPTY_STATE: 'No results found for “{query}”.',
 			INSTAGRAM_TITLE: 'Contact us on Instagram',

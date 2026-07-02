@@ -40,17 +40,20 @@ import { CEUT_PORTAL_CARDS } from './portal-cards.data'
 					</p>
 				</section>
 
-				@if (filteredCards().length > 0) {
-					<ul class="mx-auto max-w-5xl columns-1 gap-4 px-5 pb-8 sm:columns-2 lg:columns-3">
-						@for (card of filteredCards(); track card.id) {
-							<li class="mb-4 break-inside-avoid">
-								<app-portal-card [card]="card" />
-							</li>
-						}
-					</ul>
-				} @else {
-					<p class="text-muted-foreground mx-auto max-w-5xl px-5 pb-8 text-lg">{{ emptyMessage() }}</p>
-				}
+				<h2 class="sr-only">{{ 'LANDING.PORTAL.SECTION_HEADING' | translate }}</h2>
+				<div aria-live="polite">
+					@if (filteredCards().length > 0) {
+						<ul role="list" class="mx-auto max-w-5xl columns-1 gap-4 px-5 pb-8 sm:columns-2 lg:columns-3">
+							@for (card of filteredCards(); track card.id) {
+								<li class="mb-4 break-inside-avoid">
+									<app-portal-card [card]="card" />
+								</li>
+							}
+						</ul>
+					} @else {
+						<p class="text-muted-foreground mx-auto max-w-5xl px-5 pb-8 text-lg">{{ emptyMessage() }}</p>
+					}
+				</div>
 			</main>
 			<app-landing-footer />
 		</div>

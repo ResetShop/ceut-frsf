@@ -76,6 +76,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'LANDING.FEATURES.SSR_TITLE': 'Server-side rendering',
 	'LANDING.FEATURES.SSR_DESCRIPTION': 'Angular SSR out of the box for faster first paint and better SEO.',
 	'LANDING.PORTAL.EYEBROW': 'Student Center · UTN FRSF',
+	'LANDING.PORTAL.SECTION_HEADING': 'Resources',
 	'LANDING.PORTAL.SEARCH_PLACEHOLDER': 'Search resources, scholarships, tools...',
 	'LANDING.PORTAL.EMPTY_STATE': 'No results found for “{query}”.',
 	'LANDING.PORTAL.INSTAGRAM_TITLE': 'Contact us on Instagram',

@@ -26,9 +26,10 @@ describe('LandingPage', () => {
 		expect(screen.getByRole('link', { name: /skip to main content/i })).toHaveAttribute('href', '#main-content')
 	})
 
-	it('renders the resource cards', async () => {
+	it('renders the resource cards as an accessible list', async () => {
 		await renderPage()
 
+		expect(screen.getByRole('list')).toBeInTheDocument()
 		expect(screen.getByRole('heading', { name: 'CEUT Library' })).toBeInTheDocument()
 		expect(screen.getByRole('heading', { name: 'Virtual Campus' })).toBeInTheDocument()
 	})
