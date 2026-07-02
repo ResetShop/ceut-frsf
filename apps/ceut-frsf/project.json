@@ -21,7 +21,7 @@
 					"apps/ceut-frsf/src/assets",
 					{
 						"glob": "**/*",
-						"input": "public"
+						"input": "apps/ceut-frsf/public"
 					}
 				],
 				"styles": ["apps/ceut-frsf/src/styles.css"],
