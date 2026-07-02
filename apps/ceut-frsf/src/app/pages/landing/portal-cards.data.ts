@@ -1,4 +1,4 @@
-import type { PortalCard } from './portal-card.interface'
+import type { PortalCard } from '@components/portal-card/portal-card.interface'
 
 /**
  * Static CEUT portal card catalog mirroring the Claude Design demo tarjetas.
