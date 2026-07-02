@@ -49,8 +49,9 @@ const en: TranslationSchema = {
 	LANDING: {
 		PAGE_TITLE: 'Welcome',
 		BRAND_NAME: 'CEUT FRSF',
-		HERO_HEADING: 'UTN FRSF Student Center',
-		HERO_SUBHEADING: 'Academic and extracurricular information and resources for Facultad Regional Santa Fe students.',
+		HERO_HEADING: 'Your faculty, all in one place',
+		HERO_SUBHEADING:
+			'Everything you need for your studies: paperwork, academic resources, and student life at the regional faculty.',
 		HERO_CTA: 'Get started',
 		LOGIN_BUTTON: 'Sign in',
 		SKIP_TO_CONTENT: 'Skip to main content',
@@ -62,6 +63,64 @@ const en: TranslationSchema = {
 			RBAC_DESCRIPTION: 'Granular permissions with roles, enforced at both the route and API level.',
 			SSR_TITLE: 'Server-side rendering',
 			SSR_DESCRIPTION: 'Angular SSR out of the box for faster first paint and better SEO.',
+		},
+		PORTAL: {
+			EYEBROW: 'Student Center · UTN FRSF',
+			SECTION_HEADING: 'Resources',
+			SEARCH_PLACEHOLDER: 'Search resources, scholarships, tools...',
+			EMPTY_STATE: 'No results found for “{query}”.',
+			INSTAGRAM_TITLE: 'Contact us on Instagram',
+			FOOTER: {
+				TAGLINE: 'Student Center · UTN Facultad Regional Santa Fe',
+				INSTAGRAM_TITLE: 'Follow us on Instagram',
+				DISCORD_TITLE: 'Join our Discord',
+			},
+			CARDS: {
+				BIBLIOTECA: {
+					TITLE: 'CEUT Library',
+					TEXT: 'Search and reserve books from the faculty catalog.',
+					FOOTER: 'Catalog · loans',
+				},
+				DONDE_CURSO: {
+					TITLE: 'Where do I have class?',
+					TEXT: 'Find the classroom for each subject and section.',
+				},
+				HORARIOS: {
+					TITLE: 'Schedules',
+					TEXT: 'Build your class schedule for the semester.',
+				},
+				CALCULADORA: {
+					TITLE: 'Grade calculator',
+					TEXT: 'Estimate your average with and without failed exams.',
+					FOOTER: 'Tool',
+				},
+				BECAS: {
+					TITLE: 'CEUT Scholarships',
+					TEXT: 'Financial and study-material aid for your studies.',
+				},
+				CAFE: {
+					TITLE: 'Café Tecnológico',
+					TEXT: 'Talks and gatherings among students.',
+				},
+				CORO: {
+					TITLE: 'Faculty Choir',
+					TEXT: 'Join us to sing every Wednesday.',
+					FOOTER: 'Extracurricular',
+				},
+				CALENDARIO: {
+					TITLE: 'Academic Calendar',
+					TEXT: 'Dates for finals, enrollment and holidays.',
+				},
+				CAMPUS_VIRTUAL: {
+					TITLE: 'Virtual Campus',
+					TEXT: 'Access the campus and your online courses.',
+				},
+				LIBROS_APUNTES: {
+					TITLE: 'Books & notes',
+					TEXT: 'Study material shared by the community.',
+					FOOTER: 'Community',
+				},
+			},
 		},
 	},
 	COMMON: {

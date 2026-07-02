@@ -31,6 +31,21 @@ describe('LandingHeader', () => {
 		expect(screen.getByRole('button', { name: /switch to (light|dark) mode/i })).toBeInTheDocument()
 	})
 
+	it('renders the brand logo link pointing home', async () => {
+		await renderHeader()
+
+		expect(screen.getByRole('link', { name: 'CEUT FRSF' })).toHaveAttribute('href', '/')
+	})
+
+	it('renders the Instagram link in a new tab', async () => {
+		await renderHeader()
+
+		const link = screen.getByRole('link', { name: 'Contact us on Instagram' })
+		expect(link).toHaveAttribute('href', 'https://instagram.com/ceut.frsf')
+		expect(link).toHaveAttribute('target', '_blank')
+		expect(link).toHaveAttribute('rel', 'noopener')
+	})
+
 	// The public landing route runs no session validation, so an authenticated shortcut here would be dead
 	// code. The rationale is in the test name so it surfaces in CI output, not just this comment.
 	it('never renders a dashboard link (stateless by design)', async () => {
