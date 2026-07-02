@@ -182,8 +182,8 @@ describe('Sidebar', () => {
 			providers: [...defaultProviders(), createNavigationWithSections([mockSettingsSection])],
 		})
 
-		// Verify Brand component is rendered by looking for its unique "Reset Starter Repo" link
-		const brandLink = screen.getByRole('link', { name: /reset starter repo/i })
+		// Verify Brand component is rendered by looking for its unique "CEUT FRSF" link
+		const brandLink = screen.getByRole('link', { name: 'CEUT FRSF' })
 		expect(brandLink).toBeInTheDocument()
 
 		// Verify it has the correct routing to the dashboard page
@@ -226,7 +226,7 @@ describe('Sidebar', () => {
 			await user.keyboard('{Control>}b{/Control}')
 
 			expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /reset starter/i })).toBeInTheDocument()
+			expect(screen.getByRole('link', { name: 'CEUT FRSF' })).toBeInTheDocument()
 		})
 
 		it('sidebar does not visually collapse when store is collapsed but viewport is below lg', async () => {
@@ -240,7 +240,7 @@ describe('Sidebar', () => {
 			uiStore.setSidebarCollapsed(true)
 			fixture.detectChanges()
 
-			expect(screen.getByRole('link', { name: /reset starter repo/i })).toBeInTheDocument()
+			expect(screen.getByRole('link', { name: 'CEUT FRSF' })).toBeInTheDocument()
 			expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
 		})
 
