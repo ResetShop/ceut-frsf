@@ -19,7 +19,7 @@ const meta: Meta<LandingHeader> = {
 		docs: {
 			description: {
 				component: `
-The public landing-page header. It displays a brand wordmark linking back to the landing page, a theme toggle, and a **Login** link that navigates to \`/auth/login\`.
+The public landing-page header. It displays an Instagram link on the left, the centred CEUT logo linking back to the landing page, and — on the right — a theme toggle and a **Login** link that navigates to \`/auth/login\`.
 
 Unlike the dashboard \`Header\` (which is an \`[appHeader]\` attribute directive coupled to \`UIStore\` and the breadcrumb \`Navigation\`), this header is a self-contained, stateless component with no sidebar, no breadcrumbs, and no dashboard dependencies — it is safe to render on a fully public, server-side-rendered route.
 				`,
