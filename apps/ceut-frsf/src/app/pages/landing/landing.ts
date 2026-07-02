@@ -34,38 +34,6 @@ import { Button } from '@resetshop/ui/button/button'
 						</a>
 					</div>
 				</section>
-
-				<section aria-labelledby="landing-features-heading" class="mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-24">
-					<h2 id="landing-features-heading" class="text-foreground text-center text-2xl font-semibold">
-						{{ 'LANDING.FEATURES.TITLE' | translate }}
-					</h2>
-					<div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-						<article class="rounded-lg border border-gray-200 p-6 dark:border-white/10">
-							<h3 class="text-foreground text-lg font-semibold">
-								{{ 'LANDING.FEATURES.AUTH_TITLE' | translate }}
-							</h3>
-							<p class="mt-2 text-gray-600 dark:text-gray-400">
-								{{ 'LANDING.FEATURES.AUTH_DESCRIPTION' | translate }}
-							</p>
-						</article>
-						<article class="rounded-lg border border-gray-200 p-6 dark:border-white/10">
-							<h3 class="text-foreground text-lg font-semibold">
-								{{ 'LANDING.FEATURES.RBAC_TITLE' | translate }}
-							</h3>
-							<p class="mt-2 text-gray-600 dark:text-gray-400">
-								{{ 'LANDING.FEATURES.RBAC_DESCRIPTION' | translate }}
-							</p>
-						</article>
-						<article class="rounded-lg border border-gray-200 p-6 dark:border-white/10">
-							<h3 class="text-foreground text-lg font-semibold">
-								{{ 'LANDING.FEATURES.SSR_TITLE' | translate }}
-							</h3>
-							<p class="mt-2 text-gray-600 dark:text-gray-400">
-								{{ 'LANDING.FEATURES.SSR_DESCRIPTION' | translate }}
-							</p>
-						</article>
-					</div>
-				</section>
 			</main>
 		</div>
 	`,

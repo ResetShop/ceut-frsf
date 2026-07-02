@@ -18,13 +18,12 @@ describe('Brand', () => {
 		expect(fixture.componentInstance).toBeTruthy()
 	})
 
-	it('should render brand link button with reset text', async () => {
+	it('should render the brand link with the CEUT FRSF accessible name', async () => {
 		await render(Brand, {
 			providers: defaultProviders(),
 		})
 
-		const link = screen.getByRole('link', { name: /reset starter repo/i })
-		expect(link).toBeInTheDocument()
+		expect(screen.getByRole('link', { name: 'CEUT FRSF' })).toBeInTheDocument()
 	})
 
 	it('should link to the dashboard root', async () => {
@@ -32,20 +31,7 @@ describe('Brand', () => {
 			providers: defaultProviders(),
 		})
 
-		const link = screen.getByRole('link', { name: /reset starter repo/i })
-		expect(link).toHaveAttribute('href', '/dashboard')
-	})
-
-	it('should render icon within the brand button', async () => {
-		await render(Brand, {
-			providers: defaultProviders(),
-		})
-
-		const link = screen.getByRole('link', { name: /reset starter repo/i })
-		expect(link).toBeInTheDocument()
-
-		const text = screen.getByText('Reset Starter Repo')
-		expect(text).toBeInTheDocument()
+		expect(screen.getByRole('link', { name: 'CEUT FRSF' })).toHaveAttribute('href', '/dashboard')
 	})
 
 	it('should apply button styling with variant and size', async () => {
@@ -53,57 +39,51 @@ describe('Brand', () => {
 			providers: defaultProviders(),
 		})
 
-		const link = screen.getByRole('link', { name: /reset starter repo/i })
+		const link = screen.getByRole('link', { name: 'CEUT FRSF' })
 		expect(link).toHaveAttribute('variant', 'default')
 		expect(link).toHaveAttribute('size', 'sm')
 	})
 
-	it('should apply gap styling for icon and text spacing', async () => {
+	it('should apply gap and weight styling for the logo layout', async () => {
 		await render(Brand, {
 			providers: defaultProviders(),
 		})
 
-		const link = screen.getByRole('link', { name: /reset starter repo/i })
+		const link = screen.getByRole('link', { name: 'CEUT FRSF' })
 		expect(link).toHaveClass('gap-2')
 		expect(link).toHaveClass('font-semibold')
 	})
 
-	it('should render with proper semantic structure', async () => {
-		await render(Brand, {
-			providers: defaultProviders(),
-		})
-
-		const link = screen.getByRole('link')
-		expect(link).toBeInTheDocument()
-		expect(link).toHaveTextContent(/Reset Starter Repo/)
-	})
-
 	describe('collapsed input', () => {
-		it('should show brand text when collapsed is false', async () => {
+		it('should render the full logo when expanded', async () => {
 			await render(Brand, {
 				inputs: { collapsed: false },
 				providers: defaultProviders(),
 			})
 
-			expect(screen.getByText('Reset Starter Repo')).toBeInTheDocument()
+			expect(screen.getByRole('img', { name: 'CEUT FRSF' })).toHaveAttribute('src', 'logo/ceut-logo.svg')
 		})
 
-		it('should hide brand text when collapsed is true', async () => {
+		it('should render the compact icon when collapsed', async () => {
 			await render(Brand, {
 				inputs: { collapsed: true },
 				providers: defaultProviders(),
 			})
 
-			expect(screen.queryByText('Reset Starter Repo')).not.toBeInTheDocument()
+			expect(screen.getByRole('img', { name: 'CEUT FRSF' })).toHaveAttribute('src', 'logo/ceut-icon.png')
 		})
 
-		it('should still render the icon link when collapsed', async () => {
-			await render(Brand, {
-				inputs: { collapsed: true },
+		it('should expose a single accessible name in both states (no duplicate announcement)', async () => {
+			const { rerender } = await render(Brand, {
+				inputs: { collapsed: false },
 				providers: defaultProviders(),
 			})
 
-			expect(screen.getByRole('link')).toBeInTheDocument()
+			expect(screen.getByRole('link', { name: 'CEUT FRSF' })).toBeInTheDocument()
+
+			await rerender({ inputs: { collapsed: true } })
+
+			expect(screen.getByRole('link', { name: 'CEUT FRSF' })).toBeInTheDocument()
 		})
 	})
 })

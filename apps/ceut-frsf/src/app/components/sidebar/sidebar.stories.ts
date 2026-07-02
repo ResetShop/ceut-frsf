@@ -11,7 +11,6 @@ import {
 	featherChevronsLeft,
 	featherChevronsRight,
 	featherHome,
-	featherRefreshCw,
 	featherSettings,
 	featherUser,
 } from '@ng-icons/feather-icons'
@@ -55,7 +54,6 @@ const meta: Meta<Sidebar> = {
 				provideIcons({
 					featherHome,
 					featherActivity,
-					featherRefreshCw,
 					featherSettings,
 					featherUser,
 					featherChevronRight,

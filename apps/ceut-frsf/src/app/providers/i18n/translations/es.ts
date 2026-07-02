@@ -49,10 +49,10 @@ const es: TranslationSchema = {
 	},
 	LANDING: {
 		PAGE_TITLE: 'Bienvenido',
-		BRAND_NAME: 'Angular Nx Starter',
-		HERO_HEADING: 'Starter SSR de Angular + Nx',
+		BRAND_NAME: 'CEUT FRSF',
+		HERO_HEADING: 'Centro de Estudiantes UTN FRSF',
 		HERO_SUBHEADING:
-			'Un starter listo para producción con autenticación, control de acceso basado en roles y renderizado del lado del servidor integrados.',
+			'Información y recursos académicos y extracurriculares para los estudiantes de la Facultad Regional Santa Fe.',
 		HERO_CTA: 'Comenzar',
 		LOGIN_BUTTON: 'Iniciar sesión',
 		SKIP_TO_CONTENT: 'Saltar al contenido principal',

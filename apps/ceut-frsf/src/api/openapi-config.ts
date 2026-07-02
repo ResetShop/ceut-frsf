@@ -5,7 +5,7 @@ export const PASETO_COOKIE_SCHEME = 'pasetoCookie'
 export const CRON_SECRET_SCHEME = 'cronSecret'
 
 export const OPENAPI_INFO = {
-	title: 'Angular NX Starter API',
+	title: 'CEUT FRSF API',
 	version: '1.0.0',
 	description: 'REST API with PASETO cookie authentication',
 } as const
