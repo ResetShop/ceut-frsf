@@ -21,7 +21,7 @@ const meta: Meta<LandingPage> = {
 				component: `
 The public, server-side-rendered landing page mounted at \`/\`. It is fully accessible to both anonymous and authenticated visitors — no route guard is involved.
 
-The page composes the \`LandingHeader\` (Login link + theme toggle) with a hero section and a three-up grid of feature highlights. The hero call-to-action and the header Login link both navigate to \`/auth/login\`.
+The page composes the \`LandingHeader\` (Login link + theme toggle) with a hero section. The hero call-to-action and the header Login link both navigate to \`/auth/login\`.
 				`,
 			},
 			canvas: {
