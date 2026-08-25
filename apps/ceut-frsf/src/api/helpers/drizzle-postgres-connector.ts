@@ -1,5 +1,7 @@
 import { logger } from '@resetshop/util'
 import { authentication, authenticationRelations } from '@schema/authentication'
+import { card } from '@schema/card'
+import { cardHistory } from '@schema/card-history'
 import { permission, permissionRelations } from '@schema/permission'
 import { permissionRoute, permissionRouteRelations } from '@schema/permission-route'
 import { refreshToken } from '@schema/refresh-token'
@@ -17,6 +19,8 @@ import { dbEnv } from '../config/db.env'
 const schema = {
 	authentication,
 	authenticationRelations,
+	card,
+	cardHistory,
 	permission,
 	permissionRelations,
 	permissionRoute,
