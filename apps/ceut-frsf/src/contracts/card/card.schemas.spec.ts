@@ -120,4 +120,10 @@ describe('updateCardRequestSchema', () => {
 
 		expect(result.success).toBe(true)
 	})
+
+	it('accepts a lone pinnedPosition change without resending isPinned', () => {
+		const result = updateCardRequestSchema.safeParse({ pinnedPosition: 1 })
+
+		expect(result.success).toBe(true)
+	})
 })

@@ -82,10 +82,11 @@ export const updateCardRequestSchema = z
 		isPinned: z.boolean().optional(),
 		pinnedPosition: z.number().int().min(0).max(2).nullable().optional(),
 	})
-	.refine(
-		(data) => (data.isPinned === undefined && data.pinnedPosition === undefined) || pinnedPositionMatchesIsPinned(data),
-		{
-			message: PINNED_POSITION_REFINE_MESSAGE,
-			path: ['pinnedPosition'],
-		},
-	)
+	// Only enforced when `isPinned` is explicitly part of the payload — a lone `pinnedPosition`
+	// change (repositioning an already-pinned card) is valid without resending `isPinned`, since
+	// this is a partial update and the coupling is checked against the current row's `isPinned`
+	// value by the service layer that applies it.
+	.refine((data) => data.isPinned === undefined || pinnedPositionMatchesIsPinned(data), {
+		message: PINNED_POSITION_REFINE_MESSAGE,
+		path: ['pinnedPosition'],
+	})
