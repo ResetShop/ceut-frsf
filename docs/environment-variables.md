@@ -113,7 +113,7 @@ Best for: terminal-driven development, scripts.
 4. For `npm` scripts that need the file, the repo provides `*:local` variants that take `--env-file=.env`. Since `.env` is forbidden in the working tree, you must point `--env-file` at the out-of-tree path yourself. Example:
 
    ```bash
-   tsx --env-file=$HOME/.env/angular-nx-starter --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/seed.ts
+   tsx --env-file=$HOME/.env/angular-nx-starter --tsconfig apps/ceut-frsf/tsconfig.json ./apps/ceut-frsf/src/db/seed.ts
    ```
 
 ### 2. IDE run configuration
@@ -150,7 +150,7 @@ direnv loads/unloads the variables automatically when you `cd` in and out of the
 
 ### Script fail-fast behavior
 
-The database entry-point scripts — `drizzle:create-migrations`, `drizzle:push-migrations`, `drizzle:seed`, and `sync:permissions` — and the migration runner's `drizzle.config.ts` all read `PG_CONNECTION_STRING` through the `dbEnv` proxy (`@config/db.env`). The `drizzle-kit` scripts run through `tsx --tsconfig apps/reference-app/tsconfig.json` so the `@config/*` alias resolves. If `PG_CONNECTION_STRING` is missing or empty when you run one of these scripts, the proxy prints a formatted `FATAL: Environment validation failed (db domain)` message and exits with code `1` **at boot** — before any Drizzle or Postgres connection is attempted — instead of failing several lines later with a confusing connection error. This is the most common first-time setup snag for `npm run drizzle:seed`: deliver `PG_CONNECTION_STRING` via one of the four mechanisms above before running it. `npm install` does **not** run any database script (the `postinstall` hook only sets up Claude Code skills), so a bare install never hits this — run `npm run drizzle:push-migrations` then `npm run drizzle:seed` explicitly after configuring your environment.
+The database entry-point scripts — `drizzle:create-migrations`, `drizzle:push-migrations`, `drizzle:seed`, and `sync:permissions` — and the migration runner's `drizzle.config.ts` all read `PG_CONNECTION_STRING` through the `dbEnv` proxy (`@config/db.env`). The `drizzle-kit` scripts run through `tsx --tsconfig apps/ceut-frsf/tsconfig.json` so the `@config/*` alias resolves. If `PG_CONNECTION_STRING` is missing or empty when you run one of these scripts, the proxy prints a formatted `FATAL: Environment validation failed (db domain)` message and exits with code `1` **at boot** — before any Drizzle or Postgres connection is attempted — instead of failing several lines later with a confusing connection error. This is the most common first-time setup snag for `npm run drizzle:seed`: deliver `PG_CONNECTION_STRING` via one of the four mechanisms above before running it. `npm install` does **not** run any database script (the `postinstall` hook only sets up Claude Code skills), so a bare install never hits this — run `npm run drizzle:push-migrations` then `npm run drizzle:seed` explicitly after configuring your environment.
 
 `npm run drizzle:seed` additionally needs admin credentials: set `SEED_ADMIN_EMAIL` + `SEED_ADMIN_PASSWORD` (see the Variable Index), or run it in an interactive terminal to be prompted (masked password). With neither env values nor a TTY, the seed exits `1` with a clear message rather than creating a default-credential admin.
 
