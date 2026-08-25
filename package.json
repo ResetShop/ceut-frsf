@@ -62,12 +62,12 @@
 		"test:e2e:ui": "nx run reference-app:e2e -- --ui",
 		"generate:app": "nx g @resetshop/generators:app",
 		"upstream:pull": "node scripts/upstream-pull.mjs",
-		"drizzle:create-migrations": "tsx --tsconfig apps/reference-app/tsconfig.json ./node_modules/drizzle-kit/bin.cjs generate",
-		"drizzle:push-migrations": "tsx --tsconfig apps/reference-app/tsconfig.json ./node_modules/drizzle-kit/bin.cjs push",
-		"drizzle:seed": "tsx --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/seed.ts",
-		"drizzle:seed:local": "tsx --env-file=.env --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/seed.ts",
-		"sync:permissions": "tsx --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/sync-permissions.ts",
-		"sync:permissions:local": "tsx --env-file=.env --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/sync-permissions.ts"
+		"drizzle:create-migrations": "tsx --tsconfig apps/ceut-frsf/tsconfig.json ./node_modules/drizzle-kit/bin.cjs generate",
+		"drizzle:push-migrations": "tsx --tsconfig apps/ceut-frsf/tsconfig.json ./node_modules/drizzle-kit/bin.cjs push",
+		"drizzle:seed": "tsx --tsconfig apps/ceut-frsf/tsconfig.json ./apps/ceut-frsf/src/db/seed.ts",
+		"drizzle:seed:local": "tsx --env-file=.env --tsconfig apps/ceut-frsf/tsconfig.json ./apps/ceut-frsf/src/db/seed.ts",
+		"sync:permissions": "tsx --tsconfig apps/ceut-frsf/tsconfig.json ./apps/ceut-frsf/src/db/sync-permissions.ts",
+		"sync:permissions:local": "tsx --env-file=.env --tsconfig apps/ceut-frsf/tsconfig.json ./apps/ceut-frsf/src/db/sync-permissions.ts"
 	},
 	"private": true,
 	"dependencies": {
