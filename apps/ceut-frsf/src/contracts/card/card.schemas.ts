@@ -6,6 +6,8 @@ import { CARD_FIELD_LIMITS, CardType } from './card.constants'
 // Card Schemas
 // ============================================================================
 
+const cardTypeSchema = z.enum([CardType.ICON_CORNER, CardType.HEADER_IMAGE, CardType.FULL_IMAGE])
+
 /**
  * Card data schema returned from the database.
  */
@@ -14,7 +16,7 @@ export const cardDataSchema = z.object({
 	legacyId: z.number().int().positive().nullable(),
 	internalName: z.string(),
 	title: z.string().nullable(),
-	type: z.enum([CardType.ICON_CORNER, CardType.HEADER_IMAGE, CardType.FULL_IMAGE]),
+	type: cardTypeSchema,
 	imageUrl: z.url().nullable(),
 	content: z.string().nullable(),
 	link: linkSchema.nullable(),
@@ -53,7 +55,7 @@ export const createCardRequestSchema = z
 		legacyId: z.number().int().positive().optional(),
 		internalName: z.string().min(1).max(CARD_FIELD_LIMITS.INTERNAL_NAME_MAX_LENGTH),
 		title: z.string().max(CARD_FIELD_LIMITS.TITLE_MAX_LENGTH).optional(),
-		type: z.enum([CardType.ICON_CORNER, CardType.HEADER_IMAGE, CardType.FULL_IMAGE]).default(CardType.ICON_CORNER),
+		type: cardTypeSchema.default(CardType.ICON_CORNER),
 		imageUrl: z.url().optional(),
 		content: z.string().max(CARD_FIELD_LIMITS.CONTENT_MAX_LENGTH).optional(),
 		link: linkSchema.optional(),
@@ -70,7 +72,7 @@ export const updateCardRequestSchema = z
 		legacyId: z.number().int().positive().optional(),
 		internalName: z.string().min(1).max(CARD_FIELD_LIMITS.INTERNAL_NAME_MAX_LENGTH).optional(),
 		title: z.string().max(CARD_FIELD_LIMITS.TITLE_MAX_LENGTH).optional(),
-		type: z.enum([CardType.ICON_CORNER, CardType.HEADER_IMAGE, CardType.FULL_IMAGE]).optional(),
+		type: cardTypeSchema.optional(),
 		imageUrl: z.url().optional(),
 		content: z.string().max(CARD_FIELD_LIMITS.CONTENT_MAX_LENGTH).optional(),
 		link: linkSchema.optional(),
