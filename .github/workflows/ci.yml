@@ -2,11 +2,22 @@ name: CI
 
 on:
   pull_request:
+  # Push to develop: runs CI on every merge and, above all, saves the Nx cache
+  # on the default branch — restorable by every PR from its first push.
+  push:
+    branches: [develop]
+  # Manual runs, and the release pipeline's CI signal: the develop → main
+  # release PR is created by GITHUB_TOKEN, which by GitHub's anti-recursion
+  # rule does not fire `on: pull_request`; `workflow_dispatch` is the
+  # exception the token CAN trigger, so prepare-release-pr.yml dispatches
+  # this workflow against develop to get real status for what ships.
+  workflow_dispatch:
 
-# Inherited by every job so Nx tasks can read/write the Nx Cloud remote cache.
-# The cacheable jobs below drop `--skip-nx-cache`; `e2e` stays cold by design.
+# This workspace does not use Nx Cloud — no nxCloudId in nx.json, no token
+# referenced anywhere in this workflow. NX_NO_CLOUD is set defensively so a
+# stray NX_CLOUD_ACCESS_TOKEN in the runner environment can never activate it.
 env:
-  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+  NX_NO_CLOUD: 'true'
 
 jobs:
   setup:
@@ -16,10 +27,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4.2.2
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '22.20'
+          node-version: '24.18'
 
       - name: Get Node.js version
         id: node-version
@@ -57,13 +68,13 @@ jobs:
           path: .
           key: repo-${{ github.sha }}
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '22.20'
+          node-version: '24.18'
 
       - name: Run Tests
-        run: bash .github/scripts/nx-run.sh nx run-many -t test
+        run: npx nx run-many -t test
 
   typecheck:
     needs: setup
@@ -75,13 +86,13 @@ jobs:
           path: .
           key: repo-${{ github.sha }}
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '22.20'
+          node-version: '24.18'
 
       - name: Run typecheck
-        run: bash .github/scripts/nx-run.sh nx run-many -t typecheck
+        run: npx nx run-many -t typecheck
 
   lint:
     needs: setup
@@ -93,13 +104,13 @@ jobs:
           path: .
           key: repo-${{ github.sha }}
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '22.20'
+          node-version: '24.18'
 
       - name: Run Linter
-        run: bash .github/scripts/nx-run.sh nx run-many -t lint
+        run: npx nx run-many -t lint
 
   stylelint:
     needs: setup
@@ -111,23 +122,17 @@ jobs:
           path: .
           key: repo-${{ github.sha }}
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '22.20'
+          node-version: '24.18'
 
       - name: Run stylelint
-        run: bash .github/scripts/nx-run.sh nx stylelint reference-app
+        run: npx nx stylelint reference-app
 
   check:
     needs: setup
     runs-on: ubuntu-latest
-    # The `check` target is `cache: false`, so it gains nothing from Nx Cloud. Running it with
-    # NX_NO_CLOUD=true skips the cloud-authorization step, so these repo-wide guards keep enforcing
-    # even when the Nx Cloud org is unavailable or over its plan quota (an over-quota org otherwise
-    # makes `nx` hard-exit before the target runs). A safety guard must never be gated on cloud billing.
-    env:
-      NX_NO_CLOUD: 'true'
     steps:
       - name: Restore repository
         uses: actions/cache@v4.2.3
@@ -135,10 +140,10 @@ jobs:
           path: .
           key: repo-${{ github.sha }}
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '22.20'
+          node-version: '24.18'
 
       # Repo-wide guards (no `.env*` files, no issue refs in code comments, prettier formatting).
       # The `check` target is `cache: false`, so it always runs — closing the gap where a
@@ -170,13 +175,13 @@ jobs:
           path: .
           key: repo-${{ github.sha }}
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '22.20'
+          node-version: '24.18'
 
       - name: Run integration tests
-        run: bash .github/scripts/nx-run.sh nx test-integration reference-app --skip-nx-cache
+        run: npx nx test-integration reference-app --skip-nx-cache
         env:
           # PG_TEST_CONNECTION_STRING is a repo Variable — it points at the in-job
           # postgres:17 service container above (localhost, no real credential).
@@ -209,10 +214,10 @@ jobs:
           path: .
           key: repo-${{ github.sha }}
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '22.20'
+          node-version: '24.18'
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -221,7 +226,7 @@ jobs:
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run Tests
-        run: bash .github/scripts/nx-run.sh nx run reference-app:e2e --skip-nx-cache
+        run: npx nx run reference-app:e2e --skip-nx-cache
         env:
           # The Playwright globalSetup seeds this postgres:17 service (same pattern as test-integration).
           # PG_TEST_CONNECTION_STRING is a repo Variable (localhost service, no real credential);
@@ -246,16 +251,16 @@ jobs:
           path: .
           key: repo-${{ github.sha }}
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '22.20'
+          node-version: '24.18'
 
       - name: Generate PASETO key for CI
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
 
       - name: Run build
-        run: bash .github/scripts/nx-run.sh nx run reference-app:build:production
+        run: npx nx run reference-app:build:production
 
   storybook:
     needs: setup
@@ -267,10 +272,10 @@ jobs:
           path: .
           key: repo-${{ github.sha }}
 
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '22.20'
+          node-version: '24.18'
 
       - name: Run Storybook build
-        run: bash .github/scripts/nx-run.sh nx run reference-app:build-storybook
+        run: npx nx run reference-app:build-storybook

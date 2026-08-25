@@ -1,0 +1,30 @@
+{
+	"name": "scripts",
+	"$schema": "../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "scripts",
+	"projectType": "library",
+	"tags": ["type:util", "scope:starter"],
+	"targets": {
+		"typecheck": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": ["{projectRoot}/**/*.ts", "{projectRoot}/**/*.mjs", "{projectRoot}/tsconfig*.json", "sharedGlobals"],
+			"options": {
+				"command": "tsc --noEmit -p scripts/tsconfig.spec.json"
+			}
+		},
+		"test": {
+			"executor": "@nx/vitest:test",
+			"outputs": ["{workspaceRoot}/coverage/scripts"],
+			"options": {
+				"config": "scripts/vitest.config.ts"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint",
+			"options": {
+				"lintFilePatterns": ["scripts/lib/**/*.ts"]
+			}
+		}
+	}
+}

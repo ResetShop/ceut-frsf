@@ -1,3 +1,4 @@
-# Shell scripts must keep LF line endings even when edited on Windows:
-# CI runs them with bash on Linux, and a CR would break them.
+# Standing policy for any shell script in the repo: keep LF line endings even
+# when edited on Windows. Scripts invoked with bash on Linux (CI, git hooks)
+# break on a CR, so pin LF regardless of the committer's platform.
 *.sh text eol=lf

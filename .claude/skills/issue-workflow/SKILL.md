@@ -19,16 +19,17 @@ Example: `/issue-workflow https://github.com/ResetShop/angular-nx-standalone-sta
 
 ## Phase 1 — Setup
 
-**Purpose:** Create a clean feature branch from the latest `main`.
+**Purpose:** Create a clean feature branch from the latest default branch.
 
 1. Run `gh issue view <issue-url> --json number,title` to extract the issue number and title.
 2. Derive the branch name:
    - Format: `<number>-<kebab-case-title>`
    - Transformation: lowercase the title, replace spaces and non-alphanumeric characters with hyphens, collapse consecutive hyphens, trim leading/trailing hyphens, truncate to 60 characters.
    - Example: issue #349 "Add /issue-workflow skill to standardize the issue resolution lifecycle" → `349-add-issue-workflow-skill-to-standardize-the-issue-resolution-lifecycle` (truncated at a word boundary if needed).
-3. Run `git checkout main && git pull` to ensure the base is current.
-4. Run `git checkout -b <branch-name>` to create the feature branch.
-5. Report to the user: issue number, title, and branch name created.
+3. Resolve the repo's default branch: `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`. This is `<default-branch>` for the rest of the workflow — on the upstream repo it resolves to `develop` (the integration branch; `main` is release-only), while a single-branch fork resolves to its own primary branch, so the skill works unmodified in both.
+4. Run `git checkout <default-branch> && git pull` to ensure the base is current.
+5. Run `git checkout -b <branch-name>` to create the feature branch.
+6. Report to the user: issue number, title, default branch, and branch name created.
 
 ---
 
@@ -90,7 +91,7 @@ Do not proceed to Phase 3 until the user explicitly approves.
    - Diagnose and fix the issue.
    - Commit the fix following Phase 3 commit rules.
    - Re-run `npm run ci` until it passes.
-2. Delegate to the `code-reviewer` agent to review all changes on the branch vs. `main`.
+2. Delegate to the `code-reviewer` agent to review all changes on the branch vs. `<default-branch>`.
 3. The code-reviewer writes findings to `workspace/CODE_REVIEW.md`.
 4. Present the findings table to the user (Critical Issues, Warnings, Suggestions).
 
@@ -121,7 +122,7 @@ Present this message:
 
 **Purpose:** Push, create the PR, and update the original issue.
 
-0. **CHANGELOG gate.** Before pushing, verify a `## [Unreleased]` entry for this issue exists (`git diff main...HEAD -- CHANGELOG.md` must be non-empty, unless the rare fork-invisible exemption from Phase 3 step 4 was explicitly declared to the user). If it is missing, stop and add it now (Phase 3 step 4) — do not push or open the PR without it.
+0. **CHANGELOG gate.** Before pushing, verify a `## [Unreleased]` entry for this issue exists (`git diff <default-branch>...HEAD -- CHANGELOG.md` must be non-empty, unless the rare fork-invisible exemption from Phase 3 step 4 was explicitly declared to the user). If it is missing, stop and add it now (Phase 3 step 4) — do not push or open the PR without it.
 1. Run `git push -u origin <branch-name>`.
 2. Create the PR using `gh pr create` with:
    - Title: `[#<issue>] - <issue-title>`
@@ -165,7 +166,7 @@ Present this message:
 
    **Cell rules:**
    - `Issue` and `PR` cells must use markdown links with the actual numeric IDs and URLs.
-   - `Commits` counts only commits on the feature branch (`git rev-list --count main..HEAD`).
+   - `Commits` counts only commits on the feature branch (`git rev-list --count <default-branch>..HEAD`).
    - `Findings addressed` lists the counts from `workspace/CODE_REVIEW.md` and a disposition phrase. Use `all fixed`, `none required`, or `<n> deferred — see <issue-url(s)>` as appropriate. If a review category had zero findings, still list it with `0 critical` / `0 warnings` / `0 suggestions` — never omit a row or cell.
    - `CI status` reports the result of the last `npm run ci` run on this branch.
 
@@ -174,7 +175,7 @@ Present this message:
    - A closing sentence about out-of-scope items if any were addressed in this PR.
    - A prompt asking whether to file follow-up issues (per step 4).
 
-   **Ordering assertion:** The table MUST be rendered only after steps 1–4 of this phase have completed — i.e., after `git push` succeeded, after `gh pr create` returned a real PR URL, and after the issue body has been edited if out-of-scope items existed. Do not synthesise the table from anticipated values before these steps complete; every cell must reflect verified state from the prior steps (PR URL from `gh pr create` output, commit count from `git rev-list --count main..HEAD`, etc.). If any of those steps failed or was skipped, do NOT render the table — report the failure instead and stop. The table's contract is that its presence implies the workflow completed end-to-end on real artifacts.
+   **Ordering assertion:** The table MUST be rendered only after steps 1–4 of this phase have completed — i.e., after `git push` succeeded, after `gh pr create` returned a real PR URL, and after the issue body has been edited if out-of-scope items existed. Do not synthesise the table from anticipated values before these steps complete; every cell must reflect verified state from the prior steps (PR URL from `gh pr create` output, commit count from `git rev-list --count <default-branch>..HEAD`, etc.). If any of those steps failed or was skipped, do NOT render the table — report the failure instead and stop. The table's contract is that its presence implies the workflow completed end-to-end on real artifacts.
 
 ---
 

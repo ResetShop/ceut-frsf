@@ -1,7 +1,7 @@
 {
 	"name": "@app/source",
 	"type": "module",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"license": "Apache-2.0",
 	"description": "Fork-ready Nx monorepo starter: an SSR-ready Angular 21+ frontend and a Hono backend API, with NgRx Signal Store, a Drizzle/Postgres data layer, and PASETO auth + RBAC.",
 	"author": {
@@ -34,7 +34,7 @@
 		"#tailwind-theme": "./tailwind.config.css"
 	},
 	"engines": {
-		"node": "^20.19.0 || ^22.19.0"
+		"node": "^24.18.0"
 	},
 	"scripts": {
 		"postinstall": "node scripts/setup-skills.mjs",
@@ -50,6 +50,7 @@
 		"build:ceut-frsf": "nx build ceut-frsf --skip-nx-cache",
 		"storybook": "nx run reference-app:storybook",
 		"storybook:build": "nx run reference-app:build-storybook",
+		"storybook:serve": "node scripts/serve-storybook.mjs",
 		"lint": "nx run-many -t lint --skip-nx-cache",
 		"stylelint": "nx stylelint reference-app --skip-nx-cache",
 		"typecheck": "nx run-many -t typecheck --skip-nx-cache",
@@ -60,6 +61,7 @@
 		"test:e2e": "nx run reference-app:e2e",
 		"test:e2e:ui": "nx run reference-app:e2e -- --ui",
 		"generate:app": "nx g @resetshop/generators:app",
+		"upstream:pull": "node scripts/upstream-pull.mjs",
 		"drizzle:create-migrations": "tsx --tsconfig apps/reference-app/tsconfig.json ./node_modules/drizzle-kit/bin.cjs generate",
 		"drizzle:push-migrations": "tsx --tsconfig apps/reference-app/tsconfig.json ./node_modules/drizzle-kit/bin.cjs push",
 		"drizzle:seed": "tsx --tsconfig apps/reference-app/tsconfig.json ./apps/reference-app/src/db/seed.ts",
@@ -138,7 +140,7 @@
 		"@testing-library/dom": "^10.4.1",
 		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/user-event": "^14.6.1",
-		"@types/node": "^22.19.3",
+		"@types/node": "^24.13.3",
 		"@types/nodemailer": "^7.0.9",
 		"@types/pg": "^8.16.0",
 		"@typescript-eslint/utils": "^8.50.0",

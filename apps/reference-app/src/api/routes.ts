@@ -5,7 +5,7 @@ import userRoutes from './modules/user'
 
 // Define public paths that don't require authentication
 // Logout is public because it uses the refresh token from cookie to identify user
-// Cleanup-tokens is public but protected by CRON_SECRET for Vercel Cron Jobs
+// Cleanup-tokens is public but protected by CRON_SECRET, allowing an external scheduler to trigger it
 export const PUBLIC_AUTH_ROUTES = [
 	'/api/auth/login',
 	'/api/auth/refresh',

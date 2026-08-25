@@ -306,7 +306,7 @@ Revoke all refresh tokens for the user. Uses refresh token from HttpOnly cookie 
 
 ### GET /api/auth/cleanup-tokens
 
-Manually trigger expired token cleanup. Requires either `CRON_SECRET` authorization or an authenticated user session. Useful for Vercel Cron Jobs or manual maintenance.
+Manually trigger expired token cleanup. Requires either `CRON_SECRET` authorization or an authenticated user session. Useful for an external scheduler or manual maintenance.
 
 **Authorization:** Either `Authorization: Bearer <CRON_SECRET>` header or authenticated user session.
 
@@ -378,28 +378,6 @@ Authorization: Bearer <your-cron-secret>
 Schedule: Every hour (e.g., "0 * * * *")
 ```
 
-**Vercel Example:**
-
-**1. Set required environment variables in Vercel dashboard:**
-
-- `IS_SERVERLESS=true` - Disables background cron jobs and uses connection-pool-safe locks
-- `CRON_SECRET` - Your generated secret for cron authentication (minimum 32 characters)
-
-**2. Add to your `vercel.json`:**
-
-```json
-{
-	"crons": [
-		{
-			"path": "/api/auth/cleanup-tokens",
-			"schedule": "0 * * * *"
-		}
-	]
-}
-```
-
-Vercel automatically includes the `CRON_SECRET` as the `Authorization: Bearer <CRON_SECRET>` header when calling cron endpoints.
-
 The endpoint verifies the `CRON_SECRET` before executing. Authenticated users can also trigger cleanup manually.
 
 ### Monitoring Token Cleanup
@@ -457,7 +435,6 @@ In serverless environments with connection pooling (e.g., PgBouncer in transacti
 
 Set `IS_SERVERLESS=true` when deploying to:
 
-- Vercel (serverless functions)
 - AWS Lambda
 - Any environment using PgBouncer in transaction mode
 - Any managed database with connection pooling

@@ -1,0 +1,9 @@
+# Configures the PR list GitHub auto-generates for release notes
+# (--generate-notes / the "Generate release notes" button). The catch-all
+# category groups every PR under a single "Merged PRs" heading, which
+# release.yml appends after the curated CHANGELOG section.
+changelog:
+  categories:
+    - title: Merged PRs
+      labels:
+        - '*'

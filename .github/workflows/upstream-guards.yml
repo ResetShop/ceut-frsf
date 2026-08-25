@@ -11,12 +11,18 @@ name: Upstream Guards
 #
 # Both guards do NOT run on forks (gated by the `if:` expression in each job).
 #
+# Coverage spans both long-lived branches: `develop` (day-to-day integration —
+# where every feature PR lands) and `main` (release-only — defense-in-depth at
+# the release boundary; both guards are diff-based, so they work unchanged
+# against any base/head pair, and changelog-guard is a natural no-op on release
+# PRs since CHANGELOG.md is always part of that diff).
+#
 # Note: the two jobs share boilerplate (checkout, label check). Any fix in one
 # job should generally be mirrored in the other.
 
 on:
   pull_request:
-    branches: [main]
+    branches: [develop, main]
     # Re-evaluate when bypass labels are added or removed so a contributor can
     # apply `allow-app-change` / `skip-changelog` and have the guard re-run
     # without having to push a new commit.

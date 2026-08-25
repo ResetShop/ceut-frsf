@@ -1,6 +1,4 @@
 import { Injectable } from '@angular/core'
-// TODO: Uncomment if you're using Vercel Speed Insights, after installing the @vercel/speed-insights package
-// import { injectSpeedInsights } from '@vercel/speed-insights';
 import { environment } from '../../environments/environment'
 
 @Injectable({
@@ -8,13 +6,6 @@ import { environment } from '../../environments/environment'
 })
 export class Analytics {
 	public async init() {
-		// TODO: Uncomment if you're using Vercel Speed Insights
-		try {
-			// injectSpeedInsights();
-		} catch (error) {
-			console.error('Failed to initialize Speed Insights:', error)
-		}
-
 		if (!environment.clarityProjectId) {
 			return
 		}

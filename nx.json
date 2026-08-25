@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/nx/schemas/nx-schema.json",
-	"defaultBase": "main",
+	"defaultBase": "develop",
 	"workspaceLayout": {
 		"appsDir": "apps",
 		"libsDir": "packages"
@@ -26,7 +26,6 @@
 			"{workspaceRoot}/postcss-inject-tailwind-reference.js"
 		]
 	},
-	"nxCloudId": "6a17a0e34cc7a0ffaeec195e",
 	"targetDefaults": {
 		"@angular/build:application": {
 			"cache": true,

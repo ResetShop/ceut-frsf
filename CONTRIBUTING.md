@@ -22,7 +22,7 @@ The rest of this document is the internal workflow for org members.
 
 ```
 87-add-user-authentication
-144-remove-vercel-specific-configuration
+203-fix-pagination-off-by-one-error
 ```
 
 ## Commit messages
@@ -31,7 +31,7 @@ The rest of this document is the internal workflow for org members.
 
 ```
 [#87] - Add login form component
-[#144] - Remove vercel.json and API redirect entry point
+[#203] - Fix off-by-one error in pagination component
 ```
 
 ## Pull requests

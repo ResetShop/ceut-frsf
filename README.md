@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ResetShop/angular-nx-standalone-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/ResetShop/angular-nx-standalone-starter/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE.md)
-[![Node](https://img.shields.io/badge/node-%5E20.19%20%7C%7C%20%5E22.19-brightgreen.svg)](#1-prerequisites-required)
+[![Node](https://img.shields.io/badge/node-%5E24.18.0-brightgreen.svg)](#1-prerequisites-required)
 
 A fork-ready **Nx monorepo starter**: an SSR-ready Angular 17+ frontend and a Hono backend API, wired with NgRx Signal Store, a Drizzle/Postgres data layer, and PASETO-based auth + RBAC. The intentional `TODO` markers throughout are for forkers to fill in — search for them.
 
@@ -10,6 +10,45 @@ A fork-ready **Nx monorepo starter**: an SSR-ready Angular 17+ frontend and a Ho
 > This repository is public for transparency and reuse under Apache-2.0.
 > **Issues are welcome from anyone; pull requests are accepted from [ResetShop](https://github.com/ResetShop) org members only.**
 > See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
+
+## Getting started
+
+**Prerequisites:** Node.js `^24.18.0` (`.nvmrc` pins it) and `git`; for a private mirror, also the [GitHub CLI](https://cli.github.com), authenticated (`gh auth login`). Full list in [§1 Prerequisites](#1-prerequisites-required).
+
+**1. Create your project** — pick the path that fits:
+
+- **Public fork** (open source) — fork on GitHub, then:
+
+  ```bash
+  git clone https://github.com/<your-org>/<your-fork>.git && cd <your-fork>
+  git remote add upstream https://github.com/ResetShop/angular-nx-standalone-starter.git
+  ```
+
+- **Private mirror** (client work — GitHub cannot make a fork of a public repo private) — one command, no checkout needed:
+
+  ```bash
+  npx github:ResetShop/fork-init --repo=<org>/<name> && cd <name>
+  ```
+
+  It creates the private repo, mirror-pushes the full history, and wires the `upstream` remote ([what it does](docs/forking.md#private-mirror-setup)).
+
+**2. Install, run, and verify:**
+
+```bash
+npm install
+npm run dev     # SSR dev server
+npm run ci      # lint, typecheck, tests, build
+```
+
+**3. Create your first app** from the canonical template (never hand-copy `apps/reference-app`):
+
+```bash
+npm run generate:app -- --name="My App"
+```
+
+**4. Stay current** with upstream improvements: `npm run upstream:pull` (private mirror) or `git fetch upstream && git merge upstream/main` (fork).
+
+Full details — ownership boundaries, conflict resolution, env vars, database — are in [`docs/forking.md`](docs/forking.md) and the [Project Setup Guide](#project-setup-guide) below.
 
 ## How to use this repo
 
@@ -19,30 +58,14 @@ Search for the TODOs! They indicate places where you'll need to update fields to
 
 ### Forking workflow
 
-This repo is designed to be **forked**, not consumed as a published package set. Starter code lives in `packages/*`, `apps/reference-app`, and root config; your apps live in `apps/<name>` and are created via the schematic — never by hand-copying `apps/reference-app`.
-
-```bash
-# 1. Fork on GitHub, then clone your fork locally
-git clone https://github.com/<your-org>/<your-fork>.git
-cd <your-fork>
-git remote add upstream https://github.com/ResetShop/angular-nx-standalone-starter.git
-npm install
-
-# 2. Create your first app from the canonical reference template.
-# `--name` is required; omitting it triggers an interactive prompt.
-npm run generate:app -- --name="My App"
-
-# 3. Pull upstream improvements at any time
-git fetch upstream
-git merge upstream/main
-```
+This repo is designed to be **forked** (or [privately mirrored](#getting-started)), not consumed as a published package set. Starter code lives in `packages/*`, `apps/reference-app`, and root config; your apps live in `apps/<name>` and are created via the schematic — never by hand-copying `apps/reference-app`. The quickstart commands are under [Getting started](#getting-started) above.
 
 `apps/reference-app` is **upstream-owned** and must never be modified in a fork. See [`docs/forking.md`](docs/forking.md) for the full workflow, ownership boundaries, conflict resolution, and the changelog contract.
 
 ## Live demo
 
-- App: https://angular-nx-standalone-starter.vercel.app/
-- Storybook: https://angular-nx-standalone-starter-story.vercel.app/
+- App: https://angular-nx-standalone-starter-production.up.railway.app/
+- Storybook: https://angular-nx-standalone-starter-storybook.up.railway.app/
 
 ## Project Setup Guide
 
@@ -67,7 +90,7 @@ This guide covers all the setup steps needed to configure this starter repositor
 
 This project requires:
 
-- **Node.js**: `^20.19.0` or `^22.19.0` (matches the `engines` field in `package.json`)
+- **Node.js**: `^24.18.0` (matches the `engines` field in `package.json`; `.nvmrc` pins `24.18.0`)
 - **npm**: Package manager
 
 **Installation Steps:**
@@ -143,7 +166,7 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
 - **`TOKEN_CLEANUP_INTERVAL`**: Expired token cleanup interval as a duration string (default: `24h`)
   - Background job that removes expired refresh tokens from the database
   - Valid range: `1m` to `7d` (inclusive)
-  - Skipped on Vercel (use Vercel Cron Jobs instead)
+  - Skipped on serverless platforms (use an external scheduler to call the cleanup endpoint instead)
 - **`TOKEN_CLEANUP_BATCH_SIZE`**: Number of tokens to delete per batch (default: 1000)
   - Valid range: 100 to 10000
   - Higher values = faster cleanup but longer transactions
@@ -151,9 +174,9 @@ The authentication system uses PASETO (Platform-Agnostic Security Tokens) for se
   - Valid range: 10 to 1000
   - Limits cleanup to batch_size × max_batches tokens per run (default: 100k)
   - Prevents indefinite execution on large backlogs
-- **`CRON_SECRET`**: Secret for Vercel Cron Jobs to authenticate cleanup requests (minimum 32 characters)
+- **`CRON_SECRET`**: Secret for an external cron/scheduler to authenticate cleanup requests (minimum 32 characters)
   - Generate with: `openssl rand -hex 32`
-  - Required when using Vercel Cron Jobs
+  - Required when triggering cleanup via an external scheduler
 
 **Documentation:**
 

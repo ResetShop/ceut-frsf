@@ -17,7 +17,7 @@ export interface DeferAfterResponseOptions {
  * long-lived Node server and a freeze-on-flush serverless/edge runtime.
  *
  * The work starts immediately (so it begins before the response is flushed). When the runtime exposes
- * an `ExecutionContext` (Cloudflare Workers, Vercel Edge), the task is registered with `waitUntil` so
+ * an `ExecutionContext` (as some serverless/edge runtimes do), the task is registered with `waitUntil` so
  * the platform keeps the invocation alive until it settles instead of freezing and discarding the
  * pending promise. On a plain Node server there is no `ExecutionContext`; the event loop keeps
  * running, so the floating task completes on its own.
