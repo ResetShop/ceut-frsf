@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { PERMISSION_DEFINITIONS } from '../contracts/permission/permission.constants'
 import { EDITOR_ROLE_PERMISSIONS } from './seed-editor-role.constants'
 
-describe('EDITOR_ROLE_PERMISSIONS', () => {
+describe('permission identifiers', () => {
 	const validIdentifiers = new Set(PERMISSION_DEFINITIONS.map((p) => p.identifier))
 
 	it('references only permission identifiers that exist in PERMISSION_DEFINITIONS', () => {
