@@ -9,6 +9,7 @@ import { permission } from './schema/permission'
 import { role, rolePermission } from './schema/role'
 import { user, userRole } from './schema/user'
 import { createDefaultPromptFn, resolveSeedAdminCredentials, type SeedAdminCredentials } from './seed-admin-credentials'
+import { EDITOR_ROLE_PERMISSIONS } from './seed-editor-role.constants'
 
 /**
  * Creates the admin user and its authentication record, or returns the existing user's id.
@@ -87,6 +88,47 @@ async function seedPermissions(tx: DrizzleTransaction, adminRoleId: number): Pro
 	console.log('✅ Permissions assigned to Administrator role')
 }
 
+/** Creates the Editor role, or returns the existing role's id. */
+async function seedEditorRole(tx: DrizzleTransaction): Promise<number> {
+	const existing = await tx.select({ id: role.id }).from(role).where(eq(role.code, 'editor'))
+	if (existing.length > 0) {
+		console.log('✅ Editor role already exists')
+		return existing[0].id
+	}
+
+	const inserted = await tx
+		.insert(role)
+		.values({
+			name: 'Editor',
+			code: 'editor',
+			description: 'Content editor scoped to card management',
+			removable: true,
+		})
+		.returning({ id: role.id })
+	if (!inserted.length) {
+		throw new Error('Failed to create Editor role')
+	}
+	console.log('✅ Editor role created')
+	return inserted[0].id
+}
+
+/** Grants the Editor role its content-management permission set. Idempotent. */
+async function seedEditorRolePermissions(tx: DrizzleTransaction, editorRoleId: number): Promise<void> {
+	const rows = await tx
+		.select({ id: permission.id })
+		.from(permission)
+		.where(inArray(permission.name, EDITOR_ROLE_PERMISSIONS))
+	if (rows.length !== EDITOR_ROLE_PERMISSIONS.length) {
+		throw new Error(
+			`Permission count mismatch for Editor role: expected ${EDITOR_ROLE_PERMISSIONS.length}, got ${rows.length}`,
+		)
+	}
+
+	const rolePermissionValues = rows.map((p) => ({ roleId: editorRoleId, permissionId: p.id }))
+	await tx.insert(rolePermission).values(rolePermissionValues).onConflictDoNothing()
+	console.log('✅ Permissions assigned to Editor role')
+}
+
 /** Runs the full bootstrap inside a transaction: admin user, role, role assignment, permissions. */
 async function runSeedTransaction(tx: DrizzleTransaction, credentials: SeedAdminCredentials): Promise<void> {
 	const adminUserId = await seedAdminUser(tx, credentials)
@@ -94,15 +136,24 @@ async function runSeedTransaction(tx: DrizzleTransaction, credentials: SeedAdmin
 	await tx.insert(userRole).values({ userId: adminUserId, roleId: adminRoleId }).onConflictDoNothing()
 	console.log('✅ Administrator role assigned to admin user')
 	await seedPermissions(tx, adminRoleId)
+
+	const editorRoleId = await seedEditorRole(tx)
+	await seedEditorRolePermissions(tx, editorRoleId)
 }
 
 /**
- * Seeds a fresh database with the initial admin account, the Administrator role, the permission
- * catalogue, and their assignments — all inside a single transaction.
+ * Seeds a fresh database with the initial admin account, the Administrator role, the Editor
+ * role, the permission catalogue, and their assignments — all inside a single transaction.
  *
  * Admin credentials are resolved via `resolveSeedAdminCredentials` (env → interactive prompt →
- * fail-fast); see `seed-admin-credentials.ts`. For adding new permissions to an existing database,
- * use `npm run sync:permissions` instead (see `src/db/sync-permissions.ts`).
+ * fail-fast); see `seed-admin-credentials.ts`.
+ *
+ * For an already-seeded database, do not re-run this script to pick up newly added
+ * permissions — use `npm run sync:permissions` instead (see `sync-permissions.ts`), which
+ * inserts any missing rows into the `permission` table. `sync-permissions.ts` intentionally
+ * never touches `role` or `role_permission`, so granting a new permission (e.g. the
+ * `content:cards:*` set) to an existing role on a deployed database remains a manual step via
+ * the Roles UI/API.
  */
 async function seed(): Promise<void> {
 	const db = createDrizzlePgConnector()
