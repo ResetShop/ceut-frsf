@@ -42,28 +42,42 @@ async function seedAdminUser(tx: DrizzleTransaction, credentials: SeedAdminCrede
 	return inserted[0].id
 }
 
-/** Creates the Administrator role, or returns the existing role's id. */
-async function seedAdminRole(tx: DrizzleTransaction): Promise<number> {
-	const existing = await tx.select({ id: role.id }).from(role).where(eq(role.code, 'admin'))
+/** Creates a role by `code`, or returns the existing role's id. Idempotent. */
+async function seedRole(
+	tx: DrizzleTransaction,
+	params: { name: string; code: string; description: string; removable: boolean },
+): Promise<number> {
+	const existing = await tx.select({ id: role.id }).from(role).where(eq(role.code, params.code))
 	if (existing.length > 0) {
-		console.log('✅ Administrator role already exists')
+		console.log(`✅ ${params.name} role already exists`)
 		return existing[0].id
 	}
 
-	const inserted = await tx
-		.insert(role)
-		.values({
-			name: 'Administrator',
-			code: 'admin',
-			description: 'System administrator with full access',
-			removable: false,
-		})
-		.returning({ id: role.id })
+	const inserted = await tx.insert(role).values(params).returning({ id: role.id })
 	if (!inserted.length) {
-		throw new Error('Failed to create Administrator role')
+		throw new Error(`Failed to create ${params.name} role`)
 	}
-	console.log('✅ Administrator role created')
+	console.log(`✅ ${params.name} role created`)
 	return inserted[0].id
+}
+
+/** Grants the given permission identifiers to a role, looking up their ids by name. Idempotent. */
+async function grantPermissionsToRole(
+	tx: DrizzleTransaction,
+	roleId: number,
+	permissionNames: readonly string[],
+	roleLabel: string,
+): Promise<void> {
+	const rows = await tx.select({ id: permission.id }).from(permission).where(inArray(permission.name, permissionNames))
+	if (rows.length !== permissionNames.length) {
+		throw new Error(
+			`Permission count mismatch for ${roleLabel} role: expected ${permissionNames.length}, got ${rows.length}`,
+		)
+	}
+
+	const rolePermissionValues = rows.map((p) => ({ roleId, permissionId: p.id }))
+	await tx.insert(rolePermission).values(rolePermissionValues).onConflictDoNothing()
+	console.log(`✅ Permissions assigned to ${roleLabel} role`)
 }
 
 /** Inserts the permission catalogue and grants every permission to the Administrator role. */
@@ -72,73 +86,32 @@ async function seedPermissions(tx: DrizzleTransaction, adminRoleId: number): Pro
 		.insert(permission)
 		.values([...PERMISSIONS_SEED_DATA])
 		.onConflictDoNothing()
-
-	const permissionNames = PERMISSIONS_SEED_DATA.map((p) => p.name)
-	const created = await tx
-		.select({ id: permission.id })
-		.from(permission)
-		.where(inArray(permission.name, permissionNames))
-	if (created.length !== PERMISSIONS_SEED_DATA.length) {
-		throw new Error(`Permission count mismatch: expected ${PERMISSIONS_SEED_DATA.length}, got ${created.length}`)
-	}
 	console.log(`✅ ${PERMISSIONS_SEED_DATA.length} permissions created/verified`)
 
-	const rolePermissionValues = created.map((p) => ({ roleId: adminRoleId, permissionId: p.id }))
-	await tx.insert(rolePermission).values(rolePermissionValues).onConflictDoNothing()
-	console.log('✅ Permissions assigned to Administrator role')
-}
-
-/** Creates the Editor role, or returns the existing role's id. */
-async function seedEditorRole(tx: DrizzleTransaction): Promise<number> {
-	const existing = await tx.select({ id: role.id }).from(role).where(eq(role.code, 'editor'))
-	if (existing.length > 0) {
-		console.log('✅ Editor role already exists')
-		return existing[0].id
-	}
-
-	const inserted = await tx
-		.insert(role)
-		.values({
-			name: 'Editor',
-			code: 'editor',
-			description: 'Content editor scoped to card management',
-			removable: true,
-		})
-		.returning({ id: role.id })
-	if (!inserted.length) {
-		throw new Error('Failed to create Editor role')
-	}
-	console.log('✅ Editor role created')
-	return inserted[0].id
-}
-
-/** Grants the Editor role its content-management permission set. Idempotent. */
-async function seedEditorRolePermissions(tx: DrizzleTransaction, editorRoleId: number): Promise<void> {
-	const rows = await tx
-		.select({ id: permission.id })
-		.from(permission)
-		.where(inArray(permission.name, EDITOR_ROLE_PERMISSIONS))
-	if (rows.length !== EDITOR_ROLE_PERMISSIONS.length) {
-		throw new Error(
-			`Permission count mismatch for Editor role: expected ${EDITOR_ROLE_PERMISSIONS.length}, got ${rows.length}`,
-		)
-	}
-
-	const rolePermissionValues = rows.map((p) => ({ roleId: editorRoleId, permissionId: p.id }))
-	await tx.insert(rolePermission).values(rolePermissionValues).onConflictDoNothing()
-	console.log('✅ Permissions assigned to Editor role')
+	const permissionNames = PERMISSIONS_SEED_DATA.map((p) => p.name)
+	await grantPermissionsToRole(tx, adminRoleId, permissionNames, 'Administrator')
 }
 
 /** Runs the full bootstrap inside a transaction: admin user, role, role assignment, permissions. */
 async function runSeedTransaction(tx: DrizzleTransaction, credentials: SeedAdminCredentials): Promise<void> {
 	const adminUserId = await seedAdminUser(tx, credentials)
-	const adminRoleId = await seedAdminRole(tx)
+	const adminRoleId = await seedRole(tx, {
+		name: 'Administrator',
+		code: 'admin',
+		description: 'System administrator with full access',
+		removable: false,
+	})
 	await tx.insert(userRole).values({ userId: adminUserId, roleId: adminRoleId }).onConflictDoNothing()
 	console.log('✅ Administrator role assigned to admin user')
 	await seedPermissions(tx, adminRoleId)
 
-	const editorRoleId = await seedEditorRole(tx)
-	await seedEditorRolePermissions(tx, editorRoleId)
+	const editorRoleId = await seedRole(tx, {
+		name: 'Editor',
+		code: 'editor',
+		description: 'Content editor scoped to card management',
+		removable: true,
+	})
+	await grantPermissionsToRole(tx, editorRoleId, EDITOR_ROLE_PERMISSIONS, 'Editor')
 }
 
 /**
