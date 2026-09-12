@@ -460,6 +460,7 @@ Roles are **user-managed entities** that can be created, updated, and deleted vi
 - Roles group permissions for easier user management
 - System roles (like "Administrator") have `removable: false` to prevent accidental deletion
 - Role names and codes must be unique
+- A fork's `src/db/seed.ts` may additionally bootstrap baseline starting roles beyond Administrator — e.g. `ceut-frsf`'s seed script also creates a content-scoped **Editor** role (`removable: true`) alongside the Administrator role. This is a one-time seed-time convenience for a fresh database, not a contradiction of the runtime model above: a bootstrap-seeded role is fully create/update/delete-manageable via the same API afterward, exactly like any role an administrator creates later
 
 ### Permissions - System-Defined
 

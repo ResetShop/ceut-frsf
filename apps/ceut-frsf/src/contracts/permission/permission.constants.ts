@@ -65,7 +65,25 @@ export const PERMISSION_DEFINITIONS = [
 	{ identifier: 'admin:user_roles:read', description: 'View user role assignments' },
 	{ identifier: 'admin:user_roles:assign', description: 'Assign roles to users' },
 	{ identifier: 'admin:user_roles:remove', description: 'Remove roles from users' },
+	// Card content management
+	{ identifier: 'content:cards:create', description: 'Create new cards' },
+	{ identifier: 'content:cards:read', description: 'View card details' },
+	{ identifier: 'content:cards:update', description: 'Update cards' },
+	{ identifier: 'content:cards:delete', description: 'Delete cards' },
 ] as const
+
+// ============================================================================
+// Derived permission sets
+// ============================================================================
+
+/**
+ * Every card-content permission, derived from PERMISSION_DEFINITIONS so the catalogue above
+ * stays the only place these identifiers are spelled out. Consumers that grant card management
+ * as a unit — the seeded Editor role, for one — read this instead of restating the strings.
+ */
+export const CARD_PERMISSIONS = PERMISSION_DEFINITIONS.filter((p) => p.identifier.startsWith('content:cards:')).map(
+	(p) => p.identifier,
+)
 
 // ============================================================================
 // Seed data
