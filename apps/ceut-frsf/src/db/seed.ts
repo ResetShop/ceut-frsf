@@ -3,13 +3,12 @@ import { appEnv } from '../api/config/app.env'
 import { isInteractive } from '../api/config/runtime'
 import { createDrizzlePgConnector, type DrizzleTransaction } from '../api/helpers/drizzle-postgres-connector'
 import { createPasswordHasher } from '../api/services/password/password-hasher'
-import { PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
+import { CARD_PERMISSIONS, PERMISSIONS_SEED_DATA } from '../contracts/permission/permission.constants'
 import { authentication } from './schema/authentication'
 import { permission } from './schema/permission'
 import { role, rolePermission } from './schema/role'
 import { user, userRole } from './schema/user'
 import { createDefaultPromptFn, resolveSeedAdminCredentials, type SeedAdminCredentials } from './seed-admin-credentials'
-import { EDITOR_ROLE_PERMISSIONS } from './seed-editor-role.constants'
 
 /**
  * Creates the admin user and its authentication record, or returns the existing user's id.
@@ -111,7 +110,7 @@ async function runSeedTransaction(tx: DrizzleTransaction, credentials: SeedAdmin
 		description: 'Content editor scoped to card management',
 		removable: true,
 	})
-	await grantPermissionsToRole(tx, editorRoleId, EDITOR_ROLE_PERMISSIONS, 'Editor')
+	await grantPermissionsToRole(tx, editorRoleId, CARD_PERMISSIONS, 'Editor')
 }
 
 /**

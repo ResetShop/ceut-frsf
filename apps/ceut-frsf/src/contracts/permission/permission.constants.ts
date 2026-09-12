@@ -73,6 +73,19 @@ export const PERMISSION_DEFINITIONS = [
 ] as const
 
 // ============================================================================
+// Derived permission sets
+// ============================================================================
+
+/**
+ * Every card-content permission, derived from PERMISSION_DEFINITIONS so the catalogue above
+ * stays the only place these identifiers are spelled out. Consumers that grant card management
+ * as a unit — the seeded Editor role, for one — read this instead of restating the strings.
+ */
+export const CARD_PERMISSIONS = PERMISSION_DEFINITIONS.filter((p) => p.identifier.startsWith('content:cards:')).map(
+	(p) => p.identifier,
+)
+
+// ============================================================================
 // Seed data
 // ============================================================================
 
