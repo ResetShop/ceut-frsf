@@ -4,9 +4,17 @@
  * Single source of truth for both backend middleware (requirePermission)
  * and frontend authorization (route guards, sidebar filtering, button visibility).
  *
+ * The `description` here is the English source of truth for the database — it seeds the
+ * `permission.description` column and is what the permissions endpoint returns. It is not the
+ * display text: the Permissions page renders `PERMISSIONS.DESCRIPTIONS[identifier]` from the
+ * active language's translation file, falling back to this string.
+ *
  * To add a new permission:
  * 1. Add an entry to PERMISSION_DEFINITIONS with identifier and description
- * 2. Run `npm run sync:permissions` to insert it into the database
+ * 2. Add the same description under PERMISSIONS.DESCRIPTIONS[identifier] in every translation
+ *    file (apps/reference-app/src/app/providers/i18n/translations/), translated per language —
+ *    enforced by permission-descriptions.spec.ts
+ * 3. Run `npm run sync:permissions` to insert it into the database
  */
 
 // ============================================================================

@@ -27,7 +27,6 @@ describe('UIStore', () => {
 	describe('initial state', () => {
 		it('should have correct initial state', () => {
 			expect(store.isSidebarOpen()).toBe(false)
-			expect(store.isSidebarCollapsed()).toBe(false)
 			expect(store.activeDrawer()).toBeNull()
 			expect(store.notifications()).toEqual([])
 			expect(store.isGlobalLoading()).toBe(false)
@@ -184,19 +183,6 @@ describe('UIStore', () => {
 			store.setSidebarOpen(true)
 			store.setSidebarOpen(false)
 			expect(store.isSidebarOpen()).toBe(false)
-		})
-	})
-
-	describe('setSidebarCollapsed', () => {
-		it('should set isSidebarCollapsed to true', () => {
-			store.setSidebarCollapsed(true)
-			expect(store.isSidebarCollapsed()).toBe(true)
-		})
-
-		it('should set isSidebarCollapsed to false', () => {
-			store.setSidebarCollapsed(true)
-			store.setSidebarCollapsed(false)
-			expect(store.isSidebarCollapsed()).toBe(false)
 		})
 	})
 

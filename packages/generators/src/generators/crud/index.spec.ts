@@ -2,7 +2,7 @@ import type { Tree } from '@nx/devkit'
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import crudGenerator from './index'
+import crudGenerator from './index.ts'
 
 describe('crud generator', () => {
 	let tree: Tree

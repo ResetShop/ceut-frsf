@@ -28,7 +28,7 @@ Claude should proactively delegate to this agent when:
 
 ## Step 0: Load Reference Files
 
-Before reviewing, read **ALL 13** reference files to have full project context. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another. Do **not** drop any file; the reviewer is the last line of defense and always loads the complete set (conditional/diff-scoped loading is explicitly out of scope for `code-reviewer`).
+Before reviewing, read **ALL 14** reference files to have full project context. Load them in a **single parallel batch** — issue every `Read` call in a single response turn (all in the same message), not one after another. Do **not** drop any file; the reviewer is the last line of defense and always loads the complete set (conditional/diff-scoped loading is explicitly out of scope for `code-reviewer`).
 
 Load all of these together:
 
@@ -43,6 +43,7 @@ Load all of these together:
 - `.claude/references/backend-api.md`
 - `.claude/references/generators.md`
 - `.claude/references/accessibility.md`
+- `.claude/references/angular-di.md` — singleton-vs-activation, route-scoped providers, provider recipes
 - `.claude/references/maintainability.md` — structural-simplification / "code judo" lens
 - `.claude/references/coding-agent-policies.md` — hard-pinned, review-blocking; always loaded
 

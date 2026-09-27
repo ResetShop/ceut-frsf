@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
+import { Component, computed, input } from '@angular/core'
 
 export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline'
 
@@ -12,7 +12,6 @@ export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline'
 	host: {
 		'[class]': 'computedClasses()',
 	},
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Badge {
 	/**

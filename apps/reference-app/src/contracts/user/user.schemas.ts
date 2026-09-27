@@ -82,14 +82,31 @@ export const createUserResponseSchema = managedUserSchema.extend({
 
 /**
  * Update user request body schema.
- * All fields are optional - only provided fields are updated.
+ * All fields are optional - only provided fields are updated, atomically in one transaction.
+ * `status` only allows non-terminal values — use the DELETE endpoint for deletion.
  */
 export const updateUserRequestSchema = z.object({
 	email: z.email().optional(),
 	firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
 	roleIds: z.array(z.number().int().positive()).optional(),
+	status: z.enum([UserStatus.ACTIVE, UserStatus.DISABLED]).optional(),
 })
+
+/**
+ * Self-service profile update, applied to the caller's own account. `.strict()` rejects any field the
+ * caller may not change with 400 instead of dropping it: an email change needs verification, and roles
+ * and status are admin-only.
+ */
+export const updateProfileRequestSchema = z
+	.object({
+		firstName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
+		lastName: z.string().min(QUERY_DEFAULTS.FIELD_MIN_LENGTH).max(QUERY_DEFAULTS.NAME_MAX_LENGTH).optional(),
+	})
+	.strict()
+	.refine((body) => body.firstName !== undefined || body.lastName !== undefined, {
+		message: 'Provide firstName or lastName',
+	})
 
 /**
  * Update user status request body schema.

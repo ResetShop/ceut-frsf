@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core'
+import { Component, computed, inject, input, output } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronLeft, featherChevronRight } from '@ng-icons/feather-icons'
 import { createBreakpointSignal } from '@resetshop/angular-core/breakpoint/breakpoint'
@@ -94,7 +94,6 @@ interface PageItem {
 			</div>
 		</nav>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Pagination {
 	private readonly translation = inject(Translation)

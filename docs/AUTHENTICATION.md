@@ -140,13 +140,13 @@ PASETO was chosen over JWT for the following reasons:
 
 ### Cookie Security
 
-| Attribute  | Value           | Purpose                                     |
-| ---------- | --------------- | ------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `httpOnly` | `true`          | Prevents JavaScript access (XSS protection) |
-| `secure`   | `COOKIE_SECURE` | No                                          | "true" | Controls the `secure` flag on cookies. **MUST be "true" in production** (requires HTTPS). Only set to "false" for local HTTP development. |
-| `sameSite` | `Strict`        | CSRF protection                             |
-| `path`     | `/`             | Available site-wide                         |
-| `maxAge`   | 7 days          | Matches refresh token expiry                |
+| Attribute  | Value                             | Purpose                                                                                |
+| ---------- | --------------------------------- | -------------------------------------------------------------------------------------- |
+| `httpOnly` | `true`                            | Prevents JavaScript access (XSS protection)                                            |
+| `secure`   | `COOKIE_SECURE` (defaults `true`) | Restricts cookies to HTTPS. Set `COOKIE_SECURE=false` only for local HTTP development. |
+| `sameSite` | `Strict`                          | CSRF protection                                                                        |
+| `path`     | `/`                               | Available site-wide                                                                    |
+| `maxAge`   | 7 days                            | Matches refresh token expiry                                                           |
 
 ### Account Protection
 
@@ -271,7 +271,7 @@ Exchange refresh token for new access + refresh tokens. Refresh token is read fr
 
 ### GET /api/auth/me
 
-Token introspection endpoint. Returns the current authenticated user's information from the token. Useful for verifying token validity and session management.
+Returns the current authenticated user's information. The access token only identifies the caller (its `sub`); `email`, `firstName` and `lastName` are read from the database, so a rename is visible immediately rather than when the token is next refreshed. Returns 401 when the account behind a still-valid token no longer exists, is disabled, or is soft-deleted. All three cases return the same generic `{"error":"Unauthorized"}`: the service raises a typed `AuthError` (`ACCOUNT_DISABLED` or `USER_NOT_FOUND`) that the handler maps without exposing which one it was. Useful for verifying session validity.
 
 **Response (200):**
 

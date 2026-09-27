@@ -118,12 +118,60 @@ Best for: terminal-driven development, scripts.
 
 ### 2. IDE run configuration
 
-Best for: WebStorm / VS Code / IntelliJ users who launch the app from a Run Configuration.
+Best for: WebStorm / VS Code / IntelliJ / Zed users who launch the app from a Run Configuration or the editor's integrated terminal.
 
 - **WebStorm:** Edit Configurations → your Node/npm config → Environment variables → paste `KEY=value;KEY=value`.
 - **VS Code:** `.vscode/launch.json` → add an `env` object on the launch config.
+- **Zed:** project-level `.zed/settings.json` → `terminal.env`. Zed has no env-file setting, so this needs a few extra steps; see [Zed](#zed) below.
 
 The IDE injects the variables before `node` starts, so the proxy sees them on first access.
+
+#### Zed
+
+Zed injects `terminal.env` into every integrated terminal it opens, so `npm run dev` and the other scripts pick the values up unchanged.
+
+1. **Use the project-level settings file, not the user-level one.** A `terminal.env` block in the user settings (`~/.config/zed/settings.json`, or `%APPDATA%\Zed\settings.json` on Windows) applies to **every** project opened in Zed, so generic names like `PG_CONNECTION_STRING` would leak into unrelated projects. Create `.zed/settings.json` at the repo root instead:
+
+   ```json
+   {
+   	"terminal": {
+   		"env": {
+   			"PG_CONNECTION_STRING": "postgresql://USER:PASSWORD@localhost:5432/DB_NAME",
+   			// Replace with the output of `openssl rand -hex 32` (64 hex characters)
+   			"PASETO_SECRET_KEY": "REPLACE_WITH_64_HEX_CHARS",
+   			"PASETO_ISSUER": "local-dev",
+   			"COOKIE_SECURE": "false",
+   			"EMAIL_PROVIDER": "noop"
+   		}
+   	}
+   }
+   ```
+
+   Open a new terminal afterwards — terminals that were already open keep their old environment. If Zed asks whether to trust the project, trust it: untrusted projects may not get their project settings applied.
+
+2. **Keep the file out of git locally.** Neither `.zed/` nor `.envrc` is covered by `.gitignore` or by the `.env*` guard, so add this line to `.git/info/exclude` (a per-clone ignore file that is never committed):
+
+   ```
+   .zed
+   ```
+
+   Write it **without** a trailing slash: `.zed/` only matches a real directory, not the junction or symlink used for worktrees in step 3.
+
+3. **Worktrees.** Zed opens each git worktree as a separate project and only looks for `.zed/` at that project's root, so a worktree does not see the main checkout's settings. Link each worktree's `.zed` to the main checkout's so there is one file to maintain (`.git/info/exclude` is already shared by all worktrees):
+
+   ```powershell
+   # Windows — a directory junction needs neither admin rights nor Developer Mode
+   New-Item -ItemType Junction -Path <worktree>\.zed -Target <main-checkout>\.zed
+   ```
+
+   ```bash
+   # macOS / Linux
+   ln -s <main-checkout>/.zed <worktree>/.zed
+   ```
+
+   To remove a link, delete only the link itself: `cmd /c rmdir <worktree>\.zed` on Windows, `rm <worktree>/.zed` (no trailing slash, no `-r`) on macOS / Linux. **Never** use `Remove-Item -Recurse` on the junction: in Windows PowerShell 5.1 it can delete the contents of the main checkout's `.zed` folder instead of just the link.
+
+4. **Keep the file Prettier-formatted.** The `check` target of `npm run ci` / `npm run ci:verify` runs `prettier --check` across the repo, and Prettier does not read `.git/info/exclude`, so an unformatted `.zed/settings.json` fails the local CI gate. Run `npx prettier --write .zed/settings.json` after editing it by hand.
 
 ### 3. Shell session export
 
@@ -145,6 +193,7 @@ Best for: per-directory automation. Requires [`direnv`](https://direnv.net/) ins
 1. Create a `.envrc` file at the repo root (this name is NOT matched by the `.env*` guard — `.envrc` is fine).
 2. Populate it with `export KEY=value` lines.
 3. Run `direnv allow` once per `.envrc` change.
+4. Keep the file out of git locally: `.envrc` is covered by neither `.gitignore` nor the `.env*` guard, so add a `.envrc` line to `.git/info/exclude` (a per-clone ignore file that is never committed).
 
 direnv loads/unloads the variables automatically when you `cd` in and out of the directory.
 

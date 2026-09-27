@@ -109,6 +109,31 @@ const processEnvRestrictedSyntax = [
 	},
 ]
 
+const onPushRestrictedSyntax = [
+	{
+		// Angular 22 uses OnPush change detection by default, so an explicit
+		// `changeDetection: ChangeDetectionStrategy.OnPush` is redundant. Omit it.
+		selector: 'Property[key.name="changeDetection"] > MemberExpression[property.name="OnPush"]',
+		message:
+			'Angular 22 enables OnPush change detection by default — remove the redundant explicit `changeDetection: ChangeDetectionStrategy.OnPush`.',
+	},
+]
+
+// Forbids the CommonJS module-scope globals. Generators run as native ES modules under Nx, where
+// these identifiers do not exist; a generator locates its templates with
+// `resolveTemplateDir(import.meta.url)` instead.
+const commonJsGlobalsRestrictedSyntax = [
+	{
+		selector: 'Identifier[name="__dirname"]',
+		message:
+			'__dirname does not exist in ES modules. Use resolveTemplateDir(import.meta.url) for a generator template directory, or derive paths from import.meta.url.',
+	},
+	{
+		selector: 'Identifier[name="__filename"]',
+		message: '__filename does not exist in ES modules. Derive the path from import.meta.url instead.',
+	},
+]
+
 export default [
 	{
 		name: 'ignores',
@@ -269,6 +294,7 @@ export default [
 				...commonRestrictedSyntax,
 				...viRestrictedSyntax,
 				...processEnvRestrictedSyntax,
+				...onPushRestrictedSyntax,
 			],
 			'@stylistic/js/no-extra-semi': 'off',
 			'vitest/no-focused-tests': 'error',
@@ -312,6 +338,22 @@ export default [
 		],
 		rules: {
 			'no-restricted-syntax': ['error', ...commonRestrictedSyntax, ...viRestrictedSyntax],
+		},
+	},
+	{
+		// Generators are loaded by Nx as native ES modules; keep CommonJS globals out of them so a
+		// generator can never depend on Nx's silent CommonJS fallback.
+		name: 'generators-esm-only',
+		files: ['packages/generators/**/*.ts'],
+		rules: {
+			'no-restricted-syntax': [
+				'error',
+				...commonRestrictedSyntax,
+				...viRestrictedSyntax,
+				...processEnvRestrictedSyntax,
+				...onPushRestrictedSyntax,
+				...commonJsGlobalsRestrictedSyntax,
+			],
 		},
 	},
 	{

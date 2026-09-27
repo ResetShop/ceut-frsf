@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { Component, computed, inject } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import {
 	featherAlertTriangle,
@@ -69,7 +69,6 @@ import { injectToastContext, NgpToast, NgpToastManager } from 'ng-primitives/toa
 		'animate.leave': 'toast-leave',
 	},
 	styleUrl: './toast-notification.css',
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ToastNotification {
 	protected readonly notification = injectToastContext<UINotification>()

@@ -124,14 +124,19 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'USERS.DETAIL.PROFILE.FIRST_NAME': 'First Name',
 	'USERS.DETAIL.PROFILE.LAST_NAME': 'Last Name',
 	'USERS.DETAIL.PROFILE.EMAIL': 'Email',
-	'USERS.DETAIL.PROFILE.SAVE': 'Save changes',
-	'USERS.DETAIL.PROFILE.SUCCESS_TOAST': 'User updated successfully.',
 	'USERS.DETAIL.ROLES.TITLE': 'Roles',
 	'USERS.DETAIL.ROLES.EMPTY': 'No roles assigned',
-	'USERS.DETAIL.ROLES.EDIT_BUTTON': 'Edit roles',
-	'USERS.DETAIL.ROLES.DRAWER_TITLE': 'Edit Roles',
-	'USERS.DETAIL.ROLES.ROLES_LABEL': 'Roles',
-	'USERS.DETAIL.ROLES.SUCCESS_TOAST': 'Roles updated successfully.',
+	'USERS.DETAIL.EDIT.BUTTON': 'Edit user',
+	'USERS.DETAIL.EDIT.DRAWER_TITLE': 'Edit User',
+	'USERS.DETAIL.EDIT.STATUS_LABEL': 'Status',
+	'USERS.DETAIL.EDIT.REVIEW': 'Review changes',
+	'USERS.DETAIL.EDIT.NONE': 'None',
+	'USERS.DETAIL.EDIT.SUCCESS_TOAST': 'User updated successfully.',
+	'USERS.DETAIL.EDIT.CONFIRM_DIALOG.TITLE': 'Confirm changes',
+	'USERS.DETAIL.EDIT.CONFIRM_DIALOG.MESSAGE': "Review the changes to '{name}' before saving them.",
+	'USERS.DETAIL.EDIT.CONFIRM_DIALOG.CONFIRM': 'Save changes',
+	'USERS.DETAIL.EDIT.CONFIRM_DIALOG.BEFORE': 'Before',
+	'USERS.DETAIL.EDIT.CONFIRM_DIALOG.AFTER': 'After',
 	'USERS.DETAIL.ACCOUNT.TITLE': 'Account Actions',
 	'USERS.DETAIL.ACCOUNT.RESET_PASSWORD': 'Send password reset link',
 	'USERS.DETAIL.ACCOUNT.DISABLE': 'Disable user',
@@ -187,6 +192,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'PERMISSIONS.TABLE.HEADER.DESCRIPTION': 'Description',
 
 	// Health
+	'HEALTH.NAV': 'Health',
 	'HEALTH.TITLE': 'Application Health Checker',
 	'HEALTH.LOADING': 'Loading...',
 	'HEALTH.STATUS_LABEL': 'Status:',
@@ -204,10 +210,33 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 	'SETTINGS.LANGUAGE.ENGLISH': 'English',
 	'SETTINGS.LANGUAGE.SPANISH': 'Spanish',
 	'SETTINGS.NAV': 'Settings',
+	'ACCOUNT.NAV': 'Account',
+	'ACCOUNT.TITLE': 'Account',
+	'ACCOUNT.DESCRIPTION': 'Your personal details.',
+	'ACCOUNT.PROFILE.TITLE': 'Profile',
+	'ACCOUNT.PROFILE.FIRST_NAME': 'First Name',
+	'ACCOUNT.PROFILE.LAST_NAME': 'Last Name',
+	'ACCOUNT.PROFILE.EMAIL': 'Email',
+	'ACCOUNT.REVIEW': 'Review changes',
+	'ACCOUNT.SUCCESS_TOAST': 'Profile updated successfully.',
+	'ACCOUNT.CONFIRM_DIALOG.TITLE': 'Confirm changes',
+	'ACCOUNT.CONFIRM_DIALOG.MESSAGE': 'Review the changes to your profile before saving them.',
+	'ACCOUNT.CONFIRM_DIALOG.CONFIRM': 'Save changes',
+	'ACCOUNT.CONFIRM_DIALOG.BEFORE': 'Before',
+	'ACCOUNT.CONFIRM_DIALOG.AFTER': 'After',
 
 	// Common extras
 	'COMMON.LOGOUT': 'Logout',
 	'DASHBOARD.BREADCRUMB': 'Dashboard',
+	'DASHBOARD.HOME.DESCRIPTIONS.HEALTH': 'Monitor the health and status of your application services.',
+}
+
+/**
+ * The slice of `Translation` a component spec needs to stub. Specs that assert on a specific
+ * key's resolution provide their own object of this shape in place of `mockTranslation`.
+ */
+export interface TranslationStub {
+	instant: (key: string, fallback?: string) => string
 }
 
 /**
@@ -215,7 +244,7 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
  * Looks up the key in MOCK_TRANSLATIONS; returns the raw key for unrecognised keys.
  * If an assertion needs a translated value, add the key to MOCK_TRANSLATIONS above.
  */
-export const mockTranslation = {
+export const mockTranslation: TranslationStub = {
 	instant: (key: string, fallback?: string) => MOCK_TRANSLATIONS[key] ?? fallback ?? key,
 }
 

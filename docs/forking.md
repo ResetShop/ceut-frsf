@@ -147,6 +147,8 @@ Conflicts here come from upstream adding/removing/upgrading dependencies while y
 
 **Version-disagreement tiebreaker:** if upstream bumps a dependency to a version your fork has intentionally pinned to something different, prefer upstream's version unless your fork has a documented reason to diverge. Track the divergence in a fork-local note (commit message or PR description) so the next merge author knows it's deliberate.
 
+**`engines.node` conflicts:** accept upstream's value, and update your fork's local Node install, CI, and deploy target to match. The starter supports a single Node.js line on purpose — see [`node-support-policy.md`](node-support-policy.md) for the policy, the upgrade cadence, and every file that must agree with `engines.node`.
+
 ### `package-lock.json`
 
 Always **delete and regenerate**:
@@ -218,6 +220,8 @@ The upstream repository runs two guard jobs on every PR via `.github/workflows/u
 A PR template at `.github/pull_request_template.md` reminds contributors of both guards as a checklist before opening the PR. The template applies to all PRs in the repo where it lives, including fork-internal PRs — fork maintainers may delete or replace it with their own.
 
 These guards do not run on forks, so your fork's PRs are unaffected. They exist solely to keep the upstream contract honest.
+
+**Repository rulesets are likewise not inherited.** Branch and tag protection live in GitHub repository settings, not in the tree, so nothing about them travels with a fork or a `--mirror` push. If you want the same guarantees your fork must configure its own — see [`docs/release-process.md`](release-process.md) §6 for the settings upstream depends on, including the `v*` tag ruleset specification you can adapt to your own tag prefix and branch names.
 
 ---
 

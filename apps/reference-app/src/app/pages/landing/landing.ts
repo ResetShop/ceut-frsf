@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { Component } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { LandingHeader } from '@components/landing-header/landing-header'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -7,7 +7,6 @@ import { Button } from '@resetshop/ui/button/button'
 @Component({
 	selector: 'app-landing-page',
 	imports: [RouterLink, LandingHeader, Button, TranslatePipe],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="flex h-svh flex-col bg-white dark:bg-black/95">
 			<a

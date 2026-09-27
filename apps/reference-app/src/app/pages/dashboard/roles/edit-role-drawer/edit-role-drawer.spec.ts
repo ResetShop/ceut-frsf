@@ -123,6 +123,25 @@ describe('EditRoleDrawer', () => {
 		expect(screen.getByDisplayValue('Administrator role')).toBeInTheDocument()
 	})
 
+	it.each([
+		['name is empty', /name/i, ''],
+		['name is too long', /name/i, 'A'.repeat(101)],
+		['description is too long', /description/i, 'A'.repeat(501)],
+	])('should keep the save button disabled and not submit when %s', async (_, field, value) => {
+		const { fixture } = await renderAndOpenRaw()
+
+		fireEvent.input(screen.getByRole('textbox', { name: field }), { target: { value } })
+		fixture.detectChanges()
+
+		const saveButton = screen.getByRole('button', { name: /save/i })
+		expect(saveButton).toBeDisabled()
+
+		fireEvent.click(saveButton)
+		fixture.detectChanges()
+
+		expect(rolesApiMock.update.calls).toHaveLength(0)
+	})
+
 	it('should call update with correct params on submit', async () => {
 		rolesApiMock.update.mockReturnValue(
 			of({

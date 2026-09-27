@@ -2,6 +2,7 @@ import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { CreateUserResponse } from '@contracts/user/user.types'
 import { logger } from '@resetshop/util'
+import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { EmailService } from '../../services/email/interfaces'
 import { buildResetPasswordEmail } from '../../services/email/reset-password-email.builder'
@@ -14,6 +15,7 @@ import type {
 	UpdateUserStatusParams,
 	UserManagementRepository,
 	UserRoleRepository,
+	UserUpdateResult,
 } from './interfaces'
 
 export const USER_MANAGEMENT_ERRORS = {
@@ -171,87 +173,73 @@ export class UserManagementService {
 	}
 
 	/**
-	 * Updates an existing user's details and/or role assignments.
+	 * Updates an existing user's profile, role assignments, and/or account status in one transaction.
+	 *
+	 * Each concern keeps its own context-owned write — profile via `update` (profile history), roles via
+	 * `replaceUserRoles` (role-history diff), status via `updateStatus` (status history) — composed into a
+	 * single `runInTransaction`, so a failure in any of them rolls back the others. Every guard runs before
+	 * the first write. A `status` equal to the current one is a no-op, keeping the PATCH idempotent.
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Fields to update
 	 * @param actorId - ID of the user performing the action
-	 * @returns Updated user with roles
+	 * @returns The updated user with roles, and the pre-update snapshot the guards ran against
 	 * @throws Error if user not found
 	 * @throws Error if email conflicts with existing user
+	 * @throws Error if the actor removes their own admin role, changes their own status, or the transition is invalid
 	 */
-	public async updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData> {
+	public async updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<UserUpdateResult> {
 		const existingUser = await this.userManagementRepository.findByIdWithRoles(id)
 		if (!existingUser) {
 			throw userManagementErrors.notFound(id)
 		}
 
-		// Prevent an admin from removing their own admin role (self-lockout). Mirrors the Edit Roles
-		// drawer's UI lock as a defense-in-depth backend guard.
-		if (id === actorId && params.roleIds !== undefined) {
-			const adminRole = existingUser.roles.find((role) => role.code === ADMIN_ROLE_CODE)
-			if (adminRole && !params.roleIds.includes(adminRole.id)) {
-				throw userManagementErrors.selfAdminRemoval()
-			}
+		const statusChange = params.status !== undefined && params.status !== existingUser.status ? params.status : null
+		this.assertNoSelfAdminRemoval(existingUser, params.roleIds, actorId)
+		await this.assertEmailAvailable(existingUser, params.email)
+		if (statusChange) {
+			this.assertStatusChangeAllowed(existingUser, statusChange, actorId)
 		}
 
-		// Check email uniqueness if changing email
-		if (params.email !== undefined && params.email !== existingUser.email) {
-			const emailUser = await this.userManagementRepository.findByEmail(params.email)
-			if (emailUser) {
-				throw userManagementErrors.emailExists(params.email)
-			}
+		// Profile history is written only when a profile field is provided (no spurious entry on a roles-only edit).
+		const writesProfile = params.email !== undefined || params.firstName !== undefined || params.lastName !== undefined
+		if (writesProfile || params.roleIds !== undefined || statusChange) {
+			await this.userManagementRepository.runInTransaction(async (tx) => {
+				if (writesProfile) {
+					await this.userManagementRepository.update(id, params, actorId, tx)
+				}
+				if (params.roleIds !== undefined) {
+					await this.userRoleRepository.replaceUserRoles(id, params.roleIds, actorId, tx)
+				}
+				if (statusChange) {
+					await this.writeStatusChange(id, { status: statusChange, changedBy: actorId }, tx)
+				}
+			})
 		}
 
-		// Update profile fields only when provided (avoids a spurious profile-history entry on a roles-only edit).
-		if (params.email !== undefined || params.firstName !== undefined || params.lastName !== undefined) {
-			await this.userManagementRepository.update(id, params, actorId)
-		}
-
-		// Replace the user's roles when a set is provided (full-set replace; the repo records only the
-		// added/removed roles in the audit history). The profile fields (email/first/last name) above and
-		// the role set here are persisted in separate transactions, so a combined edit is not atomic. That
-		// is acceptable because each edit surface sends only profile changes or only role changes, never
-		// both — a single atomic payload would only be needed if one surface edited both at once.
-		if (params.roleIds !== undefined) {
-			await this.userRoleRepository.replaceUserRoles(id, params.roleIds, actorId)
-		}
-
-		const updatedUser = await this.userManagementRepository.findByIdWithRoles(id)
-		if (!updatedUser) {
-			throw userManagementErrors.notFound(id)
-		}
-		return updatedUser
+		return { user: await this.getUser(id), previous: existingUser }
 	}
 
 	/**
 	 * Updates a user's account status with state machine enforcement.
-	 * Prevents self-lockout and invalid transitions.
+	 * Prevents self-lockout and invalid transitions. Shares its guard and write with `updateUser`.
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Status change parameters (includes changedBy for audit + self-lockout check)
-	 * @returns Updated user with roles
+	 * @returns The updated user with roles, and the pre-update snapshot the guards ran against
 	 * @throws Error if self-lockout or invalid transition
 	 */
-	public async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData> {
+	public async updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<UserUpdateResult> {
+		// Fast path: a status request always targets a status change, so a self-targeted request is rejected
+		// before the user lookup. assertStatusChangeAllowed repeats this check because it is also the guard
+		// for updateUser, where the self-check only applies once the requested status differs from the current one.
 		if (id === params.changedBy) {
 			throw userManagementErrors.selfLockout()
 		}
 
-		const existingUser = await this.userManagementRepository.findByIdWithRoles(id)
-		if (!existingUser) {
-			throw userManagementErrors.notFound(id)
-		}
-
-		if (!this.isValidTransition(existingUser.status, params.status)) {
-			throw userManagementErrors.invalidTransition(existingUser.status, params.status)
-		}
-
-		const updatedUser = await this.userManagementRepository.updateStatus(id, params)
-		if (!updatedUser) {
-			throw userManagementErrors.notFound(id)
-		}
-		return updatedUser
+		const existingUser = await this.getUser(id)
+		this.assertStatusChangeAllowed(existingUser, params.status, params.changedBy)
+		return { user: await this.writeStatusChange(id, params), previous: existingUser }
 	}
 
 	/**
@@ -312,6 +300,53 @@ export class UserManagementService {
 	private async sendResetPasswordEmail(email: string, firstName: string, password: string): Promise<void> {
 		const emailContent = buildResetPasswordEmail({ firstName, email, password })
 		await this.emailService.send({ to: email, ...emailContent })
+	}
+
+	/** An admin may not drop their own admin role — the backend counterpart of the edit drawer's UI lock. */
+	private assertNoSelfAdminRemoval(
+		existingUser: ManagedUserData,
+		roleIds: number[] | undefined,
+		actorId: number,
+	): void {
+		if (existingUser.id !== actorId || roleIds === undefined) {
+			return
+		}
+		const adminRole = existingUser.roles.find((role) => role.code === ADMIN_ROLE_CODE)
+		if (adminRole && !roleIds.includes(adminRole.id)) {
+			throw userManagementErrors.selfAdminRemoval()
+		}
+	}
+
+	private async assertEmailAvailable(existingUser: ManagedUserData, email: string | undefined): Promise<void> {
+		if (email === undefined || email === existingUser.email) {
+			return
+		}
+		const emailUser = await this.userManagementRepository.findByEmail(email)
+		if (emailUser) {
+			throw userManagementErrors.emailExists(email)
+		}
+	}
+
+	/** Status-change invariants shared by every entry point: no self-lockout, only allowed transitions. */
+	private assertStatusChangeAllowed(existingUser: ManagedUserData, status: UserStatus, actorId: number): void {
+		if (existingUser.id === actorId) {
+			throw userManagementErrors.selfLockout()
+		}
+		if (!this.isValidTransition(existingUser.status, status)) {
+			throw userManagementErrors.invalidTransition(existingUser.status, status)
+		}
+	}
+
+	private async writeStatusChange(
+		id: number,
+		params: UpdateUserStatusParams,
+		tx?: DrizzleTransaction,
+	): Promise<ManagedUserData> {
+		const updatedUser = await this.userManagementRepository.updateStatus(id, params, tx)
+		if (!updatedUser) {
+			throw userManagementErrors.notFound(id)
+		}
+		return updatedUser
 	}
 
 	private isValidTransition(from: UserStatus, to: UserStatus): boolean {

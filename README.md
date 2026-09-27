@@ -2,9 +2,9 @@
 
 [![CI](https://github.com/ResetShop/angular-nx-standalone-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/ResetShop/angular-nx-standalone-starter/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE.md)
-[![Node](https://img.shields.io/badge/node-%5E24.18.0-brightgreen.svg)](#1-prerequisites-required)
+[![Node](https://img.shields.io/badge/node-%5E24.20.0-brightgreen.svg)](#1-prerequisites-required)
 
-A fork-ready **Nx monorepo starter**: an SSR-ready Angular 17+ frontend and a Hono backend API, wired with NgRx Signal Store, a Drizzle/Postgres data layer, and PASETO-based auth + RBAC. The intentional `TODO` markers throughout are for forkers to fill in — search for them.
+A fork-ready **Nx monorepo starter**: an SSR-ready Angular 22+ frontend and a Hono backend API, wired with NgRx Signal Store, a Drizzle/Postgres data layer, and PASETO-based auth + RBAC. The intentional `TODO` markers throughout are for forkers to fill in — search for them.
 
 > [!NOTE]
 > This repository is public for transparency and reuse under Apache-2.0.
@@ -13,7 +13,7 @@ A fork-ready **Nx monorepo starter**: an SSR-ready Angular 17+ frontend and a Ho
 
 ## Getting started
 
-**Prerequisites:** Node.js `^24.18.0` (`.nvmrc` pins it) and `git`; for a private mirror, also the [GitHub CLI](https://cli.github.com), authenticated (`gh auth login`). Full list in [§1 Prerequisites](#1-prerequisites-required).
+**Prerequisites:** Node.js `^24.20.0` (`.nvmrc` pins it) and `git`; for a private mirror, also the [GitHub CLI](https://cli.github.com), authenticated (`gh auth login`). Full list in [§1 Prerequisites](#1-prerequisites-required); Node version policy in [`docs/node-support-policy.md`](./docs/node-support-policy.md).
 
 **1. Create your project** — pick the path that fits:
 
@@ -90,8 +90,8 @@ This guide covers all the setup steps needed to configure this starter repositor
 
 This project requires:
 
-- **Node.js**: `^24.18.0` (matches the `engines` field in `package.json`; `.nvmrc` pins `24.18.0`)
-- **npm**: Package manager
+- **Node.js**: `^24.20.0` (matches the `engines` field in `package.json`; `.nvmrc` pins `24.20.0`). The starter tracks the Node.js Active LTS line; see [`docs/node-support-policy.md`](./docs/node-support-policy.md) for why, and for when the version changes.
+- **npm**: Package manager. The npm bundled with Node `24.20.0` skips dependency install scripts unless the package is approved in the `allowScripts` map in `package.json`. When you add a dependency that ships an install script, `npm install` ends with a list of skipped scripts. Review it and approve by name with `npm install-scripts approve --no-allow-scripts-pin <pkg>` (`npm install-scripts ls` lists anything still unreviewed).
 
 **Installation Steps:**
 
@@ -294,7 +294,7 @@ For adding custom dependency injection providers:
 
 ### Running Integration Tests
 
-`npm run test:integration` works **out of the box with no setup** — no Docker daemon, no managed Postgres, no env config. When `PG_TEST_CONNECTION_STRING` is unset, the suite spawns a real Postgres 17 cluster locally via [`embedded-postgres`](https://www.npmjs.com/package/embedded-postgres) (official EnterpriseDB binaries downloaded once at `npm install` time, ~70 MB cached in `node_modules`) on a free localhost port, runs the schema push and seed, and tears the cluster down at suite end.
+`npm run test:integration` needs **no database setup** — no Docker daemon, no managed Postgres. The one required variable is `INTEGRATION_TEST_ADMIN_PASSWORD`, the password the suite seeds for the admin test user. If it is unset, the global setup fails and the run exits non-zero. Deliver it like any other variable (see [`docs/environment-variables.md`](./docs/environment-variables.md)). When `PG_TEST_CONNECTION_STRING` is unset, the suite spawns a real Postgres 17 cluster locally via [`embedded-postgres`](https://www.npmjs.com/package/embedded-postgres) (official EnterpriseDB binaries downloaded once at `npm install` time, ~70 MB cached in `node_modules`) on a free localhost port, runs the schema push and seed, and tears the cluster down at suite end. The `@embedded-postgres/*` platform packages must stay approved in `package.json`'s `allowScripts` map: their postinstall restores the Postgres shared-library symlinks, and if npm skips it the cluster cannot start on Linux.
 
 To use your own long-lived Postgres instead (persistent local container, shared dev DB, etc.), set `PG_TEST_CONNECTION_STRING` via your env delivery mechanism (see [`docs/environment-variables.md`](./docs/environment-variables.md) — not a `.env` file in the working tree). CI uses the same env-set path against its `postgres:17` service container.
 

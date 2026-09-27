@@ -56,7 +56,7 @@ async function pushSchemaToDb(connectionString: string): Promise<void> {
 	await db.$client.end()
 }
 
-export default async function globalSetup(_config: FullConfig): Promise<void> {
+export default async function globalSetup(config: FullConfig): Promise<void> {
 	loadEnvFile()
 
 	if (!process.env['PG_TEST_CONNECTION_STRING']) {
@@ -68,7 +68,11 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
 	configureE2eEnvVars(connectionString)
 	await pushSchemaToDb(connectionString)
 
-	const { viewableUserId, adminUserId } = await seedE2eUsers(connectionString, adminPassword())
+	const { viewableUserId, adminUserId } = await seedE2eUsers(
+		connectionString,
+		adminPassword(),
+		config.projects.map((project) => project.name),
+	)
 	// Published for specs (inherited by worker processes forked after globalSetup) so the user-detail
 	// specs can navigate directly to known target users' pages.
 	process.env['E2E_VIEWABLE_USER_ID'] = String(viewableUserId)

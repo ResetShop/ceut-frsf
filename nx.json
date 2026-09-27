@@ -84,13 +84,5 @@
 			"style": "css"
 		}
 	},
-	"release": {
-		"projects": ["packages/*"],
-		"version": {
-			"generatorOptions": {
-				"groupPreVersionCommand": "npx nx run-many -t build --projects=packages/*"
-			}
-		}
-	},
 	"analytics": false
 }

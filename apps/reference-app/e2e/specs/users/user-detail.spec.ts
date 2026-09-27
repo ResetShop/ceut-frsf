@@ -33,7 +33,7 @@ test.describe('User detail — admin viewing another user', () => {
 		await expect(detail.backLink).toBeVisible()
 	})
 
-	test('saves profile changes with a success toast', async ({ page }) => {
+	test('reviews and saves an edit with a success toast', async ({ page }) => {
 		await page.route(/\/api\/users\/\d+$/, async (route) => {
 			if (route.request().method() === 'PATCH') {
 				await route.fulfill({
@@ -52,14 +52,26 @@ test.describe('User detail — admin viewing another user', () => {
 			}
 			await route.continue()
 		})
-		await detail.firstNameInput.fill('Veronica')
-		await detail.saveButton.click()
+		await detail.openEditDrawer()
+		await detail.drawerFirstName.fill('Veronica')
+		await detail.reviewButton.click()
+
+		// The edit is only sent once the before → after diff is confirmed.
+		const dialog = detail.confirmChangesDialog
+		await expect(dialog).toBeVisible()
+		await expect(dialog.getByRole('term')).toHaveText('First Name')
+		await expect(dialog.getByRole('definition')).toContainText('Veronica')
+
+		await detail.saveChangesButton.click()
 		await expect(page.getByText('User updated successfully.')).toBeVisible()
 	})
 
-	test('opens the edit-roles drawer', async ({ page }) => {
-		await detail.editRolesButton.click()
-		await expect(page.getByText('Edit Roles', { exact: true })).toBeVisible()
+	test('opens the edit user drawer', async () => {
+		await detail.openEditDrawer()
+
+		await expect(detail.drawer).toBeVisible()
+		await expect(detail.drawerFirstName).toBeVisible()
+		await expect(detail.reviewButton).toBeDisabled()
 	})
 
 	test('disables the user with confirmation and a success toast', async ({ page }) => {
@@ -124,12 +136,14 @@ test.describe('User detail — admin viewing own account', () => {
 		await expect(detail.deleteButton).toHaveCount(0)
 	})
 
-	test('locks the admin role in the edit-roles drawer when editing self', async ({ page }) => {
-		await detail.editRolesButton.click()
-		await expect(page.getByText('Edit Roles', { exact: true })).toBeVisible()
-		const adminCheckbox = page.getByRole('checkbox', { name: 'Administrator' })
-		await expect(adminCheckbox).toBeVisible()
-		await expect(adminCheckbox).toBeDisabled()
+	test('locks the admin role and shows status read-only in the edit user drawer when editing self', async () => {
+		await detail.openEditDrawer()
+
+		await expect(detail.roleCheckbox).toBeVisible()
+		await expect(detail.roleCheckbox).toBeDisabled()
+		// Status is a read-only label on your own account — never an editable control.
+		await expect(detail.drawerStatus).toHaveCount(0)
+		await expect(detail.drawer.getByText('Active')).toBeVisible()
 	})
 })
 

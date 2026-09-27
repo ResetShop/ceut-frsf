@@ -21,6 +21,10 @@ export class UsersListPage {
 	row(text: string): Locator {
 		return this.page.getByRole('row').filter({ hasText: text })
 	}
+	/** The user-name link in the row matching `text` — the route to that user's detail page. */
+	nameLink(text: string): Locator {
+		return this.row(text).getByRole('link').first()
+	}
 	/** Open the ⋮ row-actions menu for the row matching `text`, then return the menu-item by name. */
 	async openRowMenu(text: string): Promise<void> {
 		await this.row(text).getByRole('button', { name: 'Actions' }).click()

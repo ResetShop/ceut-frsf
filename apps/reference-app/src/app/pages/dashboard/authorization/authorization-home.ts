@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { Component } from '@angular/core'
 import { featherKey, featherShield } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import NavigationCard from '@resetshop/ui/navigation-card/navigation-card'
@@ -6,7 +6,6 @@ import NavigationCard from '@resetshop/ui/navigation-card/navigation-card'
 @Component({
 	selector: 'app-authorization-home',
 	imports: [NavigationCard, TranslatePipe],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="space-y-4">
 			<h2 class="text-foreground text-lg font-semibold">{{ 'DASHBOARD.AUTHORIZATION.TITLE' | translate }}</h2>

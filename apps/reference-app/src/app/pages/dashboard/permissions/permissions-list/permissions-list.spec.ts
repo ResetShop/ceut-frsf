@@ -1,6 +1,6 @@
 import { BreakpointObserver } from '@angular/cdk/layout'
 import { TestBed } from '@angular/core/testing'
-import { mockTranslation } from '@providers/i18n/translation.mock'
+import { MOCK_TRANSLATIONS, mockTranslation, type TranslationStub } from '@providers/i18n/translation.mock'
 import { PermissionsApi } from '@providers/permissions/permissions.interface'
 import { createMockPermissionData } from '@providers/permissions/permissions.mock'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
@@ -41,11 +41,11 @@ describe('PermissionsList', () => {
 		useRealTimers()
 	})
 
-	async function renderComponent() {
+	async function renderComponent(translation: TranslationStub = mockTranslation) {
 		const view = await render(PermissionsList, {
 			providers: [
 				{ provide: PermissionsApi, useValue: permissionsApiMock },
-				{ provide: Translation, useValue: mockTranslation },
+				{ provide: Translation, useValue: translation },
 				{ provide: BreakpointObserver, useValue: breakpointObserverMock },
 			],
 		})
@@ -127,5 +127,22 @@ describe('PermissionsList', () => {
 
 		expect(screen.getByText('admin:users:read')).toBeInTheDocument()
 		expect(screen.getByText('Can read user records')).toBeInTheDocument()
+	})
+
+	it('should display the description in the active language', async () => {
+		const permissions = [
+			createMockPermissionData({ id: 1, resource: 'users', action: 'read', description: 'View user details' }),
+		]
+		permissionsApiMock.getAllUnpaginated.mockReturnValue(of(permissions))
+
+		await renderComponent({
+			instant: (key, fallback) =>
+				key === 'PERMISSIONS.DESCRIPTIONS.admin:users:read'
+					? 'Ver detalles de usuario'
+					: (MOCK_TRANSLATIONS[key] ?? fallback ?? key),
+		})
+
+		expect(screen.getByText('Ver detalles de usuario')).toBeInTheDocument()
+		expect(screen.queryByText('View user details')).not.toBeInTheDocument()
 	})
 })

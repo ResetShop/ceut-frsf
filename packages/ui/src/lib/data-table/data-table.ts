@@ -1,6 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common'
 import {
-	ChangeDetectionStrategy,
 	Component,
 	computed,
 	contentChild,
@@ -50,22 +49,6 @@ export type DataTableDisplayMode = 'table' | 'cards'
  */
 export type DataTableTabBleed = '0' | '2' | '4' | '6' | '8'
 
-const TAB_BLEED_WRAPPER_CLASSES: Record<DataTableTabBleed, string> = Object.freeze({
-	'0': 'mx-0',
-	'2': '-mx-2',
-	'4': '-mx-4',
-	'6': '-mx-6',
-	'8': '-mx-8',
-} as const)
-
-const TAB_BLEED_SPACER_CLASSES: Record<DataTableTabBleed, string> = Object.freeze({
-	'0': 'w-0',
-	'2': 'w-2',
-	'4': 'w-4',
-	'6': 'w-6',
-	'8': 'w-8',
-} as const)
-
 @Component({
 	selector: 'app-data-table',
 	standalone: true,
@@ -80,7 +63,6 @@ const TAB_BLEED_SPACER_CLASSES: Record<DataTableTabBleed, string> = Object.freez
 			display: block;
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataTable<T> {
 	private readonly translation = inject(Translation)
@@ -282,13 +264,27 @@ export class DataTable<T> {
 	/** Negative-margin class for the toggle wrapper, or empty string when `tabBleed` is `null`. */
 	protected readonly tabBleedWrapperClass = computed(() => {
 		const bleed = this.tabBleed()
-		return bleed == null ? '' : TAB_BLEED_WRAPPER_CLASSES[bleed]
+		const wrapperClasses: Record<DataTableTabBleed, string> = {
+			'0': 'mx-0',
+			'2': '-mx-2',
+			'4': '-mx-4',
+			'6': '-mx-6',
+			'8': '-mx-8',
+		}
+		return bleed == null ? '' : wrapperClasses[bleed]
 	})
 
 	/** Width class for the right spacer, or `'w-0'` when `tabBleed` is `null` (collapses the spacer). */
 	protected readonly tabBleedSpacerClass = computed(() => {
 		const bleed = this.tabBleed()
-		return bleed == null ? 'w-0' : TAB_BLEED_SPACER_CLASSES[bleed]
+		const spacerClasses: Record<DataTableTabBleed, string> = {
+			'0': 'w-0',
+			'2': 'w-2',
+			'4': 'w-4',
+			'6': 'w-6',
+			'8': 'w-8',
+		}
+		return bleed == null ? 'w-0' : spacerClasses[bleed]
 	})
 
 	/**

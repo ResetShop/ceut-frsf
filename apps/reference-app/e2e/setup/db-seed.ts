@@ -36,6 +36,15 @@ export const E2E_USERS = Object.freeze({
 	viewable: 'e2e-viewable@test.com',
 } as const)
 
+/**
+ * The non-admin user a Playwright project signs in as to rename itself through the real API on the
+ * account page. There is one per project because projects run in parallel against one database, so a
+ * shared user would let one project's rename overwrite another's before it is read back.
+ */
+export function accountEditorEmail(projectName: string): string {
+	return `e2e-account-${projectName}@test.com`
+}
+
 /** Result of seeding — IDs the specs need (published to process.env by global-setup). */
 export interface SeededIds {
 	viewableUserId: number
@@ -54,7 +63,11 @@ export function adminPassword(): string {
 	return password
 }
 
-export async function seedE2eUsers(connectionString: string, password: string): Promise<SeededIds> {
+export async function seedE2eUsers(
+	connectionString: string,
+	password: string,
+	projectNames: readonly string[],
+): Promise<SeededIds> {
 	const db = drizzle(connectionString)
 	try {
 		const passwordHash = await createPasswordHasher()(password)
@@ -91,8 +104,19 @@ export async function seedE2eUsers(connectionString: string, password: string): 
 			passwordHash,
 		})
 
+		for (const projectName of projectNames) {
+			await seedUser(db, {
+				email: accountEditorEmail(projectName),
+				firstName: 'Ada',
+				lastName: 'Lovelace',
+				roleId: restrictedRoleId,
+				passwordHash,
+			})
+		}
+
 		// Extra users so the list spans more than one page (default page size 10) and pagination is exercised:
-		// 4 named users + 8 bulk = 12 total. Fixed emails are safe because globalSetup drops all tables first.
+		// 4 named users + one account editor per project + 8 bulk. Fixed emails are safe because globalSetup
+		// drops all tables first.
 		for (let i = 1; i <= 8; i += 1) {
 			await seedUser(db, {
 				email: `e2e-bulk-${i}@test.com`,

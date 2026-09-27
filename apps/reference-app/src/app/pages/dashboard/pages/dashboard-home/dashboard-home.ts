@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { Component, computed, inject } from '@angular/core'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import type { TranslationKey } from '@resetshop/angular-core/i18n/translations.schema'
@@ -10,7 +10,6 @@ import { AuthStore } from '@store/auth/auth.store'
 @Component({
 	selector: 'app-dashboard-home',
 	imports: [Alert, AlertDescription, AlertTitle, NavigationCard, TranslatePipe],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="space-y-8">
 			@if (hasNoModuleAccess()) {
@@ -48,7 +47,7 @@ export default class DashboardHome {
 
 	/**
 	 * True when the current user holds zero permissions — they can reach the
-	 * unguarded cards (Settings / Health) but no admin module is
+	 * unguarded cards but no admin module is
 	 * accessible to them. Triggers an explanatory empty-state alert at the top
 	 * of the page so the user knows to contact their administrator instead of
 	 * staring at a near-empty dashboard.
@@ -70,7 +69,6 @@ export default class DashboardHome {
 
 	protected getDescription(routeId: string): string {
 		const keyMap: Record<string, TranslationKey> = {
-			settings: 'DASHBOARD.HOME.DESCRIPTIONS.SETTINGS',
 			health: 'DASHBOARD.HOME.DESCRIPTIONS.HEALTH',
 			users: 'DASHBOARD.HOME.DESCRIPTIONS.USERS',
 			authorization: 'DASHBOARD.HOME.DESCRIPTIONS.AUTHORIZATION',

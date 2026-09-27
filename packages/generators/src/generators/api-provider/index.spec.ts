@@ -2,7 +2,7 @@ import type { Tree } from '@nx/devkit'
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import apiProviderGenerator from './index'
+import apiProviderGenerator from './index.ts'
 
 describe('api-provider generator', () => {
 	let tree: Tree

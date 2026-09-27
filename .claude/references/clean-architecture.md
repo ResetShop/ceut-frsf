@@ -1,4 +1,4 @@
-<!-- Source: CLAUDE.md | Last updated: 2026-02-09 -->
+<!-- Source: CLAUDE.md | Last updated: 2026-09-18 -->
 
 # Clean Architecture Principles
 
@@ -101,6 +101,8 @@ All backend and frontend interfaces follow the **Qualified Implementation** conv
 
 **Frontend:**
 
+> The DI mechanics behind these tokens — `InjectionToken` + `provideX()` wiring, route-scoped vs. root-singleton lifetimes, provider recipes, and per-route activation — live in [`angular-di.md`](angular-di.md). This section covers naming only.
+
 | Layer       | Interface + Token                   | Implementation       | Test Double              |
 | ----------- | ----------------------------------- | -------------------- | ------------------------ |
 | API Service | `AuthApi` (`InjectionToken`)        | `HttpAuthApi`        | `InMemoryAuthApi`        |
@@ -115,7 +117,7 @@ All backend and frontend interfaces follow the **Qualified Implementation** conv
 - `Drizzle*` prefix for database-backed repository implementations
 - `Http*` prefix for HTTP-based API service implementations
 - Sole-implementation services keep the interface name (no prefix, no `Impl` suffix)
-- Frontend tokens use plain `InjectionToken` (no `providedIn` / `factory`) — wired via `provideX()` functions
+- Frontend tokens use plain `InjectionToken` (no `providedIn` / `factory`) — wired via `provideX()` functions (see [`angular-di.md`](angular-di.md) → "Frontend API Provider Pattern")
 
 ---
 

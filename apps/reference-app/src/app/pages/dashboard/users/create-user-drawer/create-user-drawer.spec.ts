@@ -147,6 +147,27 @@ describe('CreateUserDrawer', () => {
 		)
 	})
 
+	it.each([
+		['first name is empty', /first name/i, ''],
+		['first name is too long', /first name/i, 'A'.repeat(101)],
+		['last name is empty', /last name/i, ''],
+		['email is invalid', /email/i, 'not-an-email'],
+	])('should keep the create button disabled and not submit when %s', async (_, field, value) => {
+		const { fixture } = await renderAndOpenRaw()
+
+		fillValidForm(fixture)
+		fireEvent.input(screen.getByRole('textbox', { name: field }), { target: { value } })
+		fixture.detectChanges()
+
+		const createButton = screen.getByRole('button', { name: /create/i })
+		expect(createButton).toBeDisabled()
+
+		fireEvent.click(createButton)
+		fixture.detectChanges()
+
+		expect(usersApiMock.create.calls).toHaveLength(0)
+	})
+
 	it('should show error alert when creation fails', async () => {
 		const httpError = new HttpErrorResponse({
 			error: { error: 'A user with this email already exists' },

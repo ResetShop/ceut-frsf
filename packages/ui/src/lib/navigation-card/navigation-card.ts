@@ -1,13 +1,5 @@
 import { NgComponentOutlet } from '@angular/common'
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	createEnvironmentInjector,
-	EnvironmentInjector,
-	inject,
-	input,
-} from '@angular/core'
+import { Component, computed, createEnvironmentInjector, EnvironmentInjector, inject, input } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronRight } from '@ng-icons/feather-icons'
@@ -16,7 +8,6 @@ import { featherChevronRight } from '@ng-icons/feather-icons'
 	selector: 'app-navigation-card-icon',
 	standalone: true,
 	imports: [NgIcon],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<ng-icon [name]="name()" size="24" />
 	`,
@@ -29,7 +20,6 @@ export class NavigationCardIcon {
 	selector: 'app-navigation-card',
 	imports: [NgComponentOutlet, NgIcon, RouterLink],
 	viewProviders: [provideIcons({ featherChevronRight })],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<a
 			[routerLink]="route()"

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core'
+import { Component, inject, input, output } from '@angular/core'
+import { RouterLink } from '@angular/router'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { NgIcon, provideIcons } from '@ng-icons/core'
@@ -11,13 +12,18 @@ import { UserStatusBadge } from '../user-status-badge/user-status-badge'
 @Component({
 	selector: 'app-user-card',
 	standalone: true,
-	imports: [Button, HasPermissionDirective, NgIcon, TranslatePipe, UserStatusBadge],
+	imports: [Button, HasPermissionDirective, NgIcon, RouterLink, TranslatePipe, UserStatusBadge],
 	viewProviders: [provideIcons({ featherEdit3, featherKey, featherTrash2 })],
 	template: `
 		<div class="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
 			<div class="flex items-start justify-between gap-2">
 				<div class="min-w-0">
-					<p class="truncate font-medium text-gray-900 dark:text-gray-100">{{ user().fullName }}</p>
+					<a
+						[routerLink]="['/dashboard/users', user().id]"
+						class="block truncate font-medium text-gray-900 hover:underline dark:text-gray-100"
+					>
+						{{ user().fullName }}
+					</a>
 					<p class="truncate text-sm text-gray-500 dark:text-gray-400">{{ user().email }}</p>
 				</div>
 				<app-user-status-badge [status]="user().status" />
@@ -66,7 +72,6 @@ import { UserStatusBadge } from '../user-status-badge/user-status-badge'
 			</div>
 		</div>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserCard {
 	public readonly user = input.required<IManagedUser>()

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing'
+import { provideRouter } from '@angular/router'
 import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import type { ManagedUser } from '@contracts/user/user.types'
@@ -33,6 +34,7 @@ describe('UserCard', () => {
 			inputs: { user: buildUser(overrides) },
 			on: { edit: editSpy, delete: deleteSpy, resetPassword: resetPasswordSpy },
 			providers: [
+				provideRouter([]),
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
@@ -91,6 +93,12 @@ describe('UserCard', () => {
 		expect(screen.getByText('Admin, Editor')).toBeInTheDocument()
 	})
 
+	it('links the full name to the user detail page', async () => {
+		await renderCard({ id: 7, firstName: 'Jane', lastName: 'Doe' })
+
+		expect(screen.getByRole('link', { name: 'Jane Doe' })).toHaveAttribute('href', '/dashboard/users/7')
+	})
+
 	it('emits edit when the edit button is clicked', async () => {
 		const user = userEvent.setup()
 		const { editSpy } = await renderCard()
@@ -129,6 +137,7 @@ describe('UserCard', () => {
 			inputs: { user: buildUser() },
 			on: { edit: fn(), delete: fn(), resetPassword: fn() },
 			providers: [
+				provideRouter([]),
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
@@ -148,6 +157,7 @@ describe('UserCard', () => {
 			inputs: { user: buildUser({ id: 42 }) },
 			on: { edit: fn(), delete: fn(), resetPassword: fn() },
 			providers: [
+				provideRouter([]),
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },
@@ -169,6 +179,7 @@ describe('UserCard', () => {
 			inputs: { user: buildUser() },
 			on: { edit: editSpy, delete: deleteSpy },
 			providers: [
+				provideRouter([]),
 				{ provide: AuthApi, useValue: new InMemoryAuthApi() },
 				{ provide: CURRENT_USER_SOURCE, useExisting: AuthStore },
 				{ provide: Translation, useValue: mockTranslation },

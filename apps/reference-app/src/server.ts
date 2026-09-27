@@ -144,6 +144,10 @@ app.use(
  * Handle SSR for rest of the routes using Angular App Engine
  */
 app.use('*', async (c, next) => {
+	// Forwarded proxy headers (X-Forwarded-*) are intentionally not trusted: SSR reads the direct
+	// request host rather than reconstructing the public URL, which this app does not depend on.
+	// A fork whose SSR must reconstruct the public host behind a trusted proxy can pass
+	// `{ trustProxyHeaders: ['x-forwarded-host', 'x-forwarded-proto'], allowedHosts: [...] }` here.
 	const angularApp = new AngularAppEngine()
 	const response = await angularApp.handle(c.req.raw)
 	if (response) {

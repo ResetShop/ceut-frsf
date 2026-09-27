@@ -210,47 +210,65 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 	}
 
 	/**
-	 * Updates an existing user's properties.
-	 * Only provided fields are updated.
+	 * Updates an existing user's profile fields (email, first/last name) and records a profile-history entry.
+	 * Only provided fields are updated. Pass `tx` to compose this write into a caller-owned transaction
+	 * (e.g. a combined profile + roles + status edit); omit it to run standalone in its own transaction.
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Fields to update
+	 * @param actorId - ID of the user performing the change (audit)
+	 * @param tx - Optional transaction handle
 	 * @returns Updated user data, or null if not found
 	 */
-	public async update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null> {
-		return this.db.transaction(async (tx) => {
-			const now = new Date()
-			const updateData: Partial<typeof user.$inferInsert> = { updatedAt: now }
+	public async update(
+		id: number,
+		params: UpdateUserParams,
+		actorId: number,
+		tx?: DrizzleTransaction,
+	): Promise<UserData | null> {
+		if (tx) {
+			return this.updateWithin(tx, id, params, actorId)
+		}
+		return this.db.transaction((trx) => this.updateWithin(trx, id, params, actorId))
+	}
 
-			if (params.email !== undefined) updateData.email = params.email
-			if (params.firstName !== undefined) updateData.firstName = params.firstName
-			if (params.lastName !== undefined) updateData.lastName = params.lastName
+	private async updateWithin(
+		tx: DrizzleTransaction,
+		id: number,
+		params: UpdateUserParams,
+		actorId: number,
+	): Promise<UserData | null> {
+		const now = new Date()
+		const updateData: Partial<typeof user.$inferInsert> = { updatedAt: now }
 
-			const result = await tx
-				.update(user)
-				.set(updateData)
-				.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
-				.returning({
-					id: user.id,
-					email: user.email,
-					firstName: user.firstName,
-					lastName: user.lastName,
-					status: user.status,
-				})
+		if (params.email !== undefined) updateData.email = params.email
+		if (params.firstName !== undefined) updateData.firstName = params.firstName
+		if (params.lastName !== undefined) updateData.lastName = params.lastName
 
-			if (result.length === 0) return null
-
-			await tx.insert(userProfileHistory).values({
-				userId: id,
-				email: result[0].email,
-				firstName: result[0].firstName,
-				lastName: result[0].lastName,
-				changedBy: actorId,
-				changedAt: now,
+		const result = await tx
+			.update(user)
+			.set(updateData)
+			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
+			.returning({
+				id: user.id,
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				status: user.status,
 			})
 
-			return result[0]
+		if (result.length === 0) return null
+
+		await tx.insert(userProfileHistory).values({
+			userId: id,
+			email: result[0].email,
+			firstName: result[0].firstName,
+			lastName: result[0].lastName,
+			changedBy: actorId,
+			changedAt: now,
 		})
+
+		return result[0]
 	}
 
 	/**
@@ -293,52 +311,67 @@ export class DrizzleUserManagementRepository extends BaseRepository implements U
 
 	/**
 	 * Updates a user's account status with audit trail.
-	 * Deleted users cannot be modified.
+	 * Deleted users cannot be modified. Pass `tx` to compose this write into a caller-owned
+	 * transaction; omit it to run standalone in its own transaction.
 	 *
 	 * @param id - The user's primary key
 	 * @param params - Status change parameters including the new status and who changed it
+	 * @param tx - Optional transaction handle
 	 * @returns Updated user data with roles, or null if not found or deleted
 	 */
-	public async updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null> {
-		return this.db.transaction(async (tx) => {
-			const exists = await tx.select({ id: user.id }).from(user).where(eq(user.id, id)).limit(1)
-			if (exists.length === 0) return null
+	public async updateStatus(
+		id: number,
+		params: UpdateUserStatusParams,
+		tx?: DrizzleTransaction,
+	): Promise<ManagedUserData | null> {
+		if (tx) {
+			return this.updateStatusWithin(tx, id, params)
+		}
+		return this.db.transaction((trx) => this.updateStatusWithin(trx, id, params))
+	}
 
-			const now = new Date()
-			const result = await tx
-				.update(user)
-				.set({
-					status: params.status,
-					statusChangedAt: now,
-					statusChangedBy: params.changedBy,
-					updatedAt: now,
-				})
-				.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
-				.returning({
-					id: user.id,
-					email: user.email,
-					firstName: user.firstName,
-					lastName: user.lastName,
-					status: user.status,
-					statusChangedAt: user.statusChangedAt,
-					statusChangedBy: user.statusChangedBy,
-					deletedAt: user.deletedAt,
-					createdAt: user.createdAt,
-					updatedAt: user.updatedAt,
-				})
+	private async updateStatusWithin(
+		tx: DrizzleTransaction,
+		id: number,
+		params: UpdateUserStatusParams,
+	): Promise<ManagedUserData | null> {
+		const exists = await tx.select({ id: user.id }).from(user).where(eq(user.id, id)).limit(1)
+		if (exists.length === 0) return null
 
-			if (result.length === 0) return null
-
-			await tx.insert(userStatusHistory).values({
-				userId: id,
+		const now = new Date()
+		const result = await tx
+			.update(user)
+			.set({
 				status: params.status,
-				changedBy: params.changedBy,
-				changedAt: now,
+				statusChangedAt: now,
+				statusChangedBy: params.changedBy,
+				updatedAt: now,
+			})
+			.where(and(eq(user.id, id), ne(user.status, UserStatus.DELETED)))
+			.returning({
+				id: user.id,
+				email: user.email,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				status: user.status,
+				statusChangedAt: user.statusChangedAt,
+				statusChangedBy: user.statusChangedBy,
+				deletedAt: user.deletedAt,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
 			})
 
-			const [updatedWithRoles] = await this.attachRolesToUsers(result, tx)
-			return updatedWithRoles
+		if (result.length === 0) return null
+
+		await tx.insert(userStatusHistory).values({
+			userId: id,
+			status: params.status,
+			changedBy: params.changedBy,
+			changedAt: now,
 		})
+
+		const [updatedWithRoles] = await this.attachRolesToUsers(result, tx)
+		return updatedWithRoles
 	}
 
 	/**

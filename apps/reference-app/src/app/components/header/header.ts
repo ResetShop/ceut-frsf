@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { Component, inject } from '@angular/core'
 import { ThemeToggle } from '@components/theme-toggle/theme-toggle'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherMenu } from '@ng-icons/feather-icons'
@@ -30,7 +30,6 @@ import { Breadcrumb } from '../breadcrumb/breadcrumb'
 			<app-theme-toggle />
 		</div>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Header {
 	protected readonly uiStore = inject(UIStore)

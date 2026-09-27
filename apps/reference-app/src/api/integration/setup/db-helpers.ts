@@ -176,6 +176,40 @@ export async function seedBaseData(db: TestDb): Promise<{ adminUserId: number; a
 }
 
 /**
+ * Seeds a login-capable user holding exactly the given permissions (through a dedicated role).
+ * Use it for tests that need a partially-privileged actor, e.g. one who may edit users but not
+ * change their status. The user shares the admin test password.
+ */
+export async function seedUserWithPermissions(
+	db: TestDb,
+	params: { email: string; roleCode: string; permissionNames: string[] },
+): Promise<{ userId: number; email: string; password: string }> {
+	const [createdRole] = await db
+		.insert(role)
+		.values({ name: params.roleCode, code: params.roleCode, description: 'Integration test role', removable: true })
+		.returning({ id: role.id })
+
+	const grantedPermissions = await db
+		.select({ id: permission.id })
+		.from(permission)
+		.where(inArray(permission.name, params.permissionNames))
+	await db
+		.insert(rolePermission)
+		.values(grantedPermissions.map((p) => ({ roleId: createdRole.id, permissionId: p.id })))
+
+	const [createdUser] = await db
+		.insert(user)
+		.values({ firstName: 'Partial', lastName: 'Admin', email: params.email })
+		.returning({ id: user.id })
+	await db
+		.insert(authentication)
+		.values({ userId: createdUser.id, passwordHash: await getAdminPasswordHash(), failedLoginAttempts: 0 })
+	await db.insert(userRole).values({ userId: createdUser.id, roleId: createdRole.id })
+
+	return { userId: createdUser.id, email: params.email, password: getAdminPassword() }
+}
+
+/**
  * Resets only the lockout state of the admin user's authentication record.
  * Use this instead of truncateAllTables + seedBaseData when only the lockout
  * fields need resetting (e.g., after account lockout tests).

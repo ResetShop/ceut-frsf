@@ -2,7 +2,7 @@ import type { Tree } from '@nx/devkit'
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import storeGenerator from './index'
+import storeGenerator from './index.ts'
 
 describe('store generator', () => {
 	let tree: Tree

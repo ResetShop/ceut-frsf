@@ -36,23 +36,29 @@ export default [
 			},
 			{
 				path: 'users',
-				title: 'USERS.PAGE.TITLE',
-				loadComponent: () => import('./users/users-list/users-list'),
-				canActivate: [permissionGuard],
-				data: { requiredPermission: 'admin:users:read' },
+				title: 'DASHBOARD.USERS.NAV',
 				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
-			},
-			{
-				path: 'users/:id',
-				title: 'USERS.DETAIL.TITLE',
-				loadComponent: () => import('./users/user-detail-page/user-detail-page'),
-				canActivate: [permissionGuard],
-				data: { requiredPermission: 'admin:users:read' },
-				providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
+				children: [
+					{
+						path: '',
+						title: 'USERS.PAGE.TITLE',
+						loadComponent: () => import('./users/users-list/users-list'),
+						canActivate: [permissionGuard],
+						data: { requiredPermission: 'admin:users:read' },
+					},
+					{
+						path: ':id',
+						title: 'USERS.DETAIL.TITLE',
+						loadComponent: () => import('./users/user-detail-page/user-detail-page'),
+						canActivate: [permissionGuard],
+						data: { requiredPermission: 'admin:users:read' },
+					},
+				],
 			},
 			{
 				path: 'authorization',
 				title: 'DASHBOARD.AUTHORIZATION.NAV',
+				providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore, provideToast()],
 				children: [
 					{
 						path: '',
@@ -66,7 +72,6 @@ export default [
 						loadComponent: () => import('./permissions/permissions-list/permissions-list'),
 						canActivate: [permissionGuard],
 						data: { requiredPermission: 'admin:permissions:read' },
-						providers: [providePermissions(), PermissionsStore],
 					},
 					{
 						path: 'roles',
@@ -74,7 +79,6 @@ export default [
 						loadComponent: () => import('./roles/roles-list/roles-list'),
 						canActivate: [permissionGuard],
 						data: { requiredPermission: 'admin:roles:read' },
-						providers: [provideRoles(), providePermissions(), RolesStore, PermissionsStore, provideToast()],
 					},
 				],
 			},

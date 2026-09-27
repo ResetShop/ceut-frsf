@@ -81,12 +81,17 @@ export const createUserRoute = createRoute({
 	},
 })
 
+/** The permission a status change requires, on both the combined update and the dedicated status route. */
+const statusPermission = permission('admin:users:disable')
+
 export const updateUserRoute = createRoute({
 	method: 'patch',
 	path: '/{id}',
 	tags: ['Users'],
 	summary: 'Update a user',
-	description: 'Update user details or role assignments.',
+	description:
+		'Update any combination of profile fields, role assignments, and account status in one atomic transaction. ' +
+		`Changing \`status\` additionally requires the \`${statusPermission}\` permission.`,
 	middleware: [requirePermission(permission('admin:users:update'))] as const,
 	request: {
 		params: idParamSchema,
@@ -101,7 +106,7 @@ export const updateUserRoute = createRoute({
 			content: { 'application/json': { schema: managedUserSchema } },
 		},
 		400: {
-			description: 'Invalid user ID',
+			description: 'Invalid user ID or unknown/non-removable role IDs',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		404: {
@@ -112,7 +117,15 @@ export const updateUserRoute = createRoute({
 			description: 'Email already exists',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
+		422: {
+			description: 'Invalid status transition',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 		...commonResponses,
+		403: {
+			description: `Missing ${statusPermission} for a status change, own status change, or own admin role removal`,
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 	},
 })
 
@@ -122,7 +135,7 @@ export const updateUserStatusRoute = createRoute({
 	tags: ['Users'],
 	summary: 'Update user status',
 	description: 'Update user account status with state machine enforcement.',
-	middleware: [requirePermission(permission('admin:users:disable'))] as const,
+	middleware: [requirePermission(statusPermission)] as const,
 	request: {
 		params: idParamSchema,
 		body: {
@@ -139,10 +152,6 @@ export const updateUserStatusRoute = createRoute({
 			description: 'Invalid user ID',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		403: {
-			description: 'Cannot change status of own account',
-			content: { 'application/json': { schema: errorResponseSchema } },
-		},
 		404: {
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
@@ -152,6 +161,10 @@ export const updateUserStatusRoute = createRoute({
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		...commonResponses,
+		403: {
+			description: 'Cannot change status of own account',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 	},
 })
 

@@ -1,6 +1,7 @@
+import { permission } from '@contracts/permission/permission.constants'
 import type { OpenAPIHono } from '@hono/zod-openapi'
-import { authenticatedRequest, loginAsAdmin, loginAsRestricted } from '../setup/auth-helpers'
-import { getSeededAdminIds, getTestDb } from '../setup/db-helpers'
+import { authenticatedRequest, loginAs, loginAsAdmin, loginAsRestricted } from '../setup/auth-helpers'
+import { getSeededAdminIds, getTestDb, seedUserWithPermissions } from '../setup/db-helpers'
 import { createTestApp } from '../setup/test-app'
 
 describe('User management endpoints (/api/users)', () => {
@@ -253,6 +254,43 @@ describe('User management endpoints (/api/users)', () => {
 			expect(body.roles.map((role: { id: number }) => role.id)).toEqual([adminRoleId])
 		})
 
+		it('returns 400 for unknown role IDs', async () => {
+			const createResponse = await authenticatedRequest(app, '/api/users', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'unknown-roles@test.com', firstName: 'Unknown', lastName: 'Roles' },
+			})
+			const created = await createResponse.json()
+
+			const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { roleIds: [99999] },
+			})
+
+			expect(response.status).toBe(400)
+			expect((await response.json()).error).toContain('Roles not found')
+		})
+
+		it('returns 400 when a non-removable role would be dropped', async () => {
+			const createResponse = await authenticatedRequest(app, '/api/users', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email: 'non-removable@test.com', firstName: 'Non', lastName: 'Removable', roleIds: [adminRoleId] },
+			})
+			const created = await createResponse.json()
+
+			// The seeded Administrator role is non-removable, so replacing the set without it must fail.
+			const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { roleIds: [] },
+			})
+
+			expect(response.status).toBe(400)
+			expect((await response.json()).error).toContain('Cannot remove non-removable roles')
+		})
+
 		it('returns 403 when an admin removes their own admin role', async () => {
 			const response = await authenticatedRequest(app, `/api/users/${adminUserId}`, {
 				method: 'PATCH',
@@ -320,6 +358,148 @@ describe('User management endpoints (/api/users)', () => {
 				body: { firstName: 'Forbidden' },
 			})
 			expect(response.status).toBe(403)
+		})
+	})
+
+	// ── Combined atomic update ────────────────────────────────────
+	describe('PATCH /api/users/{id} (combined profile + roles + status)', () => {
+		async function createUser(email: string): Promise<{ id: number }> {
+			const response = await authenticatedRequest(app, '/api/users', {
+				method: 'POST',
+				cookies: adminCookies,
+				body: { email, firstName: 'Combined', lastName: 'User' },
+			})
+			return response.json()
+		}
+
+		async function fetchUser(id: number) {
+			const response = await authenticatedRequest(app, `/api/users/${id}`, { cookies: adminCookies })
+			return response.json()
+		}
+
+		it('applies profile, role, and status changes in one request', async () => {
+			const created = await createUser('combined@test.com')
+
+			const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { firstName: 'Changed', roleIds: [adminRoleId], status: 'disabled' },
+			})
+
+			expect(response.status).toBe(200)
+			const persisted = await fetchUser(created.id)
+			expect(persisted.firstName).toBe('Changed')
+			expect(persisted.status).toBe('disabled')
+			expect(persisted.roles.map((role: { id: number }) => role.id)).toEqual([adminRoleId])
+		})
+
+		it('changes only the status when status is the only field', async () => {
+			const created = await createUser('status-only@test.com')
+
+			const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { status: 'disabled' },
+			})
+
+			expect(response.status).toBe(200)
+			const body = await response.json()
+			expect(body.status).toBe('disabled')
+			expect(body.firstName).toBe('Combined')
+		})
+
+		it('treats a status equal to the current one as a no-op', async () => {
+			const created = await createUser('same-status@test.com')
+
+			const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { status: 'active' },
+			})
+
+			expect(response.status).toBe(200)
+			expect((await response.json()).status).toBe('active')
+		})
+
+		it('rolls back the profile and status writes when the role replacement fails', async () => {
+			const created = await createUser('rollback@test.com')
+
+			const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { firstName: 'Should Not Persist', roleIds: [99999], status: 'disabled' },
+			})
+
+			expect(response.status).toBe(400)
+			expect((await response.json()).error).toContain('Roles not found')
+			const persisted = await fetchUser(created.id)
+			expect(persisted.firstName).toBe('Combined')
+			expect(persisted.status).toBe('active')
+			expect(persisted.roles).toHaveLength(0)
+		})
+
+		it('returns 403 when an admin changes their own status', async () => {
+			const response = await authenticatedRequest(app, `/api/users/${adminUserId}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { firstName: 'Self', status: 'disabled' },
+			})
+
+			expect(response.status).toBe(403)
+			expect((await fetchUser(adminUserId)).status).toBe('active')
+		})
+
+		it('returns 400 for a terminal status value', async () => {
+			const created = await createUser('terminal-status@test.com')
+
+			const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+				method: 'PATCH',
+				cookies: adminCookies,
+				body: { status: 'deleted' },
+			})
+
+			expect(response.status).toBe(400)
+		})
+
+		describe('as an actor with admin:users:update but without admin:users:disable', () => {
+			let editorCookies: Awaited<ReturnType<typeof loginAsAdmin>>
+
+			beforeAll(async () => {
+				const editor = await seedUserWithPermissions(getTestDb(), {
+					email: 'user-editor@test.com',
+					roleCode: 'user_editor',
+					permissionNames: [permission('admin:users:read'), permission('admin:users:update')],
+				})
+				editorCookies = (await loginAs(app, editor.email, editor.password)).cookies
+			})
+
+			it('returns 403 for a status change and persists nothing', async () => {
+				const created = await createUser('editor-target-status@test.com')
+
+				const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+					method: 'PATCH',
+					cookies: editorCookies,
+					body: { firstName: 'Should Not Persist', status: 'disabled' },
+				})
+
+				expect(response.status).toBe(403)
+				const persisted = await fetchUser(created.id)
+				expect(persisted.firstName).toBe('Combined')
+				expect(persisted.status).toBe('active')
+			})
+
+			it('allows a profile-only update', async () => {
+				const created = await createUser('editor-target-profile@test.com')
+
+				const response = await authenticatedRequest(app, `/api/users/${created.id}`, {
+					method: 'PATCH',
+					cookies: editorCookies,
+					body: { firstName: 'Edited' },
+				})
+
+				expect(response.status).toBe(200)
+				expect((await response.json()).firstName).toBe('Edited')
+			})
 		})
 	})
 

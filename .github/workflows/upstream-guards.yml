@@ -26,7 +26,12 @@ on:
     # Re-evaluate when bypass labels are added or removed so a contributor can
     # apply `allow-app-change` / `skip-changelog` and have the guard re-run
     # without having to push a new commit.
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    #
+    # `edited` covers a base-branch change: GitHub auto-retargets a stacked PR to
+    # `develop` when the PR below it merges, and without this the guards never run
+    # for it — leaving both required checks pending and the PR unmergeable. Both jobs
+    # diff `base.sha..head.sha`, so they evaluate the new base correctly.
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
 
 jobs:
   boundary-guard:

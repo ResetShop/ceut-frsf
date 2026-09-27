@@ -30,7 +30,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '24.18'
+          node-version: '24.20'
 
       - name: Get Node.js version
         id: node-version
@@ -71,7 +71,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '24.18'
+          node-version: '24.20'
 
       - name: Run Tests
         run: npx nx run-many -t test
@@ -89,7 +89,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '24.18'
+          node-version: '24.20'
 
       - name: Run typecheck
         run: npx nx run-many -t typecheck
@@ -107,7 +107,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '24.18'
+          node-version: '24.20'
 
       - name: Run Linter
         run: npx nx run-many -t lint
@@ -125,7 +125,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '24.18'
+          node-version: '24.20'
 
       - name: Run stylelint
         run: npx nx stylelint reference-app
@@ -143,13 +143,18 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '24.18'
+          node-version: '24.20'
 
       # Repo-wide guards (no `.env*` files, no issue refs in code comments, prettier formatting).
       # The `check` target is `cache: false`, so it always runs — closing the gap where a
       # `--no-verify` push would otherwise skip the pre-commit guards entirely.
       - name: Run repo-wide guards
         run: npx nx run @app/source:check
+
+      # Dry-runs every generator and fails if one errors or Nx falls back from native ESM loading
+      # to its swc/ts-node CommonJS path.
+      - name: Run generators native-ESM guard
+        run: npx nx run generators:generators-esm-guard
 
   test-integration:
     needs: setup
@@ -178,7 +183,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '24.18'
+          node-version: '24.20'
 
       - name: Run integration tests
         run: npx nx test-integration reference-app --skip-nx-cache
@@ -189,6 +194,18 @@ jobs:
           # Set both in repo Settings → Secrets and variables → Actions.
           PG_TEST_CONNECTION_STRING: ${{ vars.PG_TEST_CONNECTION_STRING }}
           INTEGRATION_TEST_ADMIN_PASSWORD: ${{ secrets.INTEGRATION_TEST_ADMIN_PASSWORD }}
+
+      # Proves a broken global setup still fails the target, so the step above can go red.
+      # It runs after the suite, and even when the suite failed, so the suite's results are
+      # reported whatever happens to the guard. Steps run one at a time, which the guard needs:
+      # it must not run concurrently with the suite, since both start embedded-Postgres clusters.
+      # The guard supplies its own (deliberately broken) env per scenario. The timeout lets the
+      # runner kill the whole process tree if a spawned run hangs, instead of waiting for the
+      # 6-hour job default.
+      - name: Run integration setup fail-loud guard
+        if: ${{ !cancelled() }}
+        timeout-minutes: 15
+        run: npx nx run @app/source:test-integration-setup-guard
 
   e2e:
     needs: setup
@@ -217,7 +234,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '24.18'
+          node-version: '24.20'
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -254,7 +271,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '24.18'
+          node-version: '24.20'
 
       - name: Generate PASETO key for CI
         run: echo "PASETO_SECRET_KEY=$(openssl rand -hex 32)" >> $GITHUB_ENV
@@ -275,7 +292,7 @@ jobs:
       - name: Use Node.js 24
         uses: actions/setup-node@v4.4.0
         with:
-          node-version: '24.18'
+          node-version: '24.20'
 
       - name: Run Storybook build
         run: npx nx run reference-app:build-storybook

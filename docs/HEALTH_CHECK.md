@@ -309,7 +309,6 @@ Error: Database health check timed out
 @Component({
 	selector: 'app-health',
 	imports: [DatePipe, Badge],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Health {
 	private http = inject(HttpClient)

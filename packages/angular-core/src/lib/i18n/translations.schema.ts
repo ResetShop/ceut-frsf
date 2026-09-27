@@ -157,16 +157,25 @@ export interface TranslationSchema {
 				FIRST_NAME: string
 				LAST_NAME: string
 				EMAIL: string
-				SAVE: string
-				SUCCESS_TOAST: string
 			}
 			ROLES: {
 				TITLE: string
 				EMPTY: string
-				EDIT_BUTTON: string
+			}
+			EDIT: {
+				BUTTON: string
 				DRAWER_TITLE: string
-				ROLES_LABEL: string
+				STATUS_LABEL: string
+				REVIEW: string
+				NONE: string
 				SUCCESS_TOAST: string
+				CONFIRM_DIALOG: {
+					TITLE: string
+					MESSAGE: string
+					CONFIRM: string
+					BEFORE: string
+					AFTER: string
+				}
 			}
 			ACCOUNT: {
 				TITLE: string
@@ -249,6 +258,21 @@ export interface TranslationSchema {
 				DESCRIPTION: string
 			}
 		}
+		/**
+		 * Localized display text for each entry of the permission catalogue, keyed by the
+		 * full `module:resource:action` permission identifier. The catalogue itself is owned
+		 * by the app (`PERMISSION_DEFINITIONS`), whose English `description` is what seeds the
+		 * database; this map is the text the Permissions page actually renders. Every
+		 * identifier in the catalogue must have an entry here in every language file.
+		 *
+		 * This is the schema's only dynamically-keyed leaf. Every other key is a literal, so
+		 * `TranslationKey` resolves it to the template-literal member
+		 * `PERMISSIONS.DESCRIPTIONS.${string}` rather than to a union of exact keys — a key
+		 * built from an identifier is assignable without a cast, but a typo in one is not
+		 * caught by the compiler. A coverage spec in the app enforces the catalogue↔key parity
+		 * that the type system cannot. Weigh that trade-off before adding a second such map.
+		 */
+		DESCRIPTIONS: Record<string, string>
 		ERRORS: {
 			ACCESS_DENIED: string
 		}
@@ -261,6 +285,26 @@ export interface TranslationSchema {
 			LABEL: string
 			ENGLISH: string
 			SPANISH: string
+		}
+	}
+	ACCOUNT: {
+		NAV: string
+		TITLE: string
+		DESCRIPTION: string
+		PROFILE: {
+			TITLE: string
+			FIRST_NAME: string
+			LAST_NAME: string
+			EMAIL: string
+		}
+		REVIEW: string
+		SUCCESS_TOAST: string
+		CONFIRM_DIALOG: {
+			TITLE: string
+			MESSAGE: string
+			CONFIRM: string
+			BEFORE: string
+			AFTER: string
 		}
 	}
 	HEALTH: {
@@ -280,18 +324,20 @@ export interface TranslationSchema {
 	DASHBOARD: {
 		BREADCRUMB: string
 		SECTIONS: {
-			SETTINGS: string
+			MAINTENANCE: string
 			ADMIN: string
 		}
 		HOME: {
 			NO_ACCESS_TITLE: string
 			NO_ACCESS_MESSAGE: string
 			DESCRIPTIONS: {
-				SETTINGS: string
 				HEALTH: string
 				USERS: string
 				AUTHORIZATION: string
 			}
+		}
+		USERS: {
+			NAV: string
 		}
 		AUTHORIZATION: {
 			NAV: string

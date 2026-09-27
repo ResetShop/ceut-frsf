@@ -29,7 +29,7 @@
 
 | Aspect               | Value                               |
 | -------------------- | ----------------------------------- |
-| **Framework**        | Angular 17+ (standalone components) |
+| **Framework**        | Angular 22+ (standalone components) |
 | **Language**         | TypeScript (strict mode)            |
 | **Monorepo Tool**    | Nx                                  |
 | **Package Manager**  | npm                                 |
@@ -60,6 +60,9 @@ Use `npm` for all package management and script execution:
 | `npm install <pkg>`        | Add a dependency                                                                  |
 | `npm install -D <pkg>`     | Add a dev dependency                                                              |
 | `npm install -g <pkg>`     | Add a global dependency                                                           |
+| `npm install-scripts ls`   | List dependencies whose install scripts are not yet covered by `allowScripts`     |
+
+**Install-script policy:** npm skips dependency install scripts unless the package is approved in the `allowScripts` map in `package.json`. After adding a dependency, check the list of skipped scripts at the end of the `npm install` output. If one is needed, approve it **by name** with `npm install-scripts approve --no-allow-scripts-pin <pkg>`, so later version bumps don't silently re-block it. Never remove the `@embedded-postgres/*` entries — their postinstall restores the Postgres shared-library symlinks the integration-test harness needs on Linux.
 
 #### CRITICAL: Command Execution Policy
 
@@ -501,72 +504,13 @@ let apiMock: { getAll: MockFn<...>; create: MockFn<...>; ... };
 | `PermissionsStore` | `src/app/store/permissions/permissions.store.ts` |
 | `UIStore`          | `src/app/store/ui/ui.store.ts`                   |
 
-**Route-level store registration:**
+**Route-level registration and DI lifetimes:**
 
-Domain stores keep `providedIn: 'root'` for tree-shaking, but must be **explicitly provided** at the route level alongside their API token dependencies. `providedIn: 'root'` is a default — when you explicitly provide a `providedIn: 'root'` service in a route's `providers` array, Angular creates it in that route's `EnvironmentInjector` instead of the root injector. All `inject()` calls inside the store factory then resolve from that route's injector, where the API tokens are available.
+Domain stores keep `providedIn: 'root'` for tree-shaking but are **route-scoped instances**, provided once per section: list the store and its `provideX()` API providers **once**, on the lowest route that is a common parent of every page using them (e.g. the `users` parent route: `providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()]`), never on the individual pages. **Pages under one parent share its instance** — a route's injector serves all of its children — so the users list and user detail pages use one `UsersStore`; sibling sections never share (`RolesStore` exists once under `users` and once under `authorization`). The instances live until the user leaves the section. `AuthStore` and `UIStore` are the exceptions — genuine root singletons whose dependencies are provided in `app.config.ts`.
 
-```typescript
-// ✅ Correct — store and API token co-provided at the route level
-{
-  path: 'users',
-  loadComponent: () => import('./users/users-list/users-list'),
-  providers: [provideUsers(), provideRoles(), UsersStore, RolesStore],
-}
+Root singletons with constructor side effects (e.g. `ToastBridgeService`) are the opposite case: **never** list them in a route's `providers` (a bare class mints a new route-scoped instance); activate the single root instance per route instead — `provideToast()` is exactly `provideEnvironmentInitializer(() => inject(ToastBridgeService))`, added to the parent route of each section that fires toasts. Singleton-ness comes from `providedIn: 'root'` + never re-providing; `provideEnvironmentInitializer` only activates.
 
-// ❌ Incorrect — store not listed, relies on root injector where API token is missing
-{
-  path: 'users',
-  loadComponent: () => import('./users/users-list/users-list'),
-  providers: [provideUsers(), provideRoles()],
-}
-```
-
-**Rules:**
-
-- Every route that uses a domain store must list both `provideX()` and the store in its `providers` array
-- `AuthStore` and `UIStore` are exceptions — their dependencies (`AuthApi`) are provided at root in `app.config.ts`, so they don't need route-level registration
-- Never remove `providedIn: 'root'` from stores — it enables tree-shaking and serves as a fallback when no explicit provider is given
-
-**Eager instantiation of root singletons at route level:**
-
-Some `providedIn: 'root'` services (e.g., `ToastBridgeService`) rely on constructor side effects (`effect()`) that must be active before the route's components fire notifications. Because `providedIn: 'root'` services are instantiated lazily on first injection, a service that is never injected by any component stays dormant. Use `provideEnvironmentInitializer(() => inject(Service))` in the route's `providers` array to force instantiation when the route activates.
-
-`provideToast()` is the canonical example. `ToastBridgeService` and `NgpToastManager` are both `providedIn: 'root'` singletons (the manager renders into `document.body`, so where it is provided is irrelevant), and `ToastBridgeService` passes its presentation options per `show()` — so **no `NgpToastConfig` is registered anywhere**, and nothing toast-related is forced onto routes that never show toasts. `provideToast()` therefore provisions **nothing new** — it is exactly `provideEnvironmentInitializer(() => inject(ToastBridgeService))`, which eagerly instantiates the single root bridge so its `effect()` is live for that route. The `inject()` resolves up to the one root instance (no route re-provides it), so every route that calls `provideToast()` shares the same bridge and a notification renders exactly once. Put it on each route that fires toasts; routes that fire none add nothing.
-
-```typescript
-// ✅ Correct — provideToast() on each route that fires toasts; it only activates the single root-singleton
-// ToastBridgeService (no new instance). Routes that fire no toasts (settings, health, …) add nothing.
-{
-  path: 'users/:id',
-  providers: [provideUsers(), provideRoles(), UsersStore, RolesStore, provideToast()],
-}
-
-// ❌ Incorrect — listing NgpToastManager / ToastBridgeService as classes in a route's providers mints a
-// route-scoped instance that overrides the root singleton; multiple live bridges each render the SHARED
-// UIStore notifications, so a denied deep-link of a parameterized route duplicates the deny toast (#471)
-{
-  path: 'users/:id',
-  providers: [provideUsers(), NgpToastManager, ToastBridgeService /* ← wrong */],
-}
-```
-
-**Rules:**
-
-- Add `provideToast()` to each route that fires toasts. It is activation-only (it just eagerly injects the root `ToastBridgeService`), so calling it on many routes still yields **one** shared bridge — no duplication ([#471](https://github.com/ResetShop/angular-nx-standalone-starter/issues/471)).
-- Never list `ToastBridgeService` or `NgpToastManager` as a class in any route's `providers` — that mints a route-scoped instance, overriding the root singleton, and resurrects the duplicate-toast bug.
-- Do **not** register `provideToastConfig` (it would have to live at app root for the root-singleton manager to read it, leaking toast config onto every route). Per-toast presentation defaults live in `DEFAULT_TOAST_OPTIONS` (`components/toast/toast.config.ts`) and are spread into `NgpToastManager.show()` by `ToastBridgeService` — that is the one place to tune `placement` / `dismissible`. Container-only settings the manager reads from its config token (`maxToasts`, `gap`, `zIndex`) are **not** expressible per `show()` and use ng-primitives' defaults (`maxToasts` is already 3); changing them is the only thing that would require a root `provideToastConfig`.
-- The initializer resolves from the root injector (where `providedIn: 'root'` registered the singleton), so no new instance is created.
-- As a `providedIn: 'root'` singleton the bridge persists for the session once first activated. A toast can also be fired from a route that never calls `provideToast()` — a 403 handled by `forbiddenInterceptor` on any page. The interceptor activates the bridge on demand (`injector.get(ToastBridgeService)` inside its 403 branch) so the toast renders anywhere, without keeping the bridge always-on app-wide ([#480](https://github.com/ResetShop/angular-nx-standalone-starter/issues/480)).
-
-**Current route registrations (`dashboard.routes.ts`):**
-
-| Route                       | Providers                                                                                    |
-| --------------------------- | -------------------------------------------------------------------------------------------- |
-| `dashboard` (shell)         | `provideNavigation()`, `provideNavigationConfig(dashboardNavigationConfig)`                  |
-| `users`                     | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
-| `users/:id`                 | `provideUsers()`, `provideRoles()`, `UsersStore`, `RolesStore`, `provideToast()`             |
-| `authorization/permissions` | `providePermissions()`, `PermissionsStore`                                                   |
-| `authorization/roles`       | `provideRoles()`, `providePermissions()`, `RolesStore`, `PermissionsStore`, `provideToast()` |
+> Full guidance — the singleton-vs-activation distinction, both patterns and their scope limit, provider recipes, the toast/`forbiddenInterceptor` case studies, and the current `dashboard.routes.ts` registrations table: see [`.claude/references/angular-di.md`](.claude/references/angular-di.md).
 
 ---
 
@@ -685,6 +629,8 @@ Use queries in this order of preference:
 > Authentication Architecture: See `.claude/references/auth.md`
 
 > Backend API Architecture: See `.claude/references/backend-api.md`
+
+> Angular Dependency Injection (singleton vs. activation, route-scoped providers, provider recipes): See `.claude/references/angular-di.md`
 
 ### Component Field Visibility
 
@@ -888,68 +834,9 @@ interface UserProjection {
 
 ### Frontend API Provider Pattern
 
-API tokens are plain `InjectionToken` instances with **no** `providedIn` / `factory`. The wiring happens exclusively through `provideX()` functions that return `EnvironmentProviders` via `makeEnvironmentProviders()`, preventing component-level registration.
+API tokens are plain `InjectionToken`s with **no** `providedIn` / `factory`, wired exclusively through `provideX()` functions that return `EnvironmentProviders` via `makeEnvironmentProviders()` (`provideAuth()` at root in `app.config.ts`; domain providers at route level). `Http*Api` implementations keep `@Injectable({ providedIn: 'root' })`; mock provider functions (`provideXMock()`) mirror the same shape. Components never import API tokens directly (ESLint `no-restricted-imports`) — they inject via stores or guards.
 
-```typescript
-// 1. Interface + token (e.g., auth.interface.ts) — no factory, no providedIn
-export interface AuthApi {
-	login(params: LoginRequest): Observable<LoginResponse>
-	// ...
-}
-export const AuthApi = new InjectionToken<AuthApi>('AuthApi')
-
-// 2. HTTP implementation (e.g., auth.ts) — providedIn: 'root' for tree-shaking
-@Injectable({ providedIn: 'root' })
-export class HttpAuthApi implements AuthApi { ... }
-
-// 3. Provider function (e.g., auth.provider.ts) — environment-only registration
-export function provideAuth() {
-	return makeEnvironmentProviders([{ provide: AuthApi, useExisting: HttpAuthApi }])
-}
-
-// 4a. Root registration (app.config.ts) — auth only, called once at bootstrap
-providers: [provideAuth()]
-
-// 4b. Route-level registration (dashboard.routes.ts) — domain providers co-located with their stores
-{ path: 'users', providers: [provideUsers(), provideRoles(), UsersStore, RolesStore] }
-
-// 5. Consumer (e.g., auth.store.ts)
-const authApi = inject(AuthApi) // resolves via provideAuth() registration
-
-// 6. Mock provider function (e.g., auth.mock.ts) — same EnvironmentProviders pattern
-export function provideAuthMock(api: InMemoryAuthApi = new InMemoryAuthApi()) {
-	return makeEnvironmentProviders([{ provide: AuthApi, useValue: api }])
-}
-
-// 7. Test usage
-providers: [provideAuthMock()]
-```
-
-**Rules:**
-
-- `InjectionToken` declarations must **not** include `providedIn` or `factory` — use `provideX()` instead
-- `Http*Api` classes keep `@Injectable({ providedIn: 'root' })` for tree-shaking
-- Provider functions return `EnvironmentProviders` (never `Provider[]`) to enforce environment-only registration
-- Mock provider functions follow the same `makeEnvironmentProviders` pattern
-- ESLint `no-restricted-imports` blocks direct API token imports in `src/app/pages/` and `src/app/components/` — components must inject via stores or guards
-
-**Existing provider functions:**
-
-| Function               | File                                  | Registers                               | Scope                         |
-| ---------------------- | ------------------------------------- | --------------------------------------- | ----------------------------- |
-| `provideAuth()`        | `auth/auth.provider.ts`               | `AuthApi` → `HttpAuthApi`               | Root (`app.config.ts`)        |
-| `provideUsers()`       | `users/users.provider.ts`             | `UsersApi` → `HttpUsersApi`             | Route (`dashboard.routes.ts`) |
-| `provideRoles()`       | `roles/roles.provider.ts`             | `RolesApi` → `HttpRolesApi`             | Route (`dashboard.routes.ts`) |
-| `providePermissions()` | `permissions/permissions.provider.ts` | `PermissionsApi` → `HttpPermissionsApi` | Route (`dashboard.routes.ts`) |
-
-**Mock provider functions:**
-
-| Function                   | File                              |
-| -------------------------- | --------------------------------- |
-| `provideAuthMock()`        | `auth/auth.mock.ts`               |
-| `provideUsersMock()`       | `users/users.mock.ts`             |
-| `provideRolesMock()`       | `roles/roles.mock.ts`             |
-| `providePermissionsMock()` | `permissions/permissions.mock.ts` |
+> Full pattern, rules, and the existing provider / mock provider function tables: see [`.claude/references/angular-di.md`](.claude/references/angular-di.md) → "Frontend API Provider Pattern".
 
 ---
 
@@ -1100,7 +987,7 @@ Which `.claude/references/` files each agent loads in Step 0. All multi-referenc
 
 | Agent                    | References Loaded                                                                |
 | ------------------------ | -------------------------------------------------------------------------------- |
-| `code-reviewer`          | **All 13 references — full-load, always** (never conditionally gated; see below) |
+| `code-reviewer`          | **All 14 references — full-load, always** (never conditionally gated; see below) |
 | `plan-writer`            | core + diff-relevant domain refs (conditional; see below) + `CLAUDE.md`          |
 | `architecture-advisor`   | core + diff-relevant domain refs (conditional; see below)                        |
 | `refactoring-specialist` | solid, cupid, guiding-principles, maintainability                                |
@@ -1112,7 +999,7 @@ Which `.claude/references/` files each agent loads in Step 0. All multi-referenc
 
 #### Conditional Reference Loading (planning agents)
 
-The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **core** set every time plus only the **domain** references relevant to the diff. This cuts token ingestion on scoped diffs while a fail-open rule prevents under-informed plans on cross-cutting ones. **`code-reviewer` is deliberately excluded — it always loads its full 13-reference set** (it is the last line of defense; an under-informed review is the worst failure class). Single-reference agents are unaffected.
+The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **core** set every time plus only the **domain** references relevant to the diff. This cuts token ingestion on scoped diffs while a fail-open rule prevents under-informed plans on cross-cutting ones. **`code-reviewer` is deliberately excluded — it always loads its full 14-reference set** (it is the last line of defense; an under-informed review is the worst failure class). Single-reference agents are unaffected.
 
 **Core — always loaded by the planning agents (never gated):**
 
@@ -1122,14 +1009,15 @@ The **planning** agents (`plan-writer`, `architecture-advisor`) load a fixed **c
 
 **Domain — gated by the diff, per this glob→ref map:**
 
-| Diff touches…                                                         | Load reference(s)                       |
-| --------------------------------------------------------------------- | --------------------------------------- |
-| `src/api/**`, `src/db/**`, `src/contracts/**`                         | `backend-api` + `domain-model` + `auth` |
-| `*.guard.ts`, the auth store, `src/api/**/auth`, `src/contracts/auth` | `auth`                                  |
-| generator dirs / generated files, or a scaffolding task               | `generators`                            |
-| `src/app/components/**`, component templates, styles                  | `accessibility`                         |
+| Diff touches…                                                                                                                                         | Load reference(s)                       |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `src/api/**`, `src/db/**`, `src/contracts/**`                                                                                                         | `backend-api` + `domain-model` + `auth` |
+| `*.guard.ts`, the auth store, `src/api/**/auth`, `src/contracts/auth`                                                                                 | `auth`                                  |
+| generator dirs / generated files, or a scaffolding task                                                                                               | `generators`                            |
+| `src/app/components/**`, component templates, styles                                                                                                  | `accessibility`                         |
+| `src/app/**` (routes, stores, providers, interceptors, components), `packages/angular-core/**`, or any `providers` / `inject()` / `provideX()` change | `angular-di`                            |
 
-Both planning agents share the **same** gated domain set — `auth`, `backend-api`, `domain-model`, `generators`, `accessibility` — so this map applies to each uniformly (no per-agent exceptions). `plan-writer` additionally always-loads `CLAUDE.md` as part of its core.
+Both planning agents share the **same** gated domain set — `auth`, `backend-api`, `domain-model`, `generators`, `accessibility`, `angular-di` — so this map applies to each uniformly (no per-agent exceptions). `plan-writer` additionally always-loads `CLAUDE.md` as part of its core.
 
 **Fail open:** on an empty, mixed-layer, or ambiguous diff — or any uncertainty — the planning agent loads **all** of its domain references. Cross-cutting diffs are the norm (the `crud` generator emits DB + API + contracts + provider + store + page at once), so the default under doubt is to load everything.
 
@@ -1161,7 +1049,7 @@ Both planning agents share the **same** gated domain set — `auth`, `backend-ap
 
 ### FormField Component
 
-`src/app/components/form-field/form-field.ts` — A wrapper component for standardized form inputs with signal forms integration. It provides label rendering, required indicator (auto-detected via `REQUIRED` metadata or manually overridden), hint text, translated validation error display, and error border styling via `aria-invalid`.
+`packages/ui/src/lib/form-field/form-field.ts` — A wrapper component for standardized form inputs with signal forms integration. It provides label rendering, required indicator (auto-detected via `REQUIRED` metadata or manually overridden), hint text, translated validation error display, and error border styling via `aria-invalid`.
 
 **Supported form control elements:** `input`, `select`, `textarea`, or any component providing `FormFieldCustomControl`
 
@@ -1175,32 +1063,18 @@ The component enforces three runtime constraints via `effect()`:
 
 **Custom component support:** Components that are not native form controls can be wrapped in `<app-form-field>` by:
 
-1. Extending `FormFieldCustomControl` (from `@components/form-field/form-field-custom-control`)
-2. Providing the token: `providers: [{ provide: FormFieldCustomControl, useExisting: forwardRef(() => MyComponent) }]`
+1. Extending `FormFieldCustomControl` (from `@resetshop/ui/form-field/form-field-custom-control`)
+2. Registering under that token with `useExisting`: `providers: [{ provide: FormFieldCustomControl, useExisting: forwardRef(() => MyComponent) }]`
 3. Using the `ariaInvalid` signal (set by FormField) to apply conditional invalid styling
 
-```typescript
-// ✅ Custom component integration
-@Component({
-  providers: [{ provide: FormFieldCustomControl, useExisting: forwardRef(() => PermissionSelector) }],
-})
-export class PermissionSelector extends FormFieldCustomControl implements FormValueControl<number[]> {
-  // ariaInvalid signal is inherited — use it for conditional border styling
-}
+`PermissionSelector` is the reference implementation. Why this is `useExisting` (alias to the rendered instance) and never `useClass`, and why `forwardRef` is needed: see [`.claude/references/angular-di.md`](.claude/references/angular-di.md) → "`useExisting` — two tokens, one instance".
 
-// Usage in template:
-<app-form-field label="Permissions">
-  <app-permission-selector [formField]="roleForm.permissionIds" [groups]="groups()" />
-</app-form-field>
-```
+**When adding a new native form control element type**, update this location in `form-field.ts`:
 
-**When adding a new native form control element type**, update these locations in `form-field.ts`:
-
-| What to update                                         | Purpose                                           |
-| ------------------------------------------------------ | ------------------------------------------------- |
-| `private readonly supportedControls` class field       | Runtime validation of projected content           |
-| `querySelector` selector in `afterRenderEffect()` body | `aria-invalid` attribute management               |
-| `::ng-deep [aria-invalid='true']` style                | No change needed — targets attribute, not element |
+| What to update                                         | Purpose                                                                                                |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `private readonly supportedNativeControls` class field | Selector string used both for runtime validation of projected content and for `id`/`aria-invalid` sync |
+| `::ng-deep [aria-invalid='true']` style                | No change needed — targets attribute, not element                                                      |
 
 ---
 
@@ -1228,7 +1102,7 @@ This is a mandatory step in the workflow:
 
 #### Two verification paths: cold `ci` vs cache-aware `ci:verify`
 
-There are two CI scripts. They run the **same** tasks (`check`, `stylelint`, `lint`, `typecheck`, then `test`, `test-integration`, `build`, `build-storybook`); they differ only in cache behavior:
+There are two CI scripts. They run the **same** tasks (`check`, `stylelint`, `lint`, `typecheck`, `test-integration-setup-guard`, `generators-esm-guard`, then `test`, `test-integration`, `build`, `build-storybook`); they differ only in cache behavior:
 
 | Script              | Cache                                                              | Use for                                                                                                                                                                                                       |
 | ------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1249,6 +1123,8 @@ The `npm run ci` command runs CI checks in two parallel batches via `nx run-many
 - `stylelint` — CSS/style linting
 - `lint` — TypeScript/ESLint linting
 - `typecheck` — Type-check spec files (`tsc --noEmit`)
+- `test-integration-setup-guard` — runs `test-integration` with a deliberately broken global setup (unreachable external DB; embedded Postgres without `INTEGRATION_TEST_ADMIN_PASSWORD`) and fails unless both runs exit non-zero with the expected setup error (`scripts/check-integration-setup-fails-loud.mjs`). It proves the integration gate can go red. It lives in Batch 1, not Batch 2, because it must not run concurrently with `test-integration`: each embedded-Postgres run sweeps temp cluster directories that lack a `postmaster.pid`, which includes a concurrent run's cluster that is still initialising. `cache: false`. Also runs in the `test-integration` job of `.github/workflows/ci.yml`, after the suite (`if: ${{ !cancelled() }}`, so it runs even when the suite fails and the suite's results always show) and with a 15-minute `timeout-minutes`.
+- `generators-esm-guard` — dry-runs all eight `@resetshop/generators` generators with `NX_VERBOSE_LOGGING=true` and fails if any run errors, lists no files, or shows Nx falling back from native ESM loading to its swc/ts-node CommonJS path (`scripts/check-generators-load-as-esm.mjs`). `cache: false`. Also runs in the `check` job of `.github/workflows/ci.yml`. The rules it enforces are in [`.claude/references/generators.md`](.claude/references/generators.md) → "Writing or changing a generator: native ESM only".
 
 **Batch 2 (heavy tasks, parallel — runs only if Batch 1 passes):**
 
@@ -1338,4 +1214,4 @@ The code-reviewer agent checks:
 
 ---
 
-_Last updated: 2026-06-21_
+_Last updated: 2026-09-21_

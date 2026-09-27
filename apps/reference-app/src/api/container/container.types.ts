@@ -16,6 +16,7 @@ import type { HealthService } from '../modules/health/interfaces'
 import type {
 	UserManagementRepository,
 	UserManagementService,
+	UserProfileService,
 	UserRepository,
 	UserRoleRepository,
 	UserRoleService,
@@ -70,6 +71,10 @@ import type { PasetoConfig } from '../services/paseto/paseto.config'
  *   ├── generatePassword (value)
  *   └── hashPassword (value)
  *
+ * UserProfileService
+ *   ├── UserManagementRepository ► db
+ *   └── UserRoleService
+ *
  * EmailService
  *   └── EmailRepository (selected via EMAIL_PROVIDER env var: 'nodemailer' | 'ethereal')
  * PasetoService ──► pasetoConfig (value)
@@ -110,4 +115,5 @@ export interface Cradle {
 	permissionService: PermissionService
 	userRoleService: UserRoleService
 	userManagementService: UserManagementService
+	userProfileService: UserProfileService
 }

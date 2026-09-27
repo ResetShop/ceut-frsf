@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common'
-import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular/core'
+import { Component, input, TemplateRef } from '@angular/core'
 
 @Component({
 	selector: 'app-card',
@@ -35,7 +35,6 @@ import { ChangeDetectionStrategy, Component, input, TemplateRef } from '@angular
 		</div>
 	`,
 	styles: ``,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Card {
 	public readonly titleTemplate = input<TemplateRef<void>>()

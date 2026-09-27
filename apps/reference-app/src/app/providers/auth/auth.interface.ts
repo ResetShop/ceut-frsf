@@ -11,6 +11,7 @@ import type {
 	ResetPasswordRequest,
 	ResetPasswordResponse,
 } from '@contracts/auth/auth.types'
+import type { AuthUser, UpdateProfileRequest } from '@contracts/user/user.types'
 import type { Observable } from 'rxjs'
 
 export interface AuthApi {
@@ -21,6 +22,7 @@ export interface AuthApi {
 	changePassword(params: ChangePasswordRequest): Observable<ChangePasswordResponse>
 	forgotPassword(params: ForgotPasswordRequest): Observable<ForgotPasswordResponse>
 	resetPassword(params: ResetPasswordRequest): Observable<ResetPasswordResponse>
+	updateProfile(params: UpdateProfileRequest): Observable<AuthUser>
 }
 
 export const AuthApi = new InjectionToken<AuthApi>('AuthApi')

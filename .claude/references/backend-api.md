@@ -229,7 +229,7 @@ export default app
 | `c.req.valid('json')` with type annotation  | Parse validated request body              |
 | `c.req.valid('query')` with type annotation | Parse validated query parameters          |
 | `c.req.valid('param')` with type annotation | Parse validated path parameters           |
-| `(c as AuthenticatedContext).user`          | Access authenticated user from middleware |
+| `getAuthenticatedUser(c)`                   | Access authenticated user from middleware |
 | `c.json<ResponseType>(data, statusCode)`    | Type-safe JSON response                   |
 
 **Type annotations on `c.req.valid()`:**
@@ -281,12 +281,14 @@ for (const route of routes) {
 
 **Resulting URL structure:**
 
-| Module | Mounted at    | Final paths                                         |
-| ------ | ------------- | --------------------------------------------------- |
-| Health | `/api/health` | `GET /api/health/v1`                                |
-| Auth   | `/api/auth`   | `POST /api/auth/login`, `/refresh`, `/logout`, etc. |
-| Access | `/api/access` | `/api/access/roles/*`, `/api/access/permissions/*`  |
-| User   | `/api/users`  | `/api/users/*`, `/api/users/{userId}/roles/*`       |
+| Module | Mounted at    | Final paths                                                    |
+| ------ | ------------- | -------------------------------------------------------------- |
+| Health | `/api/health` | `GET /api/health/v1`                                           |
+| Auth   | `/api/auth`   | `POST /api/auth/login`, `/refresh`, `/logout`, etc.            |
+| Access | `/api/access` | `/api/access/roles/*`, `/api/access/permissions/*`             |
+| User   | `/api/users`  | `/api/users/me`, `/api/users/*`, `/api/users/{userId}/roles/*` |
+
+**Route order:** Hono matches routes in **registration order**, not static-before-dynamic. A module that has both a static segment and a dynamic one on the same method (e.g. `PATCH /me` and `PATCH /{id}`) must mount the static route's controller first, or the dynamic route captures it. Pin the order with a module-level routing spec (see `modules/user/index.spec.ts`) rather than a comment.
 
 ---
 

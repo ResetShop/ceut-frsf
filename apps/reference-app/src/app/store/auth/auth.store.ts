@@ -2,12 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http'
 import { computed, inject } from '@angular/core'
 import { type AuthErrorResponse, type LoginErrorResponse, PublicAuthErrorCode } from '@contracts/auth/auth.errors'
 import type { ChangePasswordRequest, ResetPasswordRequest } from '@contracts/auth/auth.types'
-import { mapLoginResponseToUser, mapMeResponseToUser } from '@domain/auth/auth.mapper'
+import type { UpdateProfileRequest } from '@contracts/user/user.types'
+import { mapAuthUserToUser, mapLoginResponseToUser, mapMeResponseToUser } from '@domain/auth/auth.mapper'
 import type { IUser } from '@domain/user/user.interface'
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals'
 import { rxMethod } from '@ngrx/signals/rxjs-interop'
 import { AuthApi } from '@providers/auth/auth.interface'
 import { Logger } from '@resetshop/angular-core/logger/logger.token'
+import { extractErrorMessage } from '@resetshop/angular-core/store/extract-error-message'
 import { catchError, EMPTY, exhaustMap, map, pipe, switchMap, tap } from 'rxjs'
 import { initialAuthState } from './auth.types'
 
@@ -286,6 +288,35 @@ export const AuthStore = signalStore(
 			},
 
 			/**
+			 * Update the signed-in user's own profile. On success `currentUser` is replaced with the
+			 * server's copy, so every view of the user reflects the change without a reload.
+			 */
+			updateProfile: rxMethod<UpdateProfileRequest>(
+				pipe(
+					tap(() => patchState(store, { isUpdatingProfile: true, updateProfileError: null })),
+					switchMap((body) =>
+						authApi.updateProfile(body).pipe(
+							tap({
+								next: (user) =>
+									patchState(store, {
+										currentUser: mapAuthUserToUser(user),
+										isUpdatingProfile: false,
+									}),
+								error: (error: unknown) => {
+									loggerService.error('AuthStore', 'updateProfile failed', error)
+									patchState(store, {
+										isUpdatingProfile: false,
+										updateProfileError: extractErrorMessage(error, 'Failed to update profile'),
+									})
+								},
+							}),
+							catchError(() => EMPTY),
+						),
+					),
+				),
+			),
+
+			/**
 			 * Update current user
 			 */
 			updateCurrentUser(user: IUser) {
@@ -305,6 +336,10 @@ export const AuthStore = signalStore(
 					resetPasswordError: null,
 					resetPasswordThrottledUntil: null,
 				})
+			},
+
+			clearProfileError() {
+				patchState(store, { updateProfileError: null })
 			},
 		}
 	}),

@@ -29,10 +29,17 @@
 				"config": "packages/generators/vitest.config.ts"
 			}
 		},
+		"generators-esm-guard": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"command": "node scripts/check-generators-load-as-esm.mjs"
+			}
+		},
 		"lint": {
 			"executor": "@nx/eslint:lint",
 			"options": {
-				"lintFilePatterns": ["packages/generators/src/**/*.ts"]
+				"lintFilePatterns": ["packages/generators/src/**/*.ts", "packages/generators/*.ts"]
 			}
 		}
 	}

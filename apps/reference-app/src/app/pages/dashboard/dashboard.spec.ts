@@ -1,8 +1,10 @@
 import { provideHttpClient } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing'
 import { signal } from '@angular/core'
+import { TestBed } from '@angular/core/testing'
 import { provideRouter } from '@angular/router'
 import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
+import { createMockUser } from '@mocks/user.mock'
 import { featherActivity } from '@ng-icons/feather-icons'
 import { provideAuthMock } from '@providers/auth/auth.mock'
 import { provideTranslationMock } from '@providers/i18n/translation.mock'
@@ -11,6 +13,7 @@ import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { NavigationState } from '@resetshop/angular-core/navigation/navigation-state'
 import { provideMockTheme } from '@resetshop/angular-core/theme/theme.mock'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
+import { AuthStore } from '@store/auth/auth.store'
 import { UIStore } from '@store/ui/ui.store'
 import type { UINotification } from '@store/ui/ui.types'
 import { render, screen } from '@testing-library/angular'
@@ -19,7 +22,6 @@ import Dashboard from './dashboard'
 
 describe('Dashboard', () => {
 	const mockGlobalLoading = signal(false)
-	const mockSidebarCollapsed = signal(false)
 	const mockSidebarOpen = signal(false)
 
 	const mockNotifications = signal<UINotification[]>([])
@@ -29,8 +31,6 @@ describe('Dashboard', () => {
 		setGlobalLoading: (value: boolean) => mockGlobalLoading.set(value),
 		notifications: mockNotifications,
 		dismissNotification: fn(),
-		isSidebarCollapsed: mockSidebarCollapsed,
-		setSidebarCollapsed: (value: boolean) => mockSidebarCollapsed.set(value),
 		isSidebarOpen: mockSidebarOpen,
 		setSidebarOpen: (value: boolean) => mockSidebarOpen.set(value),
 		toggleSidebar: () => mockSidebarOpen.update((v) => !v),
@@ -79,7 +79,6 @@ describe('Dashboard', () => {
 	beforeEach(() => {
 		clearAllMocks()
 		mockGlobalLoading.set(false)
-		mockSidebarCollapsed.set(false)
 		mockSidebarOpen.set(false)
 	})
 
@@ -161,7 +160,7 @@ describe('Dashboard', () => {
 		expect(main).toBeInTheDocument()
 	})
 
-	it('should render sign out button in sidebar', async () => {
+	it('should render the signed-in user’s tile in the sidebar', async () => {
 		await render(Dashboard, {
 			providers: [
 				...defaultProviders(),
@@ -169,8 +168,12 @@ describe('Dashboard', () => {
 			],
 		})
 
-		const signOutButton = screen.getByRole('button', { name: /Logout/i })
-		expect(signOutButton).toBeInTheDocument()
+		TestBed.inject(AuthStore).updateCurrentUser(
+			createMockUser({ firstName: 'Ada', lastName: 'Lovelace', fullName: 'Ada Lovelace', email: 'ada@example.com' }),
+		)
+		TestBed.tick()
+
+		expect(screen.getByRole('button', { name: 'Ada Lovelace' })).toBeInTheDocument()
 	})
 
 	describe('mobile backdrop overlay', () => {

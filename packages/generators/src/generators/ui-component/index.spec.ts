@@ -2,7 +2,7 @@ import type { Tree } from '@nx/devkit'
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import uiComponentGenerator from './index'
+import uiComponentGenerator from './index.ts'
 
 const DEFAULT_DIR = 'packages/ui/src/lib'
 const INDEX_PATH = 'packages/ui/src/index.ts'
@@ -31,7 +31,8 @@ describe('ui-component generator', () => {
 		const componentTs = tree.read(`${DEFAULT_DIR}/tooltip/tooltip.ts`)?.toString('utf-8') ?? ''
 		expect(componentTs).toContain(`selector: 'app-tooltip'`)
 		expect(componentTs).toContain('export class Tooltip {}')
-		expect(componentTs).toContain('ChangeDetectionStrategy.OnPush')
+		// Angular 22 uses OnPush by default, so the generated component omits the explicit strategy.
+		expect(componentTs).not.toContain('ChangeDetectionStrategy')
 		expect(componentTs).toContain('/* TODO: Add component styles */')
 		expect(componentTs).toContain('standalone: true')
 		expect(componentTs).not.toContain('<%=')

@@ -54,10 +54,6 @@ export const UIStore = signalStore(
 				patchState(store, { isSidebarOpen: isOpen })
 			},
 
-			setSidebarCollapsed(collapsed: boolean): void {
-				patchState(store, { isSidebarCollapsed: collapsed })
-			},
-
 			openDrawer(drawer: string): void {
 				patchState(store, { activeDrawer: drawer })
 			},

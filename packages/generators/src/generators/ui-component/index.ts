@@ -1,5 +1,6 @@
 import type { Tree } from '@nx/devkit'
 import { generateFiles, joinPathFragments, logger, names } from '@nx/devkit'
+import { resolveTemplateDir } from '../../utils/resolve-template-dir.ts'
 
 interface UiComponentGeneratorSchema {
 	name: string
@@ -11,9 +12,6 @@ interface UiComponentGeneratorSchema {
 
 const UI_INDEX_PATH = 'packages/ui/src/index.ts'
 
-const EXTERNAL_TEMPLATE_BODY = `<!-- TODO: Replace with the component template -->\n`
-const EXTERNAL_STYLE_BODY = `/* TODO: Add component styles */\n`
-
 export default async function uiComponentGenerator(tree: Tree, schema: UiComponentGeneratorSchema) {
 	const n = names(schema.name)
 	const targetDir = joinPathFragments(schema.directory, n.fileName)
@@ -22,7 +20,7 @@ export default async function uiComponentGenerator(tree: Tree, schema: UiCompone
 	const inlineTemplate = schema.inlineTemplate ?? true
 	const inlineStyle = schema.inlineStyle ?? true
 
-	generateFiles(tree, joinPathFragments(__dirname, 'files'), targetDir, {
+	generateFiles(tree, resolveTemplateDir(import.meta.url), targetDir, {
 		name: n.fileName,
 		className: n.className,
 		fileName: n.fileName,
@@ -31,10 +29,13 @@ export default async function uiComponentGenerator(tree: Tree, schema: UiCompone
 	})
 
 	if (!inlineTemplate) {
-		tree.write(joinPathFragments(targetDir, `${n.fileName}.html`), EXTERNAL_TEMPLATE_BODY)
+		tree.write(
+			joinPathFragments(targetDir, `${n.fileName}.html`),
+			'<!-- TODO: Replace with the component template -->\n',
+		)
 	}
 	if (!inlineStyle) {
-		tree.write(joinPathFragments(targetDir, `${n.fileName}.css`), EXTERNAL_STYLE_BODY)
+		tree.write(joinPathFragments(targetDir, `${n.fileName}.css`), '/* TODO: Add component styles */\n')
 	}
 
 	if (schema.exportFromIndex) {

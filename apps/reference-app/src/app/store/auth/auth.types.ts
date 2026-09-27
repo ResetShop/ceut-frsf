@@ -56,6 +56,12 @@ export interface AuthState {
 
 	/** ISO-8601 instant the reset-password rate limit resets (from a 429 `Retry-After`), or null. Drives the confirm-page countdown. */
 	resetPasswordThrottledUntil: string | null
+
+	/** Whether a self-service profile update is in progress */
+	isUpdatingProfile: boolean
+
+	/** Message from the last failed profile update (null if none) */
+	updateProfileError: string | null
 }
 
 /**
@@ -78,4 +84,6 @@ export const initialAuthState: AuthState = {
 	isResettingPassword: false,
 	resetPasswordError: null,
 	resetPasswordThrottledUntil: null,
+	isUpdatingProfile: false,
+	updateProfileError: null,
 }

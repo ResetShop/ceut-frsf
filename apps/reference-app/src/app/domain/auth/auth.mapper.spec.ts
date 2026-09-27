@@ -1,7 +1,43 @@
 import type { LoginResponse, MeResponse } from '@contracts/auth/auth.types'
-import { mapLoginResponseToUser, mapMeResponseToUser } from './auth.mapper'
+import type { AuthUser } from '@contracts/user/user.types'
+import { mapAuthUserToUser, mapLoginResponseToUser, mapMeResponseToUser } from './auth.mapper'
 
 describe('Auth Mapper', () => {
+	describe('mapAuthUserToUser', () => {
+		const authUser: AuthUser = {
+			id: 7,
+			email: 'grace@example.com',
+			firstName: 'Grace',
+			lastName: 'Hopper',
+			roles: [
+				{
+					id: 10,
+					code: 'editor',
+					name: 'Editor',
+					description: null,
+					removable: true,
+					createdAt: null,
+					updatedAt: null,
+					permissions: [],
+				},
+			],
+		}
+
+		it('should map the identity fields and roles', () => {
+			const user = mapAuthUserToUser(authUser)
+
+			expect(user.id).toBe(7)
+			expect(user.email).toBe('grace@example.com')
+			expect(user.fullName).toBe('Grace Hopper')
+			expect(user.roles.map((role) => role.code)).toEqual(['editor'])
+		})
+
+		it('should produce the same user as the login and /me mappers for the same payload', () => {
+			expect(mapLoginResponseToUser({ user: authUser, mustChangePassword: false })).toEqual(mapAuthUserToUser(authUser))
+			expect(mapMeResponseToUser({ ...authUser, mustChangePassword: false })).toEqual(mapAuthUserToUser(authUser))
+		})
+	})
+
 	describe('mapLoginResponseToUser', () => {
 		it('should map LoginResponse to IUser preserving roles + permissions', () => {
 			const response: LoginResponse = {
@@ -80,6 +116,8 @@ describe('Auth Mapper', () => {
 						name: 'Administrator',
 						description: null,
 						removable: true,
+						createdAt: null,
+						updatedAt: null,
 						permissions: [
 							{ id: 1, name: 'Read Users', description: null, module: 'admin', resource: 'users', action: 'read' },
 						],

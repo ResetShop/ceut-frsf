@@ -5,7 +5,7 @@ import type { AssignRoleToUserRequest, ReplaceUserRolesRequest } from '@contract
 import { createOpenAPIApp, registerRoute } from '@resetshop/hono-core'
 import { logger } from '@resetshop/util'
 import { container } from '../../container/container'
-import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
+import { getAuthenticatedUser } from '../../middlewares/verify-access-token.middleware'
 import { USER_ROLE_ERRORS } from './user-role.errors'
 import {
 	assignRoleRoute,
@@ -63,7 +63,7 @@ registerRoute(app, getUserPermissionsRoute, async (c) => {
  */
 registerRoute(app, assignRoleRoute, async (c) => {
 	const { userRoleService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 	const userId = Number(c.req.param('userId'))
 	const { roleId }: AssignRoleToUserRequest = c.req.valid('json')
 
@@ -93,7 +93,7 @@ registerRoute(app, assignRoleRoute, async (c) => {
  */
 registerRoute(app, replaceUserRolesRoute, async (c) => {
 	const { userRoleService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 	const userId = Number(c.req.param('userId'))
 	const { roleIds }: ReplaceUserRolesRequest = c.req.valid('json')
 
@@ -128,7 +128,7 @@ registerRoute(app, replaceUserRolesRoute, async (c) => {
  */
 registerRoute(app, removeRoleRoute, async (c) => {
 	const { userRoleService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 	const userId = Number(c.req.param('userId'))
 	const roleId = Number(c.req.param('roleId'))
 

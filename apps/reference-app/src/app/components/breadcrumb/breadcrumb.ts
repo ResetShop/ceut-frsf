@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { Component, computed, inject } from '@angular/core'
 import { RouterLink } from '@angular/router'
 
 import { NgIcon, provideIcons } from '@ng-icons/core'
@@ -65,7 +65,6 @@ type BreadcrumbEntry =
 			</ol>
 		</nav>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Breadcrumb {
 	private readonly navigation = inject(Navigation)

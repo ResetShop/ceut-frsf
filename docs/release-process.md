@@ -81,3 +81,44 @@ Maintained in GitHub settings (not in-repo); re-verify after any settings change
 - `develop` is the repository **default branch** (PRs auto-target it; Nx cache warms on it via `ci.yml`'s `push: [develop]` trigger).
 - `main` is **branch-protected**: PRs required, review required, status checks recommended. Protection blocks merging, not PR creation — the automation only ever creates PRs.
 - **Railway** must deploy the explicit `main` branch — not "the default branch" — otherwise flipping the default to `develop` would point production at unreleased code.
+- **`v*` tags — protection ruleset (⚠ specified here, _not yet applied_).** Unlike the three settings above, this one is **not in place yet**. `main` advances only through the automated release PR and `release.yml` is the only thing that should ever mint a tag, but nothing currently prevents a `vX.Y.Z` tag from being created by hand, moved, or deleted — the repository has two `target: branch` rulesets (`develop`, `main`) and no tag ruleset. This bullet is the specification and the rollout procedure; update it to past tense once the ruleset exists and has been promoted.
+
+  **Intended shape:** `target: tag`, pattern `refs/tags/v*`, restricting creation, update, and deletion. Bypass actors: the `GitHub Actions` app — required, so `release.yml`'s `gh release create` can still mint the tag — and repo/org admins, as a manual-recovery escape hatch. Because a ruleset matches by pattern rather than creation date, it will also cover the already-published `v1.0.0`–`v1.0.2`.
+
+  **Step 1 — create it in `evaluate` enforcement.** `15368` is the global `GitHub Actions` app id (confirmed via `gh api apps/github-actions`). Equivalent UI path: Settings → Rules → Rulesets → New tag ruleset.
+
+  ```bash
+  gh api repos/ResetShop/angular-nx-standalone-starter/rulesets --method POST --input - <<'JSON'
+  {
+    "name": "protect release tags",
+    "target": "tag",
+    "enforcement": "evaluate",
+    "conditions": { "ref_name": { "include": ["refs/tags/v*"], "exclude": [] } },
+    "rules": [{ "type": "creation" }, { "type": "update" }, { "type": "deletion" }],
+    "bypass_actors": [
+      { "actor_id": 15368, "actor_type": "Integration", "bypass_mode": "always" },
+      { "actor_id": null, "actor_type": "OrganizationAdmin", "bypass_mode": "always" }
+    ]
+  }
+  JSON
+  ```
+
+  `evaluate` records what _would_ have been blocked without blocking anything, so a misconfigured bypass cannot break a release while in this mode.
+
+  **Step 2 — verify the bypass against a real release, then promote.** The bypass actor is the one unverified assumption: if it is wrong, an `active` ruleset hard-fails `release.yml` at `gh release create`, leaving the tag uncreated and the Release unpublished.
+
+  ```bash
+  # Look up the ruleset id:
+  gh api repos/ResetShop/angular-nx-standalone-starter/rulesets \
+    --jq '.[] | select(.name == "protect release tags") | {id, enforcement}'
+
+  # After a release ships, confirm the workflow's tag push was allowed through:
+  gh api repos/ResetShop/angular-nx-standalone-starter/rulesets/rule-suites \
+    --jq '.[] | select(.ref == "refs/tags/v<version>") | {ref, result, actor_name}'
+  # Expect "result": "bypass". Only then promote:
+  gh api --method PATCH repos/ResetShop/angular-nx-standalone-starter/rulesets/<id> -f enforcement=active
+  ```
+
+  **`workflow_dispatch` with `dry_run: true` cannot substitute for this** — that branch returns before `gh release create` runs, so it never pushes a tag and never exercises the rule. Only a real release does.
+
+  **Not inherited by forks or private mirrors.** Rulesets are repository settings, so a fork or mirror wanting the same guarantee must create its own, adjusted to its own tag prefix and branch names; `fork-init` does not provision it.

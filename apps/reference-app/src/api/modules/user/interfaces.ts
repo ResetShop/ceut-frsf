@@ -1,5 +1,5 @@
 import type { UserStatus } from '@contracts/user/user.constants'
-import type { CreateUserResponse } from '@contracts/user/user.types'
+import type { AuthUser, CreateUserResponse } from '@contracts/user/user.types'
 import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connector'
 import type { PaginatedResponse, PaginationParams } from '../../interfaces'
 import type { PermissionData, RoleData, RoleWithPermissions } from '../access/role/interfaces'
@@ -52,7 +52,8 @@ export interface CreateUserParams {
 }
 
 /**
- * Parameters for updating an existing user
+ * Parameters for updating an existing user. Every field is optional; only the provided concerns
+ * (profile fields, role set, status) are written, all inside one transaction.
  */
 export interface UpdateUserParams {
 	email?: string
@@ -60,6 +61,18 @@ export interface UpdateUserParams {
 	lastName?: string
 	/** Full replacement set of role ids. When provided, the user's roles are replaced with this set. */
 	roleIds?: number[]
+	/** Target account status. When provided, the change goes through the status-transition rules. */
+	status?: UserStatus
+}
+
+/**
+ * Outcome of an update: the persisted user after the write, plus the snapshot the service read and
+ * guarded against before writing. Audit logging derives before/after values from this pair, so the
+ * logged "before" is exactly the state the update acted on.
+ */
+export interface UserUpdateResult {
+	user: ManagedUserData
+	previous: ManagedUserData
 }
 
 /**
@@ -113,12 +126,12 @@ export interface UserManagementRepository {
 	findByIdWithRoles(id: number): Promise<ManagedUserData | null>
 	findByEmail(email: string): Promise<UserData | null>
 	create(params: CreateUserIdentityParams, tx?: DrizzleTransaction): Promise<ManagedUserData>
-	update(id: number, params: UpdateUserParams, actorId: number): Promise<UserData | null>
-	updateStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData | null>
+	update(id: number, params: UpdateUserParams, actorId: number, tx?: DrizzleTransaction): Promise<UserData | null>
+	updateStatus(id: number, params: UpdateUserStatusParams, tx?: DrizzleTransaction): Promise<ManagedUserData | null>
 	softDelete(id: number, changedBy: number): Promise<boolean>
 	/**
-	 * Runs a callback inside a transaction, exposing the transaction handle so the
-	 * service can compose the user insert and the auth-row insert atomically.
+	 * Runs a callback inside a transaction, exposing the transaction handle so the service can
+	 * compose writes owned by different contexts (identity, credentials, roles, status) atomically.
 	 */
 	runInTransaction<T>(fn: (tx: DrizzleTransaction) => Promise<T>): Promise<T>
 }
@@ -236,12 +249,28 @@ export interface UserManagementService {
 	getAllUsers(pagination?: PaginationParams, search?: string): Promise<PaginatedResponse<ManagedUserData>>
 	getUser(id: number): Promise<ManagedUserData>
 	createUser(params: CreateUserParams, actorId: number): Promise<CreateUserResponse>
-	updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<ManagedUserData>
-	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<ManagedUserData>
+	updateUser(id: number, params: UpdateUserParams, actorId: number): Promise<UserUpdateResult>
+	updateUserStatus(id: number, params: UpdateUserStatusParams): Promise<UserUpdateResult>
 	deleteUser(id: number, currentUserId: number): Promise<void>
 	/**
 	 * Resets the user's password and returns a confirmation message plus a `sendResetEmail` thunk the
 	 * controller dispatches best-effort AFTER the response (so the response isn't blocked on SMTP).
 	 */
 	resetPassword(id: number, currentUserId: number): Promise<{ message: string; sendResetEmail: () => Promise<void> }>
+}
+
+/**
+ * The profile fields a user may change on their own account. `updateProfileRequestSchema` is the
+ * authority on which those are.
+ */
+export interface UpdateOwnProfileParams {
+	firstName?: string
+	lastName?: string
+}
+
+/**
+ * Self-service profile service: the caller editing their own identity fields.
+ */
+export interface UserProfileService {
+	updateOwnProfile(userId: number, params: UpdateOwnProfileParams): Promise<AuthUser>
 }

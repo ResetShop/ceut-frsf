@@ -20,9 +20,7 @@ const meta: Meta<Brand> = {
 			description: {
 				component: `
 The Brand component renders the application's brand link in the sidebar header. It is a router link
-that navigates to the dashboard, with an icon and an optional brand label.
-
-The label is hidden when the \`collapsed\` input is true (passed down from the Sidebar).
+that navigates to the dashboard, with an icon and the brand label.
 				`,
 			},
 		},
@@ -33,10 +31,4 @@ export default meta
 
 type Story = StoryObj<Brand>
 
-export const Expanded: Story = {
-	args: { collapsed: false },
-}
-
-export const Collapsed: Story = {
-	args: { collapsed: true },
-}
+export const Default: Story = {}

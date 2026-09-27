@@ -3,7 +3,7 @@ dialog:not([open]) {
 }
 
 dialog::backdrop {
-	background-color: oklch(from var(--color-black) l c h / 50%);
+	background-color: oklch(from var(--foreground) l c h / 50%);
 }
 
 dialog {

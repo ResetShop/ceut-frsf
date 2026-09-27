@@ -14,7 +14,6 @@ test.describe('Dashboard shell — no-permission user', () => {
 	})
 
 	test('filters the sidebar to only the accessible modules', async () => {
-		await expect(dashboard.navLink('Settings')).toBeVisible()
 		await expect(dashboard.navLink('Health')).toBeVisible()
 		await expect(dashboard.navLink('Users')).toHaveCount(0)
 		await expect(dashboard.authorizationNav).toHaveCount(0)
@@ -23,7 +22,7 @@ test.describe('Dashboard shell — no-permission user', () => {
 
 	test('shows the no-module-access empty state with unguarded nav still present', async () => {
 		await expect(dashboard.noAccessTitle).toBeVisible()
-		await expect(dashboard.navLink('Settings')).toBeVisible()
+		await expect(dashboard.navLink('Health')).toBeVisible()
 	})
 
 	test('deep-linking a forbidden route redirects to /dashboard with a one-time access-denied toast', async ({

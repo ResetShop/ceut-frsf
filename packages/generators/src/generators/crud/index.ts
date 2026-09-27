@@ -1,10 +1,10 @@
 import type { Tree } from '@nx/devkit'
 import { joinPathFragments, logger, names } from '@nx/devkit'
-import apiProviderGenerator from '../api-provider/index'
-import backendModuleGenerator from '../backend-module/index'
-import drizzleSchemaGenerator from '../drizzle-schema/index'
-import pageGenerator from '../page/index'
-import storeGenerator from '../store/index'
+import apiProviderGenerator from '../api-provider/index.ts'
+import backendModuleGenerator from '../backend-module/index.ts'
+import drizzleSchemaGenerator from '../drizzle-schema/index.ts'
+import pageGenerator from '../page/index.ts'
+import storeGenerator from '../store/index.ts'
 
 interface CrudGeneratorSchema {
 	name: string

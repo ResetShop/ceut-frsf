@@ -137,15 +137,15 @@ export const deleteRoleRoute = createRoute({
 			description: 'Invalid role ID',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		403: {
-			description: 'Role is not removable',
-			content: { 'application/json': { schema: errorResponseSchema } },
-		},
 		404: {
 			description: 'Role not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		...commonResponses,
+		403: {
+			description: 'Role is not removable',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 	},
 })
 
@@ -200,14 +200,14 @@ export const assignPermissionsRoute = createRoute({
 			description: 'Invalid permission IDs',
 			content: { 'application/json': { schema: permissionAssignmentErrorSchema } },
 		},
-		403: {
-			description: 'Self-lockout: removing your own admin permission is not allowed',
-			content: { 'application/json': { schema: errorResponseSchema } },
-		},
 		404: {
 			description: 'Role not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		...commonResponses,
+		403: {
+			description: 'Self-lockout: removing your own admin permission is not allowed',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 	},
 })

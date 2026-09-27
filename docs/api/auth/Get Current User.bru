@@ -13,8 +13,9 @@ get {
 docs {
   # Get Current User (Token Introspection)
 
-  Returns information about the currently authenticated user based on the access token,
-  including their assigned roles with nested permissions.
+  Returns information about the currently authenticated user, including their assigned roles
+  with nested permissions. The access token only identifies the caller; email and names are
+  read from the database, so a rename is visible immediately.
 
   ## Contract Types
 
@@ -77,6 +78,7 @@ docs {
   ## Notes
 
   - Requires valid access token
+  - Returns 401 when the account behind a still-valid token no longer exists, is disabled, or is soft-deleted
   - Useful for verifying token validity and getting user data
   - Roles and permissions enable client-side authorization decisions
 }

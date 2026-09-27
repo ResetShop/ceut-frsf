@@ -1,7 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common'
 import {
 	afterRenderEffect,
-	ChangeDetectionStrategy,
 	Component,
 	computed,
 	contentChild,
@@ -22,7 +21,6 @@ import { FormFieldCustomControl } from './form-field-custom-control'
 @Component({
 	selector: 'app-form-field',
 	standalone: true,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	imports: [NgTemplateOutlet],
 	hostDirectives: [NgpFormField],
 	host: { class: 'block' },
