@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core'
+import { Component, computed, effect, inject, input } from '@angular/core'
 import { Router, RouterLink, RouterLinkActive } from '@angular/router'
 import { NgIcon } from '@ng-icons/core'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -103,7 +103,6 @@ import { NavigationState } from '@resetshop/angular-core/navigation/navigation-s
 			</a>
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class NavItem {
 	public readonly item = input.required<NavigationRoute>()

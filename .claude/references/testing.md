@@ -299,9 +299,7 @@ describe('ComponentWithDefer', () => {
 	async function renderComponent() {
 		const { fixture } = await render(MyComponent, {
 			deferBlockBehavior: DeferBlockBehavior.Playthrough,
-			providers: [
-				/* ... */
-			],
+			providers: [/* ... */],
 		})
 		TestBed.tick()
 		// Advance past the @placeholder minimum (e.g., 500ms)

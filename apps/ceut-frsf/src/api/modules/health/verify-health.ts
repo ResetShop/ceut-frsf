@@ -81,7 +81,7 @@ function createDatabaseHealthCheck(deps: VerifyHealthDependencies): HealthCheck 
 					name: this.name,
 					status: HealthStatus.HEALTHY,
 					message: 'Connected',
-					durationMs: dbCheck.responseTimeMs,
+					durationMs: dbCheck.responseTimeMs ?? undefined,
 				}
 			}
 

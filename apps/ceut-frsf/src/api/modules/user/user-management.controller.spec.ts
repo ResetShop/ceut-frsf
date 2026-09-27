@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../../container/container'
 import { InMemoryContainer } from '../../container/container.mock'
 import type { PaginatedResponse } from '../../interfaces'
-import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
+import { setAuthenticatedUser } from '../../middlewares/verify-access-token.middleware.mock'
 import type { PermissionData, RoleData } from '../access/role/interfaces'
 import type { CreateUserParams, ManagedUserData, UpdateUserParams, UpdateUserStatusParams } from './interfaces'
 import userManagementController from './user-management.controller'
@@ -137,12 +137,12 @@ describe('User Management Controller', () => {
 
 		app = new Hono()
 		app.use('*', async (c, next) => {
-			;(c as AuthenticatedContext).user = {
+			setAuthenticatedUser(c, {
 				sub: String(ADMIN_USER_ID),
 				email: 'admin@example.com',
 				firstName: 'Admin',
 				lastName: 'User',
-			}
+			})
 			await next()
 		})
 		app.route('/users', userManagementController)

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { Component, input } from '@angular/core'
 import type { IPermission } from '@domain/access/permission.interface'
 import { Badge } from '@resetshop/ui/badge/badge'
 
@@ -19,7 +19,6 @@ import { Badge } from '@resetshop/ui/badge/badge'
 			}
 		</div>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PermissionCard {
 	public readonly permission = input.required<IPermission>()

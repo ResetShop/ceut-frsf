@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
+import { Component, computed, inject, signal } from '@angular/core'
 import { LandingFooter } from '@components/landing-footer/landing-footer'
 import { LandingHeader } from '@components/landing-header/landing-header'
 import { PortalCard } from '@components/portal-card/portal-card'
@@ -10,7 +10,6 @@ import { CEUT_PORTAL_CARDS } from './portal-cards.data'
 @Component({
 	selector: 'app-landing-page',
 	imports: [LandingHeader, LandingFooter, PortalCard, PortalSearchBar, TranslatePipe],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="bg-background flex h-svh flex-col">
 			<a

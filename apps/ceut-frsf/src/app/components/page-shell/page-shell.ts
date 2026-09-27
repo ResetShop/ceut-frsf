@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, OnDestroy, signal } from '@angular/core'
+import { Component, computed, input, OnDestroy, signal } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherAlertCircle } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -63,7 +63,6 @@ import { parseDurationToMs } from '@resetshop/util'
 			}
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PageShell implements OnDestroy {
 	public readonly title = input.required<string>()

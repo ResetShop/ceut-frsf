@@ -201,6 +201,21 @@ const en: TranslationSchema = {
 				ROLES_LABEL: 'Roles',
 				SUCCESS_TOAST: 'Roles updated successfully.',
 			},
+			EDIT: {
+				BUTTON: 'Edit user',
+				DRAWER_TITLE: 'Edit User',
+				STATUS_LABEL: 'Status',
+				REVIEW: 'Review changes',
+				NONE: 'None',
+				SUCCESS_TOAST: 'User updated successfully.',
+				CONFIRM_DIALOG: {
+					TITLE: 'Confirm changes',
+					MESSAGE: "Review the changes to '{name}' before saving them.",
+					CONFIRM: 'Save changes',
+					BEFORE: 'Before',
+					AFTER: 'After',
+				},
+			},
 			ACCOUNT: {
 				TITLE: 'Account Actions',
 				RESET_PASSWORD: 'Send password reset link',
@@ -282,6 +297,26 @@ const en: TranslationSchema = {
 				DESCRIPTION: 'Description',
 			},
 		},
+		DESCRIPTIONS: {
+			'admin:permissions:read': 'View all system permissions',
+			'admin:users:create': 'Create new users',
+			'admin:users:read': 'View user details',
+			'admin:users:update': 'Update user information',
+			'admin:users:delete': 'Delete users',
+			'admin:users:reset_password': 'Reset user passwords',
+			'admin:users:disable': 'Manage user account status',
+			'admin:roles:create': 'Create new roles',
+			'admin:roles:read': 'View role details',
+			'admin:roles:update': 'Update roles',
+			'admin:roles:delete': 'Delete roles',
+			'admin:user_roles:read': 'View user role assignments',
+			'admin:user_roles:assign': 'Assign roles to users',
+			'admin:user_roles:remove': 'Remove roles from users',
+			'content:cards:create': 'Create new cards',
+			'content:cards:read': 'View card details',
+			'content:cards:update': 'Update cards',
+			'content:cards:delete': 'Delete cards',
+		},
 		ERRORS: {
 			ACCESS_DENIED: "You don't have permission to access that page.",
 		},
@@ -294,6 +329,26 @@ const en: TranslationSchema = {
 			LABEL: 'Language',
 			ENGLISH: 'English',
 			SPANISH: 'Spanish',
+		},
+	},
+	ACCOUNT: {
+		NAV: 'Account',
+		TITLE: 'Account',
+		DESCRIPTION: 'Your personal details.',
+		PROFILE: {
+			TITLE: 'Profile',
+			FIRST_NAME: 'First Name',
+			LAST_NAME: 'Last Name',
+			EMAIL: 'Email',
+		},
+		REVIEW: 'Review changes',
+		SUCCESS_TOAST: 'Profile updated successfully.',
+		CONFIRM_DIALOG: {
+			TITLE: 'Confirm changes',
+			MESSAGE: 'Review the changes to your profile before saving them.',
+			CONFIRM: 'Save changes',
+			BEFORE: 'Before',
+			AFTER: 'After',
 		},
 	},
 	HEALTH: {
@@ -313,7 +368,7 @@ const en: TranslationSchema = {
 	DASHBOARD: {
 		BREADCRUMB: 'Dashboard',
 		SECTIONS: {
-			SETTINGS: 'Settings & Maintenance',
+			MAINTENANCE: 'Settings & Maintenance',
 			ADMIN: 'Administration',
 		},
 		HOME: {
@@ -326,6 +381,9 @@ const en: TranslationSchema = {
 				USERS: 'Manage user accounts, their roles, and access permissions.',
 				AUTHORIZATION: 'Manage roles and permissions that control access to the platform.',
 			},
+		},
+		USERS: {
+			NAV: 'Users',
 		},
 		AUTHORIZATION: {
 			NAV: 'Authorization',

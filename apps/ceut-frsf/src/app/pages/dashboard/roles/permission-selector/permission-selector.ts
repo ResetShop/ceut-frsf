@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, forwardRef, input, linkedSignal, model } from '@angular/core'
+import { Component, computed, forwardRef, input, linkedSignal, model } from '@angular/core'
 import type { FormValueControl } from '@angular/forms/signals'
 import type { IPermission } from '@domain/access/permission.interface'
 import { FormFieldCustomControl } from '@resetshop/ui/form-field/form-field-custom-control'
@@ -55,7 +55,6 @@ export interface PermissionGroup {
 			}
 		</div>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PermissionSelector extends FormFieldCustomControl implements FormValueControl<number[]> {
 	public readonly groups = input.required<PermissionGroup[]>()

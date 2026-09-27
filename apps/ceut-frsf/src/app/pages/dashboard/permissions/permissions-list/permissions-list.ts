@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { Component, inject } from '@angular/core'
 import { PageShell } from '@components/page-shell/page-shell'
 import type { IPermission } from '@domain/access/permission.interface'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -47,7 +47,6 @@ import { PermissionCard } from './permission-card'
 			</app-data-table>
 		</app-page-shell>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class PermissionsList {
 	protected readonly store = inject(PermissionsStore)

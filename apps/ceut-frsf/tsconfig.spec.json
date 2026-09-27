@@ -28,7 +28,8 @@
 		},
 		"target": "es2016",
 		"types": ["vitest/globals", "node", "@testing-library/jest-dom"],
-		"moduleResolution": "bundler"
+		"moduleResolution": "bundler",
+		"rootDir": "../.."
 	},
 	"files": ["src/test-setup.ts"],
 	"include": ["vitest.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts", "src/**/*.d.ts"]

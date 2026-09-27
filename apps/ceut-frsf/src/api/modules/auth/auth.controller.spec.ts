@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../../container/container'
 import { InMemoryContainer } from '../../container/container.mock'
-import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
+import { setAuthenticatedUser } from '../../middlewares/verify-access-token.middleware.mock'
 import type { RoleWithPermissions } from '../access/role/interfaces'
 import authController from './auth.controller'
 
@@ -14,12 +14,12 @@ describe('Auth Controller - /me endpoint', () => {
 	app.use('/auth/*', async (c, next) => {
 		const authHeader = c.req.header('Authorization')
 		if (authHeader?.startsWith('Bearer valid-token')) {
-			;(c as AuthenticatedContext).user = {
+			setAuthenticatedUser(c, {
 				sub: '1',
 				email: 'test@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
-			}
+			})
 		}
 		await next()
 	})

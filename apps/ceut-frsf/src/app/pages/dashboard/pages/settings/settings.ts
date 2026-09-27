@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core'
 import { form, schema, FormField as SignalFormField } from '@angular/forms/signals'
 import { PageShell } from '@components/page-shell/page-shell'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -17,7 +17,6 @@ const noValidation = schema<SettingsForm>(() => {})
 @Component({
 	selector: 'app-settings',
 	imports: [PageShell, TranslatePipe, FormField, SignalFormField, Select],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<app-page-shell [title]="'SETTINGS.TITLE' | translate" [loading]="false">
 			<p pageDescription>{{ 'SETTINGS.DESCRIPTION' | translate }}</p>

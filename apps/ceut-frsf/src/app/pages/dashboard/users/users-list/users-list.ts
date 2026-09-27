@@ -1,13 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	signal,
-	untracked,
-	viewChild,
-} from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import { Router } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
@@ -21,8 +12,7 @@ import { DataTable } from '@resetshop/ui/data-table/data-table'
 import { DataTableCardDef } from '@resetshop/ui/data-table/data-table-card-def'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { Pagination } from '@resetshop/ui/pagination/pagination'
-import { type RowAction } from '@resetshop/ui/row-actions-menu/row-action-item'
-import { RowActionsMenu } from '@resetshop/ui/row-actions-menu/row-actions-menu'
+import { RowActionsMenu, type RowAction } from '@resetshop/ui/row-actions-menu/row-actions-menu'
 import { AuthStore } from '@store/auth/auth.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
 import { UsersStore } from '@store/users/users.store'
@@ -141,7 +131,6 @@ import { UserCard } from './user-card'
 			#resetPasswordDialog
 		/>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class UsersList {
 	protected readonly store = inject(UsersStore)

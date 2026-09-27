@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { Component, inject } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
 import { AppLoadingShell } from '@components/app-loading-shell/app-loading-shell'
 import { Header } from '@components/header/header'
@@ -70,7 +70,6 @@ import { UIStore } from '@store/ui/ui.store'
 			}
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Dashboard {
 	protected readonly uiStore = inject(UIStore)

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { Component, input } from '@angular/core'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -43,7 +43,6 @@ import { EditUserRolesDrawer } from './edit-user-roles-drawer'
 
 		<app-edit-user-roles-drawer [user]="user()" #rolesDrawer />
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserRolesSection {
 	public readonly user = input.required<IManagedUser>()

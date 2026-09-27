@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
+import { Component, computed, input } from '@angular/core'
 import { UserStatus } from '@contracts/user/user.constants'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Badge } from '@resetshop/ui/badge/badge'
@@ -15,7 +15,6 @@ import { Badge } from '@resetshop/ui/badge/badge'
 	template: `
 		<span [variant]="variant()" appBadge>{{ labelKey() | translate }}</span>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserStatusBadge {
 	public readonly status = input.required<UserStatus>()

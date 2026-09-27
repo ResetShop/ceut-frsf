@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common'
 import { HttpClient } from '@angular/common/http'
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { Component, inject } from '@angular/core'
 import { rxResource } from '@angular/core/rxjs-interop'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Alert, AlertDescription, AlertTitle } from '@resetshop/ui/alert/alert'
@@ -23,7 +23,6 @@ interface HealthApiResponse {
 @Component({
 	selector: 'app-health',
 	imports: [Alert, AlertDescription, AlertTitle, DatePipe, Badge, TranslatePipe],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="border-border rounded-md border p-5">
 			<header class="mb-2">
