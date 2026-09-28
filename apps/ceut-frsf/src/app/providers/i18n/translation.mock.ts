@@ -243,11 +243,19 @@ export const MOCK_TRANSLATIONS: Record<string, string> = {
 }
 
 /**
+ * The slice of `Translation` a component spec needs to stub. Specs that assert on a specific
+ * key's resolution provide their own object of this shape in place of `mockTranslation`.
+ */
+export interface TranslationStub {
+	instant: (key: string, fallback?: string) => string
+}
+
+/**
  * Lightweight translation stub for component specs.
  * Looks up the key in MOCK_TRANSLATIONS; returns the raw key for unrecognised keys.
  * If an assertion needs a translated value, add the key to MOCK_TRANSLATIONS above.
  */
-export const mockTranslation = {
+export const mockTranslation: TranslationStub = {
 	instant: (key: string, fallback?: string) => MOCK_TRANSLATIONS[key] ?? fallback ?? key,
 }
 

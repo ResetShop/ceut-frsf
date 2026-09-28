@@ -249,6 +249,14 @@ export interface TranslationSchema {
 				DESCRIPTION: string
 			}
 		}
+		/**
+		 * Localized permission descriptions, keyed by the full `module:resource:action` identifier
+		 * from `PERMISSION_DEFINITIONS` (e.g. `'admin:users:read'`). A coverage spec in the app
+		 * enforces catalogue↔key parity for languages that define this map. Optional because
+		 * `apps/reference-app` is upstream-owned and does not carry this fork-added map — only
+		 * forks that wire `permissionDescriptionKey()` need to populate it.
+		 */
+		DESCRIPTIONS?: Record<string, string>
 		ERRORS: {
 			ACCESS_DENIED: string
 		}
