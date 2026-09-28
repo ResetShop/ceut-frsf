@@ -113,6 +113,7 @@ app.doc('/api/openapi.json', {
 		{ name: 'Roles', description: 'Role management endpoints' },
 		{ name: 'Users', description: 'User management endpoints' },
 		{ name: 'User Roles', description: 'User-role assignment endpoints' },
+		{ name: 'Cards', description: 'Card content management endpoints' },
 	],
 	security: [{ [PASETO_COOKIE_SCHEME]: [] }],
 })
