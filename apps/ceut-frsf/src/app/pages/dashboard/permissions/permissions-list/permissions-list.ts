@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core'
 import { PageShell } from '@components/page-shell/page-shell'
 import type { IPermission } from '@domain/access/permission.interface'
+import { permissionDescriptionKey } from '@providers/i18n/permission-description-key'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
@@ -41,6 +42,10 @@ import { PermissionCard } from './permission-card'
 					<span appBadge variant="secondary">{{ value }}</span>
 				</ng-template>
 
+				<ng-template appDataTableCellDef="description" let-row="row">
+					{{ permissionDescription(row) }}
+				</ng-template>
+
 				<ng-template appDataTableCardDef let-row>
 					<app-permission-card [permission]="row" />
 				</ng-template>
@@ -62,4 +67,13 @@ export default class PermissionsList {
 	]
 
 	protected readonly grouping = ['resource']
+
+	/**
+	 * The row's description in the active language. The catalogue's English text — what the
+	 * API returns — is the fallback, and its absence means the cell stays empty.
+	 */
+	protected permissionDescription(row: IPermission): string | null {
+		if (!row.description) return null
+		return this.translation.instant(permissionDescriptionKey(row.identifier), row.description)
+	}
 }

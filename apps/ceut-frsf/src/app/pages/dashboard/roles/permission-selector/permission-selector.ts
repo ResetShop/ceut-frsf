@@ -1,6 +1,8 @@
-import { Component, computed, forwardRef, input, linkedSignal, model } from '@angular/core'
+import { Component, computed, forwardRef, inject, input, linkedSignal, model } from '@angular/core'
 import type { FormValueControl } from '@angular/forms/signals'
 import type { IPermission } from '@domain/access/permission.interface'
+import { permissionDescriptionKey } from '@providers/i18n/permission-description-key'
+import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { FormFieldCustomControl } from '@resetshop/ui/form-field/form-field-custom-control'
 
 export interface PermissionGroup {
@@ -44,7 +46,7 @@ export interface PermissionGroup {
 										<span
 											class="text-xs text-gray-500 before:hidden before:content-['—_'] sm:before:inline dark:text-gray-400"
 										>
-											{{ permission.description }}
+											{{ describe(permission) }}
 										</span>
 									}
 								</div>
@@ -60,6 +62,8 @@ export class PermissionSelector extends FormFieldCustomControl implements FormVa
 	public readonly groups = input.required<PermissionGroup[]>()
 	public readonly value = model<number[]>([])
 
+	private readonly translation = inject(Translation)
+
 	protected readonly containerClasses = computed(() => {
 		const base = 'min-h-0 flex-1 overflow-y-auto rounded-md border p-3'
 		return this.ariaInvalid() ? `${base} border-destructive` : `${base} border-gray-200 dark:border-gray-700`
@@ -69,6 +73,15 @@ export class PermissionSelector extends FormFieldCustomControl implements FormVa
 		source: this.value,
 		computation: (ids) => new Set(ids),
 	})
+
+	/**
+	 * The permission's description in the active language. The catalogue's English text — what
+	 * the API returns — is the fallback, and the template already gates on its presence.
+	 */
+	protected describe(permission: IPermission): string | null {
+		if (!permission.description) return null
+		return this.translation.instant(permissionDescriptionKey(permission.identifier), permission.description)
+	}
 
 	protected isResourceFullySelected(group: PermissionGroup): boolean {
 		const set = this.selectedSet()

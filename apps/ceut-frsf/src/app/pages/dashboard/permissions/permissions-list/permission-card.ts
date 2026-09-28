@@ -1,5 +1,7 @@
-import { Component, input } from '@angular/core'
+import { Component, computed, inject, input } from '@angular/core'
 import type { IPermission } from '@domain/access/permission.interface'
+import { permissionDescriptionKey } from '@providers/i18n/permission-description-key'
+import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Badge } from '@resetshop/ui/badge/badge'
 
 @Component({
@@ -14,12 +16,25 @@ import { Badge } from '@resetshop/ui/badge/badge'
 				</p>
 				<span appBadge variant="secondary">{{ permission().identifier }}</span>
 			</div>
-			@if (permission().description) {
-				<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ permission().description }}</p>
+			@if (description()) {
+				<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ description() }}</p>
 			}
 		</div>
 	`,
 })
 export class PermissionCard {
 	public readonly permission = input.required<IPermission>()
+
+	private readonly translation = inject(Translation)
+
+	/**
+	 * The description in the active language. A permission with no stored description
+	 * renders no paragraph at all, so the catalogue's English text — which the API returns
+	 * and which doubles as the `instant()` fallback — also gates visibility.
+	 */
+	protected readonly description = computed(() => {
+		const permission = this.permission()
+		if (!permission.description) return null
+		return this.translation.instant(permissionDescriptionKey(permission.identifier), permission.description)
+	})
 }
