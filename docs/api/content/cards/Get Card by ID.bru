@@ -1,0 +1,40 @@
+meta {
+  name: Get Card by ID
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/content/cards/{{testCardId}}
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Card by ID
+
+  Returns a single non-deleted card. Requires the `content:cards:read` permission.
+
+  ## Contract Types
+
+  - Response: `CardData` from `@contracts/card/card.types`
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Validation error | ID format is invalid |
+  | 404 | Card not found | Card doesn't exist or is deleted |
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isDefined
+}
+
+tests {
+  test("should return the card", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.internalName).to.be.a("string");
+  });
+}

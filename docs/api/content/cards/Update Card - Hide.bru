@@ -1,0 +1,35 @@
+meta {
+  name: Update Card - Hide
+  type: http
+  seq: 9
+}
+
+put {
+  url: {{baseUrl}}/content/cards/{{testCardId}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "enabled": false
+  }
+}
+
+docs {
+  # Update Card - Hide
+
+  Hiding a card is an update of `enabled` to false; the card is kept and can be shown again.
+}
+
+assert {
+  res.status: eq 200
+  res.body.enabled: eq false
+}
+
+tests {
+  test("should hide the card without deleting it", function() {
+    expect(res.body.enabled).to.be.false;
+    expect(res.body.deletedAt).to.equal(null);
+  });
+}

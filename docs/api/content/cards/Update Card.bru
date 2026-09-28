@@ -1,0 +1,61 @@
+meta {
+  name: Update Card
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{baseUrl}}/content/cards/{{testCardId}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "Becas y ayudas",
+    "isPinned": true,
+    "pinnedPosition": 0
+  }
+}
+
+docs {
+  # Update Card
+
+  Partially updates a card: only the fields sent are changed. Requires the `content:cards:update` permission.
+
+  ## Contract Types
+
+  - Request: `UpdateCardRequest` from `@contracts/card/card.types`
+  - Response: `CardData` from `@contracts/card/card.types`
+
+  ## Pinning Rules
+
+  - `isPinned: true` must be sent together with `pinnedPosition` (0-2).
+  - `isPinned: false` unpins the card and clears `pinnedPosition`.
+  - A lone `pinnedPosition` is accepted only for a card that is already pinned.
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Validation error | Invalid input or inconsistent pinning state |
+  | 404 | Card not found | Card doesn't exist or is deleted |
+  | 409 | A card with this internal name already exists | Name held by another card |
+  | 409 | A card with this legacy ID already exists | Legacy ID held by another card |
+}
+
+assert {
+  res.status: eq 200
+  res.body.title: eq Becas y ayudas
+}
+
+tests {
+  test("should return 200 on successful update", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should pin the card in the requested slot", function() {
+    expect(res.body.isPinned).to.be.true;
+    expect(res.body.pinnedPosition).to.equal(0);
+  });
+}

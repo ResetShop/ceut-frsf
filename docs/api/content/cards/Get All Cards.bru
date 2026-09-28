@@ -1,0 +1,88 @@
+meta {
+  name: Get All Cards
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/content/cards
+  body: none
+  auth: none
+}
+
+params:query {
+  ~offset: 0
+  ~limit: 10
+  ~search: welcome
+  ~enabled: true
+}
+
+docs {
+  # Get All Cards
+
+  Returns a paginated list of non-deleted cards, ordered by `position` then `id`. Hidden cards
+  (`enabled: false`) are included unless filtered out.
+
+  Requires the `content:cards:read` permission.
+
+  ## Contract Types
+
+  - Response: `PaginatedResponse<CardData>` from `@contracts/common/pagination.types` and `@contracts/card/card.types`
+
+  ## Query Parameters
+
+  | Parameter | Type | Required | Default | Description |
+  |-----------|------|----------|---------|-------------|
+  | offset | number | No | 0 | Number of items to skip |
+  | limit | number | No | 10 | Maximum items to return |
+  | search | string | No | - | Case-insensitive match on internal name or title |
+  | enabled | `true` \| `false` | No | - | Only visible (`true`) or hidden (`false`) cards |
+
+  ## Card Object
+
+  | Field | Type | Description |
+  |-------|------|-------------|
+  | id | number | Card ID |
+  | legacyId | number \| null | Migration source ID (unique) |
+  | internalName | string | Unique back-office name |
+  | title | string \| null | Display title |
+  | type | string | `icon-corner`, `header-image` or `full-image` |
+  | imageUrl | string \| null | Image URL |
+  | content | string \| null | Body content |
+  | link | object \| null | `{ type: 'internal' \| 'external', url }` |
+  | footerContent | string \| null | Footer text |
+  | footerSeparator | boolean | Whether a separator is drawn above the footer |
+  | enabled | boolean | Visibility flag (false = hidden) |
+  | isPinned | boolean | Whether the card is pinned |
+  | pinnedPosition | number \| null | Pinned slot 0-2 (set only when pinned) |
+  | position | number | Sort position |
+  | deletedAt | string \| null | Always null for returned cards |
+  | createdAt | string | ISO 8601 creation timestamp |
+  | updatedAt | string | ISO 8601 update timestamp |
+}
+
+assert {
+  res.status: eq 200
+  res.body.data: isDefined
+  res.body.total: isDefined
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return data array", function() {
+    expect(res.body.data).to.be.an("array");
+  });
+
+  test("should return pagination metadata", function() {
+    expect(res.body.total).to.be.a("number");
+    expect(res.body.offset).to.be.a("number");
+    expect(res.body.limit).to.be.a("number");
+  });
+
+  test("should not return deleted cards", function() {
+    res.body.data.forEach((card) => expect(card.deletedAt).to.equal(null));
+  });
+}

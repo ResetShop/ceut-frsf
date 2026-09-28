@@ -1,0 +1,27 @@
+meta {
+  name: Get Card by ID - Not Found
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/content/cards/999999
+  body: none
+  auth: none
+}
+
+docs {
+  # Get Card by ID - Not Found
+
+  Returns 404 for a card that doesn't exist or has been deleted.
+}
+
+assert {
+  res.status: eq 404
+}
+
+tests {
+  test("should return 404", function() {
+    expect(res.status).to.equal(404);
+  });
+}

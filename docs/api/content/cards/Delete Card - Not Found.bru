@@ -1,0 +1,27 @@
+meta {
+  name: Delete Card - Not Found
+  type: http
+  seq: 12
+}
+
+delete {
+  url: {{baseUrl}}/content/cards/{{testCardId}}
+  body: none
+  auth: none
+}
+
+docs {
+  # Delete Card - Not Found
+
+  Deleting the card removed by "Delete Card" a second time returns 404.
+}
+
+assert {
+  res.status: eq 404
+}
+
+tests {
+  test("should return 404 for an already deleted card", function() {
+    expect(res.status).to.equal(404);
+  });
+}
