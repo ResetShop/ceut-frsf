@@ -80,6 +80,8 @@ export async function closeTestDb(): Promise<void> {
 export async function truncateAllTables(db: TestDb): Promise<void> {
 	await db.execute(sql`
 		TRUNCATE TABLE
+			card_history,
+			card,
 			role_history,
 			role_permission_history,
 			user_profile_history,
