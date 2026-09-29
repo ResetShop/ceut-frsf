@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core'
 import { form, minLength, required, schema, FormField as SignalFormField, type FieldTree } from '@angular/forms/signals'
 import { Router } from '@angular/router'
 import { MIN_PASSWORD_LENGTH } from '@contracts/auth/auth.constants'
@@ -56,7 +56,6 @@ import type { ChangePasswordForm } from '../../../interfaces/auth'
 			</ng-template>
 		</form>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class ChangePassword {
 	private readonly authStore = inject(AuthStore)

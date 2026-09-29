@@ -2,7 +2,7 @@ import { PermissionName } from '@contracts/permission/permission.constants'
 import { logger } from '@resetshop/util'
 import { Next } from 'hono'
 import { container } from '../container/container'
-import { AuthenticatedContext } from './verify-access-token.middleware'
+import { AuthenticatedContext, getAuthenticatedUser } from './verify-access-token.middleware'
 
 /**
  * Permission verification middleware for RBAC.
@@ -43,7 +43,7 @@ async function ensurePermissionsLoaded(c: AuthenticatedContext): Promise<string[
 	}
 
 	const { userRoleService } = container.cradle
-	const permissions = await userRoleService.getUserPermissions(Number(c.user.sub))
+	const permissions = await userRoleService.getUserPermissions(Number(getAuthenticatedUser(c).sub))
 	c.permissions = permissions.map((p) => p.name)
 	return c.permissions
 }

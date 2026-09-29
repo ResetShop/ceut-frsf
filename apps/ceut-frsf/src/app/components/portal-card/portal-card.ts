@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common'
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
+import { Component, computed, input } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherTag } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -48,7 +48,6 @@ import type { PortalCard as PortalCardModel } from './portal-card.interface'
 			}
 		</div>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PortalCard {
 	public readonly card = input.required<PortalCardModel>()

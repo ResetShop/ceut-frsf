@@ -7,4 +7,4 @@
 // `main` entry and so external scripts can import the generator factories
 // directly if they need to.
 
-export { default as appGenerator, slugifyAppName } from './generators/app/index'
+export { default as appGenerator, slugifyAppName } from './generators/app/index.ts'

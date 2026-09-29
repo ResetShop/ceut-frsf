@@ -1,0 +1,63 @@
+meta {
+  name: Update Own Profile
+  type: http
+  seq: 16
+}
+
+patch {
+  url: {{baseUrl}}/users/me
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "firstName": "Updated",
+    "lastName": "Name"
+  }
+}
+
+docs {
+  # Update Own Profile
+
+  Self-service update of the authenticated user's own profile. The target is
+  always the caller, identified by the session — there is no id in the path, so this endpoint
+  can never edit another account. Any authenticated, active user may call it; no admin
+  permission is required.
+
+  ## Request Body
+
+  | Field | Type | Required | Description |
+  |-------|------|----------|-------------|
+  | firstName | string | No | New first name (1-100 characters) |
+  | lastName | string | No | New last name (1-100 characters) |
+
+  At least one field is required. The schema is strict: any other field — including `email`,
+  `roleIds` and `status` — is rejected with 400 instead of being ignored.
+
+  ## Response
+
+  The updated user with roles and permissions — the same shape as `GET /api/auth/me`, minus
+  `mustChangePassword`.
+
+  ## Business Rules
+  - Email cannot be changed here; changing it will require a verification flow
+  - Returns 400 for an empty body, an invalid name, or any field other than `firstName` / `lastName`
+  - Returns 401 without a session, or when the caller's account is disabled or deleted
+}
+
+assert {
+  res.status: eq 200
+  res.body.firstName: eq Updated
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should return the updated name", function() {
+    expect(res.body.firstName).to.equal("Updated");
+    expect(res.body.lastName).to.equal("Name");
+  });
+}

@@ -14,16 +14,14 @@ export function mapManagedUserResponse(data: ManagedUser): IManagedUser {
 		deletedAt: data.deletedAt,
 		createdAt: data.createdAt,
 		updatedAt: data.updatedAt,
-		roles: data.roles.map(
-			(r): IManagedUserRole => ({
-				id: r.id,
-				name: r.name,
-				code: r.code,
-				description: r.description,
-				removable: r.removable,
-				createdAt: r.createdAt,
-				updatedAt: r.updatedAt,
-			}),
-		),
+		roles: data.roles.map((r): IManagedUserRole => ({
+			id: r.id,
+			name: r.name,
+			code: r.code,
+			description: r.description,
+			removable: r.removable,
+			createdAt: r.createdAt,
+			updatedAt: r.updatedAt,
+		})),
 	}
 }

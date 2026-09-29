@@ -75,9 +75,19 @@ test.describe('Users list (admin)', () => {
 		await expect(page.getByText('User deleted successfully.')).toBeVisible()
 	})
 
-	test('the Edit row action navigates to the user detail page', async ({ page }) => {
+	test('the Edit row action opens the edit user drawer without leaving the list', async ({ page }) => {
 		await users.openRowMenu('Vera')
 		await users.menuItem('Edit').click()
+
+		const drawer = page.getByRole('dialog', { name: 'Edit User' })
+		await expect(drawer).toBeVisible()
+		await expect(drawer.getByLabel('First Name')).toHaveValue('Vera')
+		await expect(page).toHaveURL(/\/dashboard\/users$/)
+	})
+
+	test('the user name links to the user detail page', async ({ page }) => {
+		await users.nameLink('Vera').click()
+
 		await expect(page).toHaveURL(/\/dashboard\/users\/\d+$/)
 		await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible()
 	})

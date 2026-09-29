@@ -1,15 +1,6 @@
 import { BreakpointObserver } from '@angular/cdk/layout'
 import { isPlatformBrowser } from '@angular/common'
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	PLATFORM_ID,
-	signal,
-	type Signal,
-} from '@angular/core'
+import { Component, computed, effect, inject, PLATFORM_ID, signal, type Signal } from '@angular/core'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 import { Brand } from '@components/brand/brand'
@@ -119,7 +110,6 @@ import { map } from 'rxjs'
 			}
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Sidebar {
 	private readonly authStore = inject(AuthStore)

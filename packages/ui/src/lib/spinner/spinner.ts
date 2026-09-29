@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { Component } from '@angular/core'
 
 @Component({
 	selector: 'app-spinner',
@@ -20,6 +20,5 @@ import { ChangeDetectionStrategy, Component } from '@angular/core'
 		</svg>
 	`,
 	host: { class: 'inline-flex' },
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Spinner {}

@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common'
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core'
 import {
 	email as emailValidator,
 	form,
@@ -86,7 +86,6 @@ import { createCountdown, formatCountdown } from '../countdown'
 			</ng-template>
 		</form>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Login {
 	private readonly authStore = inject(AuthStore)

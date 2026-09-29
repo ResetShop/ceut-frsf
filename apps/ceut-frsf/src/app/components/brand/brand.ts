@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common'
-import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { Component, input } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { Button } from '@resetshop/ui/button/button'
 
@@ -23,7 +23,6 @@ import { Button } from '@resetshop/ui/button/button'
 			}
 		</a>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Brand {
 	public readonly collapsed = input(false)

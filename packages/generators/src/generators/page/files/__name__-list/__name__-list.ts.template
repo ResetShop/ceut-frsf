@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { Component } from '@angular/core'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { PageShell } from '@components/page-shell/page-shell'
 
@@ -17,6 +17,5 @@ import { PageShell } from '@components/page-shell/page-shell'
 			<!-- TODO: Add data table -->
 		</app-page-shell>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class <%= className %>List {}

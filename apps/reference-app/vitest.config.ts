@@ -11,7 +11,15 @@ export default defineConfig({
 		reporters: ['verbose'],
 		setupFiles: ['src/test-setup.ts'],
 		include: ['src/**/*.{test,spec}.ts', 'tools/**/*.spec.js'],
-		exclude: ['node_modules', 'dist', '.nx', 'coverage', '**/node_modules/**', '**/dist/**', 'src/api/integration/**'],
+		exclude: [
+			'node_modules',
+			'dist',
+			'.nx',
+			'coverage',
+			'**/node_modules/**',
+			'**/dist/**',
+			'src/api/integration/**/*.integration.spec.ts',
+		],
 		// Cap concurrent workers to bound peak memory of the unit-test run (CI runners
 		// otherwise spin up CPUs-1 workers). `forks` is already Vitest's default pool;
 		// `maxWorkers` is the Vitest 4 replacement for the removed `poolOptions.forks.maxForks`.

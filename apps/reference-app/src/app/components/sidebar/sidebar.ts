@@ -1,79 +1,57 @@
 import { BreakpointObserver } from '@angular/cdk/layout'
 import { isPlatformBrowser } from '@angular/common'
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	PLATFORM_ID,
-	signal,
-	type Signal,
-} from '@angular/core'
+import { Component, computed, effect, inject, PLATFORM_ID, signal, type Signal } from '@angular/core'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { Router } from '@angular/router'
 import { Brand } from '@components/brand/brand'
 import NavSection from '@components/nav-section/nav-section'
-import { NgIcon, provideIcons } from '@ng-icons/core'
-import { featherChevronsLeft, featherChevronsRight } from '@ng-icons/feather-icons'
-import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
+import { provideIcons } from '@ng-icons/core'
+import { featherLogOut, featherSettings, featherUser } from '@ng-icons/feather-icons'
+import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { NavigationState } from '@resetshop/angular-core/navigation/navigation-state'
-import { Button } from '@resetshop/ui/button/button'
+import type { MenuItem } from '@resetshop/ui/menu/menu'
+import { UserMenu } from '@resetshop/ui/user-menu/user-menu'
 import { AuthStore } from '@store/auth/auth.store'
 import { UIStore } from '@store/ui/ui.store'
+import type { NgpMenuPlacement } from 'ng-primitives/menu'
 import { map } from 'rxjs'
 
 @Component({
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appSidebar]',
 	host: {
-		'[class.collapsed]': 'isCollapsed()',
-		'[attr.data-collapsed]': 'isCollapsed() || null',
 		'[attr.data-mobile-open]': 'uiStore.isSidebarOpen() || null',
-		'(document:keydown.control.b)': 'onCollapseShortcut($event)',
-		'(document:keydown.meta.b)': 'onCollapseShortcut($event)',
 		'(document:keydown.escape)': 'onEscape()',
 	},
-	imports: [Button, NavSection, Brand, NgIcon, TranslatePipe],
+	imports: [NavSection, Brand, UserMenu],
 	providers: [NavigationState],
-	viewProviders: [provideIcons({ featherChevronsLeft, featherChevronsRight })],
+	viewProviders: [provideIcons({ featherUser, featherSettings, featherLogOut })],
 	template: `
 		<div class="brand-container">
-			<app-brand [collapsed]="isCollapsed()" />
+			<app-brand />
 		</div>
 		<div class="nav-container">
-			@for (section of sections(); track section.id; let first = $first) {
-				@if (isCollapsed() && !first) {
-					<hr class="border-border" />
-				}
-				<app-nav-section [section]="section" [collapsed]="isCollapsed()" [class.px-2]="!isCollapsed()" />
+			@for (section of sections(); track section.id) {
+				<app-nav-section [section]="section" class="px-2" />
 			}
 		</div>
 		<div class="footer">
-			@if (!isCollapsed()) {
-				<button (click)="logout()" appButton variant="link">{{ 'COMMON.LOGOUT' | translate }}</button>
-			}
-			@if (isLgViewport()) {
-				<button
-					(click)="toggleCollapse()"
-					[attr.aria-label]="isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-					class="me-2"
-					appButton
-					variant="ghost"
-					size="icon"
-				>
-					<ng-icon
-						[name]="isCollapsed() ? 'featherChevronsRight' : 'featherChevronsLeft'"
-						[size]="isCollapsed() ? '24' : '20'"
-					/>
-				</button>
+			@if (authStore.currentUser(); as user) {
+				<app-user-menu
+					[name]="user.fullName"
+					[email]="user.email"
+					[initials]="initials()"
+					[items]="userMenuItems()"
+					[placement]="userMenuPlacement()"
+					class="min-w-0 flex-1"
+				/>
 			}
 		</div>
 	`,
 	styles: `
 		:host {
-			@apply grid h-svh min-w-0 grid-rows-[64px_1fr_64px] overflow-hidden transition-[width] duration-200;
+			@apply grid h-svh min-w-0 grid-rows-[64px_1fr_auto] overflow-hidden;
 
 			.brand-container {
 				@apply p-2;
@@ -84,21 +62,7 @@ import { map } from 'rxjs'
 			}
 
 			.footer {
-				@apply border-border flex items-center justify-between border-t;
-			}
-		}
-
-		:host(.collapsed) {
-			.brand-container {
-				@apply border-border border-b;
-			}
-
-			.nav-container {
-				@apply py-2;
-			}
-
-			.footer {
-				@apply flex justify-center px-2;
+				@apply border-border flex min-h-16 items-center border-t p-2;
 			}
 		}
 
@@ -119,18 +83,35 @@ import { map } from 'rxjs'
 			}
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Sidebar {
-	private readonly authStore = inject(AuthStore)
+	protected readonly authStore = inject(AuthStore)
+	private readonly translation = inject(Translation)
 	private readonly navigation = inject(Navigation)
 	private readonly router = inject(Router)
 	private readonly platformId = inject(PLATFORM_ID)
 	protected readonly uiStore = inject(UIStore)
 	protected readonly sections = computed(() => this.navigation.sections())
 
-	protected readonly isLgViewport = this.createLgViewportSignal()
-	protected readonly isCollapsed = computed(() => this.isLgViewport() && this.uiStore.isSidebarCollapsed())
+	private readonly isLgViewport = this.createLgViewportSignal()
+
+	protected readonly initials = computed(() => {
+		const user = this.authStore.currentUser()
+		return user ? `${user.firstName.charAt(0)}${user.lastName.charAt(0)}` : ''
+	})
+
+	// Translated here rather than in the template because the menu takes finished labels; instant()
+	// reads the current language signal, so the labels follow a language switch.
+	protected readonly userMenuItems = computed<MenuItem[][]>(() => [
+		[
+			{ label: this.translation.instant('ACCOUNT.NAV'), icon: 'featherUser', route: '/account' },
+			{ label: this.translation.instant('SETTINGS.NAV'), icon: 'featherSettings', route: '/dashboard/settings' },
+		],
+		[{ label: this.translation.instant('COMMON.LOGOUT'), icon: 'featherLogOut', onSelect: () => this.logout() }],
+	])
+
+	// The mobile drawer is too narrow to open the menu beside the tile, so it opens upwards there.
+	protected readonly userMenuPlacement = computed<NgpMenuPlacement>(() => (this.isLgViewport() ? 'right-end' : 'top'))
 
 	private readonly logoutNavigationEffect = effect(() => {
 		const user = this.authStore.currentUser()
@@ -141,23 +122,13 @@ export class Sidebar {
 		}
 	})
 
-	protected onCollapseShortcut(event: Event): void {
-		event.preventDefault()
-		if (!this.isLgViewport()) return
-		this.toggleCollapse()
-	}
-
 	protected onEscape(): void {
 		if (this.uiStore.isSidebarOpen()) {
 			this.uiStore.setSidebarOpen(false)
 		}
 	}
 
-	protected toggleCollapse(): void {
-		this.uiStore.setSidebarCollapsed(!this.uiStore.isSidebarCollapsed())
-	}
-
-	protected logout(): void {
+	private logout(): void {
 		this.authStore.logout()
 	}
 

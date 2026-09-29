@@ -1,4 +1,5 @@
 import { inject, provideAppInitializer } from '@angular/core'
+import { provideRouter } from '@angular/router'
 import { UserStatus } from '@contracts/user/user.constants'
 import { mapManagedUserResponse } from '@domain/user-management/managed-user.mapper'
 import { createMockUser } from '@mocks/user.mock'
@@ -21,7 +22,7 @@ const meta: Meta<UserCard> = {
 	tags: ['autodocs'],
 	decorators: [
 		applicationConfig({
-			providers: [provideAuthMock(), seedAuthStoreWithAllPermissions()],
+			providers: [provideRouter([]), provideAuthMock(), seedAuthStoreWithAllPermissions()],
 		}),
 		moduleMetadata({
 			imports: [UserCard],

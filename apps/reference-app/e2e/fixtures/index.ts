@@ -37,6 +37,10 @@ export const test = base.extend<object, { ipCounter: { next: () => number } }>({
 			}
 		})
 		await use(page)
+		// Drain the `/api` route handler before Playwright tears the context down. Under parallel
+		// firefox load, leaving the handler registered while the page closes can hang context teardown
+		// past the test timeout (`ignoreErrors` swallows any in-flight-request rejection during unroute).
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
 	},
 })
 

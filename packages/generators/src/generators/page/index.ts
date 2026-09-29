@@ -1,7 +1,8 @@
 import type { Tree } from '@nx/devkit'
 import { generateFiles, joinPathFragments, logger, names } from '@nx/devkit'
-import apiProviderGenerator from '../api-provider/index'
-import storeGenerator from '../store/index'
+import { resolveTemplateDir } from '../../utils/resolve-template-dir.ts'
+import apiProviderGenerator from '../api-provider/index.ts'
+import storeGenerator from '../store/index.ts'
 
 interface PageGeneratorSchema {
 	name: string
@@ -15,7 +16,7 @@ export default async function pageGenerator(tree: Tree, schema: PageGeneratorSch
 	const n = names(schema.name)
 	const targetDir = joinPathFragments(schema.directory, n.fileName)
 
-	generateFiles(tree, joinPathFragments(__dirname, 'files'), targetDir, {
+	generateFiles(tree, resolveTemplateDir(import.meta.url), targetDir, {
 		name: n.fileName,
 		className: n.className,
 		fileName: n.fileName,

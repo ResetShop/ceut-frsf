@@ -1,13 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	signal,
-	untracked,
-	viewChild,
-} from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import {
 	email as emailValidator,
 	form,
@@ -126,7 +117,6 @@ const EMPTY_MODEL: CreateUserFormModel = {
 			#discardDialog
 		/>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateUserDrawer {
 	private readonly usersStore = inject(UsersStore)

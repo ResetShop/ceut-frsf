@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core'
+import { Component, computed, effect, inject, input } from '@angular/core'
 import { Router, RouterLink, RouterLinkActive } from '@angular/router'
 import { NgIcon } from '@ng-icons/core'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -9,12 +9,8 @@ import { NavigationState } from '@resetshop/angular-core/navigation/navigation-s
 	// eslint-disable-next-line @angular-eslint/component-selector
 	selector: '[appNavItem]',
 	imports: [NgIcon, RouterLink, RouterLinkActive, TranslatePipe],
-	host: { class: 'cursor-pointer text-sm', '[class.collapsed]': 'collapsed()' },
+	host: { class: 'cursor-pointer text-sm' },
 	styles: `
-		:host(.collapsed) {
-			@apply flex h-12 items-center justify-center;
-		}
-
 		.nav-children {
 			max-height: 0;
 			overflow: hidden;
@@ -37,7 +33,7 @@ import { NavigationState } from '@resetshop/angular-core/navigation/navigation-s
 		}
 	`,
 	template: `
-		@if (hasChildren() && !collapsed()) {
+		@if (hasChildren()) {
 			<!-- Parent item with expand button -->
 			<div class="nav-item-container">
 				<button
@@ -46,8 +42,7 @@ import { NavigationState } from '@resetshop/angular-core/navigation/navigation-s
 					(keydown.space)="$event.preventDefault(); toggleExpanded()"
 					[attr.aria-expanded]="isExpanded()"
 					[attr.aria-controls]="'nav-children-' + item().id"
-					[class.p-2]="!collapsed()"
-					class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex w-full items-center gap-2 rounded-md text-left"
+					class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex w-full items-center gap-2 rounded-md p-2 text-left"
 				>
 					@if (iconName(); as iconName) {
 						<ng-icon [name]="iconName" data-testid="item-icon" />
@@ -76,38 +71,23 @@ import { NavigationState } from '@resetshop/angular-core/navigation/navigation-s
 				</ul>
 			</div>
 		} @else {
-			<!-- Leaf item (or collapsed parent) -->
+			<!-- Leaf item -->
 			<a
 				[routerLink]="item().route"
 				[routerLinkActiveOptions]="{ exact: false }"
-				[attr.aria-label]="collapsed() ? item().name : null"
-				[attr.title]="collapsed() ? item().name : null"
-				[class.h-12]="collapsed()"
-				[class.w-12]="collapsed()"
-				[class.p-2]="!collapsed()"
-				[class.justify-center]="collapsed()"
 				routerLinkActive="bg-accent text-accent-foreground font-medium"
-				class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex items-center gap-2 rounded-lg"
+				class="text-foreground hover:bg-accent/50 hover:text-accent-foreground flex items-center gap-2 rounded-lg p-2"
 			>
 				@if (iconName(); as iconName) {
-					<ng-icon
-						[name]="iconName"
-						[class.m-2]="collapsed()"
-						[size]="collapsed() ? '28' : '16'"
-						data-testid="item-icon"
-					/>
+					<ng-icon [name]="iconName" size="16" data-testid="item-icon" />
 				}
-				@if (!collapsed()) {
-					<span class="truncate">{{ item().name | translate }}</span>
-				}
+				<span class="truncate">{{ item().name | translate }}</span>
 			</a>
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class NavItem {
 	public readonly item = input.required<NavigationRoute>()
-	public readonly collapsed = input(false)
 
 	/**
 	 * Transition duration in milliseconds for expand/collapse animations.

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core'
+import { Component, inject, input, output } from '@angular/core'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { NgIcon, provideIcons } from '@ng-icons/core'
@@ -66,7 +66,6 @@ import { UserStatusBadge } from '../user-status-badge/user-status-badge'
 			</div>
 		</div>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserCard {
 	public readonly user = input.required<IManagedUser>()

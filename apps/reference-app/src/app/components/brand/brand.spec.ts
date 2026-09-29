@@ -77,33 +77,4 @@ describe('Brand', () => {
 		expect(link).toBeInTheDocument()
 		expect(link).toHaveTextContent(/Reset Starter Repo/)
 	})
-
-	describe('collapsed input', () => {
-		it('should show brand text when collapsed is false', async () => {
-			await render(Brand, {
-				inputs: { collapsed: false },
-				providers: defaultProviders(),
-			})
-
-			expect(screen.getByText('Reset Starter Repo')).toBeInTheDocument()
-		})
-
-		it('should hide brand text when collapsed is true', async () => {
-			await render(Brand, {
-				inputs: { collapsed: true },
-				providers: defaultProviders(),
-			})
-
-			expect(screen.queryByText('Reset Starter Repo')).not.toBeInTheDocument()
-		})
-
-		it('should still render the icon link when collapsed', async () => {
-			await render(Brand, {
-				inputs: { collapsed: true },
-				providers: defaultProviders(),
-			})
-
-			expect(screen.getByRole('link')).toBeInTheDocument()
-		})
-	})
 })

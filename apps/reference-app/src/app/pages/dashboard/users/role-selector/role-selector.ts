@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, forwardRef, input, linkedSignal, model } from '@angular/core'
+import { Component, computed, forwardRef, input, linkedSignal, model } from '@angular/core'
 import type { FormValueControl } from '@angular/forms/signals'
 import type { IRole } from '@domain/access/role.interface'
 import { FormFieldCustomControl } from '@resetshop/ui/form-field/form-field-custom-control'
@@ -32,7 +32,6 @@ import { FormFieldCustomControl } from '@resetshop/ui/form-field/form-field-cust
 			}
 		</div>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RoleSelector extends FormFieldCustomControl implements FormValueControl<number[]> {
 	public readonly roles = input.required<IRole[]>()

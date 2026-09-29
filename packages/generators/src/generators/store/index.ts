@@ -1,4 +1,6 @@
-import { Tree, generateFiles, joinPathFragments, names } from '@nx/devkit'
+import type { Tree } from '@nx/devkit'
+import { generateFiles, joinPathFragments, names } from '@nx/devkit'
+import { resolveTemplateDir } from '../../utils/resolve-template-dir.ts'
 
 interface StoreGeneratorSchema {
 	name: string
@@ -17,5 +19,5 @@ export default async function storeGenerator(tree: Tree, schema: StoreGeneratorS
 		fileName: n.fileName,
 	}
 
-	generateFiles(tree, joinPathFragments(__dirname, 'files'), targetDir, templateVars)
+	generateFiles(tree, resolveTemplateDir(import.meta.url), targetDir, templateVars)
 }

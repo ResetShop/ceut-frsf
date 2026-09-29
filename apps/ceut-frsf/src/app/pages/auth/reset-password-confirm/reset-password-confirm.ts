@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core'
 import { form, minLength, required, schema, FormField as SignalFormField, type FieldTree } from '@angular/forms/signals'
 import { ActivatedRoute, Router } from '@angular/router'
 import { MIN_PASSWORD_LENGTH } from '@contracts/auth/auth.constants'
@@ -74,7 +74,6 @@ interface ResetPasswordConfirmForm {
 			</ng-template>
 		</form>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class ResetPasswordConfirm {
 	protected readonly authStore = inject(AuthStore)

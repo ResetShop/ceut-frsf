@@ -2,7 +2,7 @@ import type { Tree } from '@nx/devkit'
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import drizzleSchemaGenerator from './index'
+import drizzleSchemaGenerator from './index.ts'
 
 describe('drizzle-schema generator', () => {
 	let tree: Tree

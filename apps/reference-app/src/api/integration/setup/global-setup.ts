@@ -6,8 +6,12 @@
  * Seeding and truncation are delegated to db-helpers.ts to avoid duplicating
  * insert logic. Dynamic imports are used because this file runs in a separate
  * process where env vars must be configured before any module reads them.
+ *
+ * The embedded-Postgres helper is also imported dynamically, and only on the
+ * branch that starts a local cluster: loading `embedded-postgres` installs
+ * process-level exit hooks, which have no business in a run against an
+ * externally supplied database (CI's service container, a developer's own DB).
  */
-import { startEmbeddedPostgres, stopEmbeddedPostgres } from './embedded-pg-test-db'
 import { configureEnvVars, getTestConnectionString, loadEnvFile } from './env-helpers'
 
 let usedEmbeddedPg = false
@@ -78,6 +82,7 @@ export async function setup(): Promise<void> {
 	// This must write to process.env (not seedDbEnv) — Vitest worker child processes
 	// inherit it via the OS environment; in-memory seedXEnv() caches do not cross processes.
 	if (!process.env['PG_TEST_CONNECTION_STRING']) {
+		const { startEmbeddedPostgres } = await import('./embedded-pg-test-db')
 		process.env['PG_TEST_CONNECTION_STRING'] = await startEmbeddedPostgres()
 		usedEmbeddedPg = true
 	}
@@ -108,6 +113,7 @@ export async function teardown(): Promise<void> {
 		// Always stop the embedded cluster if we started it, even if truncation threw —
 		// otherwise the Postgres process and its data directory would leak.
 		if (usedEmbeddedPg) {
+			const { stopEmbeddedPostgres } = await import('./embedded-pg-test-db')
 			await stopEmbeddedPostgres()
 		}
 	}

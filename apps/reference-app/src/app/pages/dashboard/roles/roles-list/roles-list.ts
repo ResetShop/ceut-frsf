@@ -1,13 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	signal,
-	untracked,
-	viewChild,
-} from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import { PageShell } from '@components/page-shell/page-shell'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IRole } from '@domain/access/role.interface'
@@ -20,8 +11,7 @@ import { DataTable } from '@resetshop/ui/data-table/data-table'
 import { DataTableCardDef } from '@resetshop/ui/data-table/data-table-card-def'
 import { DataTableCellDef } from '@resetshop/ui/data-table/data-table-cell-def'
 import { Pagination } from '@resetshop/ui/pagination/pagination'
-import { type RowAction } from '@resetshop/ui/row-actions-menu/row-action-item'
-import { RowActionsMenu } from '@resetshop/ui/row-actions-menu/row-actions-menu'
+import { type RowAction, RowActionsMenu } from '@resetshop/ui/row-actions-menu/row-actions-menu'
 import { AuthStore } from '@store/auth/auth.store'
 import { RolesStore } from '@store/roles/roles.store'
 import { createMutationToast } from '@store/ui/mutation-toast'
@@ -129,7 +119,6 @@ import { RoleCard } from './role-card'
 			confirmVariant="destructive"
 		/>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class RolesList {
 	protected readonly store = inject(RolesStore)

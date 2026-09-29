@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing'
 import { provideSignalFormsConfig } from '@angular/forms/signals'
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router'
+import { PERMISSION_DEFINITIONS } from '@contracts/permission/permission.constants'
 import { UserStatus } from '@contracts/user/user.constants'
 import { createPaginatedResponse } from '@mocks/pagination.mock'
 import { createMockUser } from '@mocks/user.mock'
@@ -58,7 +59,7 @@ describe('UserDetailPage', () => {
 
 	afterEach(() => useRealTimers())
 
-	async function renderPage(routeId: string) {
+	async function renderPage(routeId: string, hasPermission: (id: string) => boolean = () => true) {
 		const view = await render(UserDetailPage, {
 			providers: [
 				provideRouter([]),
@@ -71,7 +72,7 @@ describe('UserDetailPage', () => {
 				...provideSignalFormsConfig({}),
 			],
 		})
-		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 999, hasPermission: () => true }))
+		TestBed.inject(AuthStore).updateCurrentUser(createMockUser({ id: 999, hasPermission }))
 		TestBed.tick()
 		await advanceTimersByTimeAsync(1000)
 		view.fixture.detectChanges()
@@ -125,5 +126,31 @@ describe('UserDetailPage', () => {
 		expect(usersApiMock.delete.calls[0][0]).toBe(7)
 		expect(navigateSpy.calls).toHaveLength(1)
 		expect(navigateSpy.calls[0][0]).toEqual(['/dashboard/users'])
+	})
+
+	it('opens the edit user drawer from the page header', async () => {
+		usersApiMock.getById.mockReturnValue(of(createMockManagedUser({ id: 3 })))
+		await renderPage('3')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Edit user' }))
+		TestBed.tick()
+
+		expect(screen.getByRole('dialog', { name: 'Edit User' })).toBeInTheDocument()
+	})
+
+	it('hides the edit user button when the actor lacks admin:users:update', async () => {
+		usersApiMock.getById.mockReturnValue(of(createMockManagedUser({ id: 3 })))
+
+		await renderPage('3', (id) => id !== 'admin:users:update')
+
+		expect(screen.queryByRole('button', { name: 'Edit user' })).not.toBeInTheDocument()
+	})
+})
+
+describe('permission identifiers', () => {
+	const validIdentifiers = new Set(PERMISSION_DEFINITIONS.map((p) => p.identifier))
+
+	it('should use valid permission identifiers', () => {
+		expect(validIdentifiers.has('admin:users:update')).toBe(true)
 	})
 })

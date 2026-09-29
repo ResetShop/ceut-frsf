@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common'
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core'
+import { Component, computed, inject, signal } from '@angular/core'
 import { email, form, required, schema, FormField as SignalFormField, type FieldTree } from '@angular/forms/signals'
 import { Router, RouterLink } from '@angular/router'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -66,7 +66,6 @@ interface ResetPasswordForm {
 			</ng-template>
 		</form>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class ResetPassword {
 	private readonly router = inject(Router)

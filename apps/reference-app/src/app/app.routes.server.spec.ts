@@ -11,7 +11,7 @@ describe('serverRoutes', () => {
 		for (const route of guardedRoutes) {
 			const match = serverRoutes.find((sr) => sr.path === `${route.path}/**`)
 			expect(match).toBeDefined()
-			expect(match.renderMode).toBe(RenderMode.Client)
+			expect(match?.renderMode).toBe(RenderMode.Client)
 		}
 	})
 

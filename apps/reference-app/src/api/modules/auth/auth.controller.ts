@@ -228,29 +228,37 @@ registerRoute(app, resetPasswordRoute, async (c) => {
 // Returns the current authenticated user's information with roles and permissions
 // Useful for verifying token validity, getting user data, and frontend authorization
 registerRoute(app, meRoute, async (c) => {
-	const { userRoleService, authPasswordService } = container.cradle
-	const user = (c as AuthenticatedContext).user
+	const { authService, userRoleService, authPasswordService } = container.cradle
+	const tokenUser = (c as AuthenticatedContext).user
 
-	if (!user) {
+	if (!tokenUser) {
 		return c.json({ error: 'Unauthorized' }, 401)
 	}
 
-	const userId = Number(user.sub)
+	const userId = Number(tokenUser.sub)
 
-	// Roles (with nested permissions) and the must-change flag are independent reads — run in parallel.
-	const [roles, mustChangePassword] = await Promise.all([
-		userRoleService.getUserRolesWithPermissions(userId),
-		authPasswordService.getMustChangePassword(userId),
-	])
+	try {
+		const [user, roles, mustChangePassword] = await Promise.all([
+			authService.getSessionUser(userId),
+			userRoleService.getUserRolesWithPermissions(userId),
+			authPasswordService.getMustChangePassword(userId),
+		])
 
-	return c.json<MeResponse>({
-		id: userId,
-		email: user.email,
-		firstName: user.firstName,
-		lastName: user.lastName,
-		roles,
-		mustChangePassword,
-	})
+		return c.json<MeResponse>({
+			id: userId,
+			email: user.email,
+			firstName: user.firstName,
+			lastName: user.lastName,
+			roles,
+			mustChangePassword,
+		})
+	} catch (error) {
+		// Every rejection reason answers the same 401: the account status is never exposed here.
+		if (isAuthError(error)) {
+			return c.json({ error: 'Unauthorized' }, 401)
+		}
+		throw error
+	}
 })
 
 // POST /api/auth/logout - Revoke all refresh tokens for the user

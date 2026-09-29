@@ -44,6 +44,8 @@ Authentication uses **HttpOnly cookies** for both access and refresh tokens. Jav
 └──────────────────────────────────────────────────────────────┘
 ```
 
+**Identity source:** `GET /api/auth/me` reads `email`, `firstName` and `lastName` from the database by the access token's `sub`. Token claims are frozen at issue time, so they authenticate the request but are never returned as identity. `/me` returns 401 for an account that is disabled or soft-deleted, matching what `POST /api/auth/refresh` already enforces.
+
 **Key invariant:** Every protected-route navigation validates the session against the backend. The `tokenRefreshInterceptor` transparently handles 401 → refresh → retry inside `validateSession()`, so an expired access token is refreshed before the error reaches the guard. No APP_INITIALIZER is used for auth — the guards own the full validation lifecycle.
 
 ## Interceptor Chain
@@ -122,7 +124,7 @@ During SSR, `HttpClient` does not automatically include browser cookies. The `ss
 
 ## Backend Middleware
 
-The `verifyAccessToken` middleware runs on all `/api/*` routes except public endpoints (configured via `PUBLIC_AUTH_ROUTES` in `routes.ts`). It reads the `access_token` HttpOnly cookie via `getCookie(c, 'access_token')` and verifies it as a PASETO token. On success, it attaches the decoded user payload to the Hono context as `AuthenticatedContext`. On failure, it returns 401.
+The `verifyAccessToken` middleware runs on all `/api/*` routes except public endpoints (configured via `PUBLIC_AUTH_ROUTES` in `routes.ts`). It reads the `access_token` HttpOnly cookie via `getCookie(c, 'access_token')` and verifies it as a PASETO token. On success, it attaches the decoded user payload to the Hono context as `AuthenticatedContext`. On failure, it returns 401. Handlers read that payload through the exported `getAuthenticatedUser(c)` accessor, which narrows away the optional `user` field and throws a 401 `HTTPException` on the otherwise-unreachable absent-user path — reaching into the context with a bare `(c as AuthenticatedContext).user` cast is not the sanctioned pattern.
 
 The OpenAPIHono security scheme (`pasetoCookie`) is registered in `server.ts` via `app.openAPIRegistry.registerComponent()` and applied as a global default in `app.doc()`. Public routes opt out with `security: []` in their `createRoute()` definition. See `.claude/references/backend-api.md` for the full security convention.
 

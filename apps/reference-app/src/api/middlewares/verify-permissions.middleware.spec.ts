@@ -5,8 +5,13 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../container/container'
 import { InMemoryContainer } from '../container/container.mock'
 import type { PermissionData } from '../modules/access/role/interfaces'
-import type { AuthenticatedContext } from './verify-access-token.middleware'
-import { requireAllPermissions, requireAnyPermission, requirePermission } from './verify-permissions.middleware'
+import { setAuthenticatedUser } from './verify-access-token.middleware.mock'
+import {
+	hasPermission,
+	requireAllPermissions,
+	requireAnyPermission,
+	requirePermission,
+} from './verify-permissions.middleware'
 
 describe('permission helper', () => {
 	it('should accept valid module:resource:action permission names', () => {
@@ -109,7 +114,12 @@ describe('Permissions Middleware', () => {
 			const app = new Hono()
 			// Simulate authenticated user
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				setAuthenticatedUser(c, {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				})
 				await next()
 			})
 			app.use('*', requirePermission(permission('admin:users:create')))
@@ -127,7 +137,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				setAuthenticatedUser(c, {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				})
 				await next()
 			})
 			app.use('*', requirePermission(permission('admin:users:create')))
@@ -145,7 +160,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				setAuthenticatedUser(c, {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				})
 				await next()
 			})
 			app.use('*', requirePermission(permission('admin:users:create')))
@@ -163,12 +183,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = {
+				setAuthenticatedUser(c, {
 					sub: '999',
 					email: 'test@example.com',
 					firstName: 'Test',
 					lastName: 'User',
-				}
+				})
 				await next()
 			})
 			app.use('*', requirePermission(permission('admin:users:create')))
@@ -198,7 +218,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				setAuthenticatedUser(c, {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				})
 				await next()
 			})
 			app.use('*', requireAnyPermission([permission('admin:users:create'), permission('admin:users:delete')]))
@@ -214,7 +239,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				setAuthenticatedUser(c, {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				})
 				await next()
 			})
 			app.use('*', requireAnyPermission([permission('admin:users:create'), permission('admin:users:delete')]))
@@ -242,7 +272,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				setAuthenticatedUser(c, {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				})
 				await next()
 			})
 			app.use('*', requireAllPermissions([permission('admin:users:create'), permission('admin:users:delete')]))
@@ -258,7 +293,12 @@ describe('Permissions Middleware', () => {
 
 			const app = new Hono()
 			app.use('*', async (c, next) => {
-				;(c as AuthenticatedContext).user = { sub: '1', email: 'test@example.com', firstName: 'Test', lastName: 'User' }
+				setAuthenticatedUser(c, {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				})
 				await next()
 			})
 			app.use('*', requireAllPermissions([permission('admin:users:create'), permission('admin:users:delete')]))
@@ -267,6 +307,48 @@ describe('Permissions Middleware', () => {
 			const res = await app.request('/test')
 
 			expect(res.status).toBe(200)
+		})
+	})
+
+	describe('hasPermission', () => {
+		function createApp(permissionName: ReturnType<typeof permission>) {
+			const app = new Hono()
+			app.use('*', async (c, next) => {
+				setAuthenticatedUser(c, {
+					sub: '1',
+					email: 'test@example.com',
+					firstName: 'Test',
+					lastName: 'User',
+				})
+				await next()
+			})
+			app.use('*', requirePermission(permission('admin:users:create')))
+			app.get('/test', async (c) => c.json({ allowed: await hasPermission(c, permissionName) }))
+			return app
+		}
+
+		it('should return true when the user holds the permission', async () => {
+			mockGetUserPermissions.mockResolvedValue(testPermissions)
+
+			const res = await createApp(permission('admin:users:delete')).request('/test')
+
+			expect(await res.json()).toEqual({ allowed: true })
+		})
+
+		it('should return false when the user lacks the permission', async () => {
+			mockGetUserPermissions.mockResolvedValue([testPermissions[0]])
+
+			const res = await createApp(permission('admin:users:delete')).request('/test')
+
+			expect(await res.json()).toEqual({ allowed: false })
+		})
+
+		it('should reuse the permissions cached by the route middleware', async () => {
+			mockGetUserPermissions.mockResolvedValue(testPermissions)
+
+			await createApp(permission('admin:users:delete')).request('/test')
+
+			expect(mockGetUserPermissions.calls).toHaveLength(1)
 		})
 	})
 })

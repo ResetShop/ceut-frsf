@@ -1,4 +1,4 @@
-<!-- Source: CLAUDE.md | Last updated: 2026-02-09 -->
+<!-- Source: CLAUDE.md | Last updated: 2026-09-18 -->
 
 # Testing Examples & Mock Infrastructure
 
@@ -180,6 +180,8 @@ Each frontend API service has a co-located `*.mock.ts` file providing:
 3. **`InMemory*Api` classes** — Stateful test doubles implementing the API interface with `Map` storage
 4. **`provideXMock()` functions** — `EnvironmentProviders` wrappers for test registration
 
+`provideXMock()` mirrors its production `provideX()` shape (`makeEnvironmentProviders`), swapping the `Http*Api` alias for a caller-supplied `InMemory*Api` via `useValue` so the test holds the exact instance the code under test receives. For the provider-function pattern and DI rationale, see [`angular-di.md`](angular-di.md) → "Frontend API Provider Pattern".
+
 | Mock File                         | Factory Functions                                         | InMemory Class           | Data List               |
 | --------------------------------- | --------------------------------------------------------- | ------------------------ | ----------------------- |
 | `users/users.mock.ts`             | `createMockManagedUser()`                                 | `InMemoryUsersApi`       | `MOCK_USERS` (12)       |
@@ -297,9 +299,7 @@ describe('ComponentWithDefer', () => {
 	async function renderComponent() {
 		const { fixture } = await render(MyComponent, {
 			deferBlockBehavior: DeferBlockBehavior.Playthrough,
-			providers: [
-				/* ... */
-			],
+			providers: [/* ... */],
 		})
 		TestBed.tick()
 		// Advance past the @placeholder minimum (e.g., 500ms)
@@ -642,3 +642,16 @@ describe('permission identifiers', () => {
 | `users.navigation.ts`       | `users.navigation.spec.ts`       | `admin:users:read`                                               |
 | `roles.navigation.ts`       | `roles.navigation.spec.ts`       | `admin:roles:read`                                               |
 | `permissions.navigation.ts` | `permissions.navigation.spec.ts` | `admin:permissions:read`                                         |
+
+## Permission Description Translation Coverage
+
+Each `PERMISSION_DEFINITIONS` entry carries an English `description`. That string is the source of truth for the **database** — it seeds the `permission.description` column and is what `GET /api/access/permissions` returns — but it is **not** the display text. The Permissions page resolves the description it renders from `PERMISSIONS.DESCRIPTIONS[<identifier>]` in the active language's translation file, passing the catalogue string as the `Translation.instant()` fallback.
+
+That fallback means a forgotten translation degrades silently into English rather than failing loudly, so the parity is enforced by a test instead: `apps/reference-app/src/app/providers/i18n/permission-descriptions.spec.ts` asserts, for **every** language file, that each catalogue identifier has a non-empty entry and that no entry exists for an identifier the catalogue no longer defines. It also asserts the Spanish text differs from the English, which catches a placeholder copy-paste.
+
+### Rules
+
+- Adding a permission to `PERMISSION_DEFINITIONS` means adding its description to `en.ts` **and** `es.ts` (and any language file a fork adds) under `PERMISSIONS.DESCRIPTIONS`, keyed by the full `module:resource:action` identifier.
+- Removing a permission means removing those entries — the orphan assertion fails otherwise.
+- Adding a new language file means adding it to the `languages` list at the top of the spec; the per-language assertions are generated from that list.
+- Components must never render `permission.description` directly. Resolve the key via `permissionDescriptionKey(identifier)` and pass the raw description as the fallback.

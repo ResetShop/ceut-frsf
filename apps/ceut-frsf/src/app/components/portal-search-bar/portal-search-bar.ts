@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, model } from '@angular/core'
+import { Component, model } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherSearch } from '@ng-icons/feather-icons'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -30,7 +30,6 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 			/>
 		</div>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PortalSearchBar {
 	public readonly value = model('')

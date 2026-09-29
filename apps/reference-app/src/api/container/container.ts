@@ -17,6 +17,7 @@ import { TokenMaintenanceService } from '../modules/auth/token-maintenance.servi
 import { HealthService } from '../modules/health/health.service'
 import { DrizzleUserManagementRepository } from '../modules/user/user-management.repository'
 import { UserManagementService } from '../modules/user/user-management.service'
+import { UserProfileService } from '../modules/user/user-profile.service'
 import { DrizzleUserRoleRepository } from '../modules/user/user-role.repository'
 import { UserRoleService } from '../modules/user/user-role.service'
 import { DrizzleUserRepository } from '../modules/user/user.repository'
@@ -83,6 +84,7 @@ function registerServices(c: AwilixContainer<Cradle>): void {
 		permissionService: asClass(PermissionService).singleton(),
 		userRoleService: asClass(UserRoleService).singleton(),
 		userManagementService: asClass(UserManagementService).singleton(),
+		userProfileService: asClass(UserProfileService).singleton(),
 	})
 }
 

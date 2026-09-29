@@ -2,8 +2,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherEdit3, featherKey, featherTrash2 } from '@ng-icons/feather-icons'
 import type { Meta, StoryObj } from '@storybook/angular'
 import { moduleMetadata } from '@storybook/angular'
-import { type RowAction } from './row-action-item'
-import { RowActionsMenu } from './row-actions-menu'
+import { type RowAction, RowActionsMenu } from './row-actions-menu'
 
 const noop = () => () => undefined
 
@@ -54,8 +53,8 @@ A vertical-ellipsis (⋮) trigger that opens a popover menu with row-scoped acti
 ## Behavior
 
 - Renders nothing when no group contains actions (consumers do not need to guard).
-- Built on \`ng-primitives\` \`NgpMenu\` — standard ARIA menu keyboard handling: arrow keys
-  navigate, Enter/Space activates, Escape closes, focus returns to the trigger on keyboard close.
+- The popover is a \`Menu\`, so it shares its keyboard handling (arrow keys navigate, Enter/Space
+  activates, Escape closes, focus returns to the trigger on keyboard close) and its theme-token styling.
 - Menu opens \`bottom-start\` relative to the trigger and flips near viewport edges.
 - Clicking a menu item invokes its \`onSelect\` callback and closes the menu.
 - Destructive items (\`variant: 'destructive'\`) render in \`text-destructive\`.
@@ -167,5 +166,23 @@ export const WithDisabledItem: Story = {
 			{ label: 'Delete', onSelect: noop(), variant: 'destructive', icon: 'featherTrash2' },
 		],
 	},
+	play: ({ canvasElement }) => openMenu(canvasElement),
+}
+
+/**
+ * The open menu in dark mode. The panel and its items take their colors from the theme tokens, so
+ * they follow the dark theme without dark-specific classes.
+ */
+export const OpenDark: Story = {
+	args: {
+		actions: [
+			[
+				{ label: 'Edit', onSelect: noop(), icon: 'featherEdit3' },
+				{ label: 'Reset password', onSelect: noop(), icon: 'featherKey' },
+			],
+			[{ label: 'Delete', onSelect: noop(), variant: 'destructive', icon: 'featherTrash2' }],
+		],
+	},
+	globals: { backgrounds: { value: 'dark' } },
 	play: ({ canvasElement }) => openMenu(canvasElement),
 }

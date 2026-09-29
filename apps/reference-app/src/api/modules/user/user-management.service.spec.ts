@@ -6,14 +6,7 @@ import type { DrizzleTransaction } from '../../helpers/drizzle-postgres-connecto
 import type { EmailService, SendEmailParams } from '../../services/email/interfaces'
 import type { RoleData } from '../access/role/interfaces'
 import type { AuthenticationRepository } from '../auth/interfaces'
-import type {
-	ManagedUserData,
-	UpdateUserParams,
-	UpdateUserStatusParams,
-	UserData,
-	UserManagementRepository,
-	UserRoleRepository,
-} from './interfaces'
+import type { ManagedUserData, UserData, UserManagementRepository, UserRoleRepository } from './interfaces'
 import { USER_MANAGEMENT_ERRORS, UserManagementService } from './user-management.service'
 
 describe('UserManagementService', () => {
@@ -25,8 +18,13 @@ describe('UserManagementService', () => {
 	const mockFindByIdWithRoles = fn<[number], Promise<ManagedUserData | null>>()
 	const mockFindByEmail = fn<[string], Promise<UserData | null>>()
 	const mockCreate = fn<Parameters<UserManagementRepository['create']>, Promise<ManagedUserData>>()
-	const mockUpdate = fn<[number, UpdateUserParams, number], Promise<UserData | null>>()
-	const mockUpdateStatus = fn<[number, UpdateUserStatusParams], Promise<ManagedUserData | null>>()
+	const mockUpdate = fn<Parameters<UserManagementRepository['update']>, Promise<UserData | null>>()
+	const mockUpdateStatus = fn<Parameters<UserManagementRepository['updateStatus']>, Promise<ManagedUserData | null>>()
+
+	// REASON: an opaque stand-in handle — mocked repo methods only receive it, so tests can assert that
+	// every composed write joined the same transaction without a live DB connection.
+	const testTx = { name: 'test-tx' } as unknown as DrizzleTransaction
+	let transactionCount = 0
 	const mockSoftDelete = fn<[number, number], Promise<boolean>>()
 
 	const mockRepository: UserManagementRepository = {
@@ -37,11 +35,11 @@ describe('UserManagementService', () => {
 		update: mockUpdate,
 		updateStatus: mockUpdateStatus,
 		softDelete: mockSoftDelete,
-		// Executes the callback inline so the composed repo/auth writes run during the test.
-		// REASON: the stub tx is only threaded into mocked methods that ignore it; a real
-		// DrizzleTransaction would require a live DB connection, which unit tests must not need.
-		runInTransaction: <T>(callback: (tx: DrizzleTransaction) => Promise<T>): Promise<T> =>
-			callback(undefined as unknown as DrizzleTransaction),
+		// Executes the callback inline with the stand-in handle so the composed writes run during the test.
+		runInTransaction: <T>(callback: (tx: DrizzleTransaction) => Promise<T>): Promise<T> => {
+			transactionCount++
+			return callback(testTx)
+		},
 	}
 
 	// User-role repository mock — createUser composes role assignment through this boundary
@@ -154,6 +152,7 @@ describe('UserManagementService', () => {
 
 	beforeEach(() => {
 		clearAllMocks()
+		transactionCount = 0
 		consoleErrorSpy = spyOn(console, 'error')
 
 		mockGeneratePassword.mockResolvedValue('indigo.rabbit.troop')
@@ -475,7 +474,8 @@ describe('UserManagementService', () => {
 
 			const result = await service.updateUser(1, { firstName: 'Updated' }, 999)
 
-			expect(result.firstName).toBe('Updated')
+			expect(result.user.firstName).toBe('Updated')
+			expect(result.previous).toEqual(testManagedUser)
 		})
 
 		it('should throw NOT_FOUND when user does not exist', async () => {
@@ -501,7 +501,7 @@ describe('UserManagementService', () => {
 
 			await service.updateUser(1, { roleIds: [1, 2] }, 999)
 
-			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2], 999]])
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2], 999, testTx]])
 			// Roles-only edit must not write the user profile (no spurious profile-history entry).
 			expect(mockUpdate.calls).toHaveLength(0)
 		})
@@ -522,7 +522,7 @@ describe('UserManagementService', () => {
 
 			await service.updateUser(1, { roleIds: [1, 3] }, 1)
 
-			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 3], 1]])
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 3], 1, testTx]])
 		})
 
 		it('should not guard role changes when updating a different user', async () => {
@@ -532,7 +532,95 @@ describe('UserManagementService', () => {
 			// Removing the admin role from someone else (actor 999 != target 1) is allowed.
 			await service.updateUser(1, { roleIds: [] }, 999)
 
-			expect(mockReplaceUserRoles.calls).toEqual([[1, [], 999]])
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [], 999, testTx]])
+		})
+
+		it('should write profile, roles, and status inside one transaction', async () => {
+			const disabledUser = { ...testManagedUser, firstName: 'Updated', status: UserStatus.DISABLED }
+			mockFindByIdWithRoles.mockResolvedValueOnce(testManagedUser).mockResolvedValueOnce(disabledUser)
+			mockUpdate.mockResolvedValue({ ...testUser, firstName: 'Updated' })
+			mockReplaceUserRoles.mockResolvedValue(undefined)
+			mockUpdateStatus.mockResolvedValue(disabledUser)
+			const params = { firstName: 'Updated', roleIds: [1, 2], status: UserStatus.DISABLED }
+
+			const result = await service.updateUser(1, params, 999)
+
+			expect(result).toEqual({ user: disabledUser, previous: testManagedUser })
+			expect(transactionCount).toBe(1)
+			expect(mockUpdate.calls).toEqual([[1, params, 999, testTx]])
+			expect(mockReplaceUserRoles.calls).toEqual([[1, [1, 2], 999, testTx]])
+			expect(mockUpdateStatus.calls).toEqual([[1, { status: UserStatus.DISABLED, changedBy: 999 }, testTx]])
+		})
+
+		it('should open no transaction when the request carries no writable field', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+
+			await service.updateUser(1, {}, 999)
+
+			expect(transactionCount).toBe(0)
+			expect(mockUpdate.calls).toHaveLength(0)
+			expect(mockReplaceUserRoles.calls).toHaveLength(0)
+			expect(mockUpdateStatus.calls).toHaveLength(0)
+		})
+
+		it('should propagate a role-replace failure raised inside the transaction and skip the status write', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+			mockUpdate.mockResolvedValue(testUser)
+			mockReplaceUserRoles.mockRejectedValue(new Error('Roles not found: 42'))
+
+			await expect(
+				service.updateUser(1, { firstName: 'Updated', roleIds: [42], status: UserStatus.DISABLED }, 999),
+			).rejects.toThrow('Roles not found')
+			expect(mockUpdateStatus.calls).toHaveLength(0)
+		})
+
+		it('should write only the status when status is the only field', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+			mockUpdateStatus.mockResolvedValue({ ...testManagedUser, status: UserStatus.DISABLED })
+
+			await service.updateUser(1, { status: UserStatus.DISABLED }, 999)
+
+			expect(mockUpdate.calls).toHaveLength(0)
+			expect(mockReplaceUserRoles.calls).toHaveLength(0)
+			expect(mockUpdateStatus.calls).toHaveLength(1)
+		})
+
+		it('should treat a status equal to the current one as a no-op', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+
+			await service.updateUser(1, { status: UserStatus.ACTIVE }, 1)
+
+			expect(mockUpdateStatus.calls).toHaveLength(0)
+		})
+
+		it('should throw SELF_LOCKOUT before any write when changing own status', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+
+			await expect(service.updateUser(1, { firstName: 'Updated', status: UserStatus.DISABLED }, 1)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.SELF_LOCKOUT,
+			)
+			expect(transactionCount).toBe(0)
+			expect(mockUpdate.calls).toHaveLength(0)
+		})
+
+		it('should throw INVALID_TRANSITION before any write for a disallowed status change', async () => {
+			mockFindByIdWithRoles.mockResolvedValue({ ...testManagedUser, status: UserStatus.DISABLED })
+
+			// DELETED is not reachable through an update — only through the delete operation.
+			await expect(service.updateUser(1, { firstName: 'Updated', status: UserStatus.DELETED }, 999)).rejects.toThrow(
+				USER_MANAGEMENT_ERRORS.INVALID_TRANSITION,
+			)
+			expect(transactionCount).toBe(0)
+		})
+
+		it('should throw EMAIL_EXISTS before any write in a combined update', async () => {
+			mockFindByIdWithRoles.mockResolvedValue(testManagedUser)
+			mockFindByEmail.mockResolvedValue({ ...testUser, id: 2, email: 'taken@example.com' })
+
+			await expect(
+				service.updateUser(1, { email: 'taken@example.com', status: UserStatus.DISABLED }, 999),
+			).rejects.toThrow(USER_MANAGEMENT_ERRORS.EMAIL_EXISTS)
+			expect(transactionCount).toBe(0)
 		})
 	})
 
@@ -564,7 +652,8 @@ describe('UserManagementService', () => {
 
 			const result = await service.updateUserStatus(1, { status: UserStatus.DISABLED, changedBy: 999 })
 
-			expect(result.status).toBe(UserStatus.DISABLED)
+			expect(result.previous.status).toBe(UserStatus.ACTIVE)
+			expect(result.user.status).toBe(UserStatus.DISABLED)
 		})
 
 		it('should update status from disabled to active', async () => {
@@ -575,7 +664,8 @@ describe('UserManagementService', () => {
 
 			const result = await service.updateUserStatus(1, { status: UserStatus.ACTIVE, changedBy: 999 })
 
-			expect(result.status).toBe(UserStatus.ACTIVE)
+			expect(result.previous.status).toBe(UserStatus.DISABLED)
+			expect(result.user.status).toBe(UserStatus.ACTIVE)
 		})
 
 		it('should throw SELF_LOCKOUT when changing own status', async () => {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core'
+import { Component, computed, inject, input, output } from '@angular/core'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
 import { CurrentUser } from '@resetshop/angular-core/auth/current-user'
@@ -39,7 +39,6 @@ import { ConfirmDialog } from '@resetshop/ui/confirm-dialog/confirm-dialog'
 			/>
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserDangerZone {
 	public readonly user = input.required<IManagedUser>()

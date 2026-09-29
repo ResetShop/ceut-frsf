@@ -9,7 +9,11 @@
 		"esm": true,
 		"compilerOptions": {
 			"module": "ESNext",
-			"moduleResolution": "node"
+			"moduleResolution": "node",
+			"ignoreDeprecations": "6.0"
 		}
+	},
+	"compilerOptions": {
+		"ignoreDeprecations": "6.0"
 	}
 }

@@ -8,7 +8,8 @@ import { ACCESS_TOKEN_COOKIE_NAME } from '../constants/auth.constants'
 import { container } from '../container/container'
 import { InMemoryContainer } from '../container/container.mock'
 import type { TokenPayload } from '../services/paseto/interfaces'
-import verifyAccessToken, { type AuthenticatedContext } from './verify-access-token.middleware'
+import verifyAccessToken from './verify-access-token.middleware'
+import { readAuthenticatedUser } from './verify-access-token.middleware.mock'
 
 describe('verifyAccessToken middleware', () => {
 	let app: Hono
@@ -29,7 +30,7 @@ describe('verifyAccessToken middleware', () => {
 		app = new Hono()
 		app.use('/protected/*', verifyAccessToken)
 		app.get('/protected/resource', (c) => {
-			const user = (c as AuthenticatedContext).user
+			const user = readAuthenticatedUser(c)
 			return c.json({ user })
 		})
 

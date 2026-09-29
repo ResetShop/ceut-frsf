@@ -12,6 +12,7 @@ import type {
 	ResetPasswordRequest,
 	ResetPasswordResponse,
 } from '@contracts/auth/auth.types'
+import type { AuthUser, UpdateProfileRequest } from '@contracts/user/user.types'
 import type { Observable } from 'rxjs'
 import type { AuthApi } from './auth.interface'
 
@@ -71,5 +72,9 @@ export class HttpAuthApi implements AuthApi {
 	 */
 	public resetPassword(params: ResetPasswordRequest): Observable<ResetPasswordResponse> {
 		return this.http.post<ResetPasswordResponse>('/api/auth/reset-password', params)
+	}
+
+	public updateProfile(params: UpdateProfileRequest): Observable<AuthUser> {
+		return this.http.patch<AuthUser>('/api/users/me', params)
 	}
 }

@@ -51,6 +51,7 @@ First determine the change set: run `git diff --name-only main...HEAD` (or, when
 - `.claude/references/domain-model.md` — diff touches `src/api/**`, `src/db/**`, or `src/contracts/**` (domain entities, aggregates, factory functions, Zod validation)
 - `.claude/references/generators.md` — diff touches generator dirs / generated files, or the task involves scaffolding a new entity/module/page
 - `.claude/references/accessibility.md` — diff touches `src/app/components/**`, component templates, or styles
+- `.claude/references/angular-di.md` — diff touches `src/app/**` (routes, stores, providers, interceptors, components), `packages/angular-core/**`, or any `providers` / `inject()` / `provideX()` wiring
 
 **Fail open — when in doubt, load everything.** If the diff is empty, spans multiple layers, is ambiguous, or you are unsure which domain refs apply, load **all** of the domain references above. Under-loading produces a confident but under-informed plan; over-loading only costs tokens. Cross-cutting diffs are the norm here (the `crud` generator emits DB + API + contracts + provider + store + page in one shot), so default to loading everything unless the diff is clearly scoped to a single layer.
 

@@ -11,7 +11,7 @@ export const dashboardNavigationConfig: NavigationConfig = {
 		},
 		{
 			id: 'settings',
-			name: 'DASHBOARD.SECTIONS.SETTINGS',
+			name: 'DASHBOARD.SECTIONS.MAINTENANCE',
 			routes: [
 				{ id: 'settings', name: 'SETTINGS.NAV', route: 'dashboard/settings', icon: { featherSettings } },
 				{ id: 'health', name: 'HEALTH.NAV', route: 'dashboard/health', icon: { featherActivity } },

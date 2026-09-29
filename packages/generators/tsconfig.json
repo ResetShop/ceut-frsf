@@ -1,9 +1,13 @@
 {
 	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
-		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"types": ["node"]
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"rewriteRelativeImportExtensions": true,
+		"verbatimModuleSyntax": true,
+		"erasableSyntaxOnly": true,
+		"types": ["node"],
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["src/**/*.ts"],
 	"exclude": ["**/*.spec.ts", "**/*.test.ts", "vitest.config.ts"]

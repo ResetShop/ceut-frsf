@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { Component, inject } from '@angular/core'
 import { RouterOutlet } from '@angular/router'
 import { AppLoadingShell } from '@components/app-loading-shell/app-loading-shell'
 import { Header } from '@components/header/header'
@@ -26,10 +26,6 @@ import { UIStore } from '@store/ui/ui.store'
 			</app-loading-shell>
 		</main>
 	`,
-	host: {
-		'[style.--sidebar-col-width]':
-			'uiStore.isSidebarCollapsed() ? "var(--sidebar-width-collapsed)" : "var(--sidebar-width)"',
-	},
 	styles: `
 		main {
 			overflow: auto;
@@ -37,15 +33,13 @@ import { UIStore } from '@store/ui/ui.store'
 
 		:host {
 			--sidebar-width: 240px;
-			--sidebar-width-collapsed: 64px;
 			--sidebar-width-mobile: min(280px, 80vw);
 			@apply grid h-svh;
-			grid-template-columns: var(--sidebar-col-width) 1fr;
+			grid-template-columns: var(--sidebar-width) 1fr;
 			grid-template-rows: 64px 1fr;
 			grid-template-areas:
 				'aside nav nav'
 				'aside main main';
-			transition: grid-template-columns 200ms ease;
 		}
 
 		main {
@@ -70,7 +64,6 @@ import { UIStore } from '@store/ui/ui.store'
 			}
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Dashboard {
 	protected readonly uiStore = inject(UIStore)

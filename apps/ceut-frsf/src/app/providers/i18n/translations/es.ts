@@ -202,6 +202,21 @@ const es: TranslationSchema = {
 				ROLES_LABEL: 'Roles',
 				SUCCESS_TOAST: 'Roles actualizados exitosamente.',
 			},
+			EDIT: {
+				BUTTON: 'Editar usuario',
+				DRAWER_TITLE: 'Editar usuario',
+				STATUS_LABEL: 'Estado',
+				REVIEW: 'Revisar cambios',
+				NONE: 'Ninguno',
+				SUCCESS_TOAST: 'Usuario actualizado exitosamente.',
+				CONFIRM_DIALOG: {
+					TITLE: 'Confirmar cambios',
+					MESSAGE: "Revisa los cambios de '{name}' antes de guardarlos.",
+					CONFIRM: 'Guardar cambios',
+					BEFORE: 'Antes',
+					AFTER: 'Después',
+				},
+			},
 			ACCOUNT: {
 				TITLE: 'Acciones de la cuenta',
 				RESET_PASSWORD: 'Enviar enlace de restablecimiento de contraseña',
@@ -285,6 +300,26 @@ const es: TranslationSchema = {
 				DESCRIPTION: 'Descripción',
 			},
 		},
+		DESCRIPTIONS: {
+			'admin:permissions:read': 'Ver todos los permisos del sistema',
+			'admin:users:create': 'Crear nuevos usuarios',
+			'admin:users:read': 'Ver detalles de usuario',
+			'admin:users:update': 'Actualizar información de usuario',
+			'admin:users:delete': 'Eliminar usuarios',
+			'admin:users:reset_password': 'Restablecer contraseñas de usuario',
+			'admin:users:disable': 'Gestionar el estado de la cuenta de usuario',
+			'admin:roles:create': 'Crear nuevos roles',
+			'admin:roles:read': 'Ver detalles de rol',
+			'admin:roles:update': 'Actualizar roles',
+			'admin:roles:delete': 'Eliminar roles',
+			'admin:user_roles:read': 'Ver asignaciones de roles de usuario',
+			'admin:user_roles:assign': 'Asignar roles a usuarios',
+			'admin:user_roles:remove': 'Quitar roles de usuarios',
+			'content:cards:create': 'Crear nuevas tarjetas',
+			'content:cards:read': 'Ver detalles de tarjetas',
+			'content:cards:update': 'Actualizar tarjetas',
+			'content:cards:delete': 'Eliminar tarjetas',
+		},
 		ERRORS: {
 			ACCESS_DENIED: 'No tienes permisos para acceder a esa página.',
 		},
@@ -297,6 +332,26 @@ const es: TranslationSchema = {
 			LABEL: 'Idioma',
 			ENGLISH: 'Inglés',
 			SPANISH: 'Español',
+		},
+	},
+	ACCOUNT: {
+		NAV: 'Cuenta',
+		TITLE: 'Cuenta',
+		DESCRIPTION: 'Tus datos personales.',
+		PROFILE: {
+			TITLE: 'Perfil',
+			FIRST_NAME: 'Nombre',
+			LAST_NAME: 'Apellido',
+			EMAIL: 'Correo electrónico',
+		},
+		REVIEW: 'Revisar cambios',
+		SUCCESS_TOAST: 'Perfil actualizado exitosamente.',
+		CONFIRM_DIALOG: {
+			TITLE: 'Confirmar cambios',
+			MESSAGE: 'Revisa los cambios de tu perfil antes de guardarlos.',
+			CONFIRM: 'Guardar cambios',
+			BEFORE: 'Antes',
+			AFTER: 'Después',
 		},
 	},
 	HEALTH: {
@@ -316,7 +371,7 @@ const es: TranslationSchema = {
 	DASHBOARD: {
 		BREADCRUMB: 'Panel principal',
 		SECTIONS: {
-			SETTINGS: 'Ajustes y mantenimiento',
+			MAINTENANCE: 'Ajustes y mantenimiento',
 			ADMIN: 'Administración',
 		},
 		HOME: {
@@ -329,6 +384,9 @@ const es: TranslationSchema = {
 				USERS: 'Gestiona las cuentas de usuario, sus roles y permisos de acceso.',
 				AUTHORIZATION: 'Administra los roles y permisos que controlan el acceso a la plataforma.',
 			},
+		},
+		USERS: {
+			NAV: 'Usuarios',
 		},
 		AUTHORIZATION: {
 			NAV: 'Autorización',

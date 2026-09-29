@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common'
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { Component } from '@angular/core'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 
 /**
@@ -43,7 +43,6 @@ import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 			</div>
 		</footer>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingFooter {
 	protected readonly instagramUrl = 'https://instagram.com/ceut.frsf'

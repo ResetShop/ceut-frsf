@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core'
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core'
 import {
 	email as emailValidator,
 	form,
@@ -73,7 +73,6 @@ interface ProfileFormModel {
 			</form>
 		</section>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserProfileSection {
 	public readonly user = input.required<IManagedUser>()

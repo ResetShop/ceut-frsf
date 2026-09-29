@@ -103,6 +103,19 @@ describe('ConfirmDialog', () => {
 		})
 	})
 
+	describe('Content projection', () => {
+		it('should render projected content below the message', async () => {
+			await render(
+				`<app-confirm-dialog title="Confirm" message="Review" #dialog><p>Projected body</p></app-confirm-dialog>
+				<button (click)="dialog.show()">Open</button>`,
+				{ imports: [ConfirmDialog] },
+			)
+			await userEvent.click(screen.getByRole('button', { name: 'Open' }))
+
+			expect(screen.getByText('Projected body')).toBeInTheDocument()
+		})
+	})
+
 	describe('Accessibility', () => {
 		it('should set aria-labelledby when title is provided', async () => {
 			await renderAndOpen({ title: 'Confirm Action' })

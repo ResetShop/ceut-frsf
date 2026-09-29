@@ -1,7 +1,22 @@
 import type { LoginResponse, MeResponse } from '@contracts/auth/auth.types'
+import type { AuthUser } from '@contracts/user/user.types'
 import { mapRole } from '../access/role.mapper'
 import type { IUser } from '../user/user.interface'
 import { createUser } from '../user/user.mapper'
+
+/**
+ * Maps an authenticated-user payload — the shape shared by login, `/api/auth/me` and
+ * `PATCH /api/users/me` — to an IUser.
+ */
+export function mapAuthUserToUser(user: AuthUser): IUser {
+	return createUser({
+		id: user.id,
+		email: user.email,
+		firstName: user.firstName,
+		lastName: user.lastName,
+		roles: user.roles.map(mapRole),
+	})
+}
 
 /**
  * Maps a login response to an IUser. The login endpoint returns the full roles +
@@ -9,13 +24,7 @@ import { createUser } from '../user/user.mapper'
  * no empty-roles window between login and the first `/api/auth/me` call.
  */
 export function mapLoginResponseToUser(response: LoginResponse): IUser {
-	return createUser({
-		id: response.user.id,
-		email: response.user.email,
-		firstName: response.user.firstName,
-		lastName: response.user.lastName,
-		roles: response.user.roles.map(mapRole),
-	})
+	return mapAuthUserToUser(response.user)
 }
 
 /**
@@ -23,11 +32,5 @@ export function mapLoginResponseToUser(response: LoginResponse): IUser {
  * route activation to revalidate the session and refresh the user.
  */
 export function mapMeResponseToUser(response: MeResponse): IUser {
-	return createUser({
-		id: response.id,
-		email: response.email,
-		firstName: response.firstName,
-		lastName: response.lastName,
-		roles: response.roles.map(mapRole),
-	})
+	return mapAuthUserToUser(response)
 }

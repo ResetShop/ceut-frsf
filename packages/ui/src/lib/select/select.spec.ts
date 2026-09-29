@@ -8,7 +8,7 @@ import {
 	type FieldTree,
 } from '@angular/forms/signals'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
-import { clearAllMocks } from '@resetshop/util/test-utils'
+import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
 import { FormField } from '../form-field/form-field'
@@ -121,5 +121,22 @@ describe('Select', () => {
 
 		const dropdown = screen.getByTestId('select-dropdown')
 		expect(dropdown).toHaveClass('max-h-[min(60vh,240px)]')
+	})
+
+	it('should emit touch when the dropdown closes after selecting an option', async () => {
+		const user = userEvent.setup()
+		const onTouch = fn<[], void>()
+		await render(`<app-select [options]="options" [placeholder]="'Select a country'" (touch)="onTouch()" />`, {
+			imports: [Select],
+			componentProperties: { options: TEST_OPTIONS, onTouch },
+		})
+
+		await user.click(screen.getByRole('combobox'))
+		await user.click(screen.getByText('United Kingdom'))
+
+		// Selecting an option closes the dropdown (onOpenChange(false)) and moves focus off the
+		// host, so both the open-state and focusout paths can independently emit `touch`; either
+		// is sufficient proof the emission fires from real interaction, not markAsTouched().
+		expect(onTouch.calls.length).toBeGreaterThan(0)
 	})
 })

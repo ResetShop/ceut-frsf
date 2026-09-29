@@ -1,10 +1,12 @@
+import { AuthError, InternalAuthErrorCode } from '@contracts/auth/auth.errors'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../../container/container'
 import { InMemoryContainer } from '../../container/container.mock'
-import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
+import { setAuthenticatedUser } from '../../middlewares/verify-access-token.middleware.mock'
 import type { RoleWithPermissions } from '../access/role/interfaces'
+import type { UserData } from '../user/interfaces'
 import authController from './auth.controller'
 
 describe('Auth Controller - /me endpoint', () => {
@@ -14,12 +16,12 @@ describe('Auth Controller - /me endpoint', () => {
 	app.use('/auth/*', async (c, next) => {
 		const authHeader = c.req.header('Authorization')
 		if (authHeader?.startsWith('Bearer valid-token')) {
-			;(c as AuthenticatedContext).user = {
+			setAuthenticatedUser(c, {
 				sub: '1',
 				email: 'test@example.com',
 				firstName: 'John',
 				lastName: 'Doe',
-			}
+			})
 		}
 		await next()
 	})
@@ -28,12 +30,25 @@ describe('Auth Controller - /me endpoint', () => {
 
 	const mockGetUserRolesWithPermissions = fn<[number], Promise<RoleWithPermissions[]>>()
 	const mockGetMustChangePassword = fn<[number], Promise<boolean>>()
+	const mockGetSessionUser = fn<[number], Promise<UserData>>()
+
+	const storedUser: UserData = {
+		id: 1,
+		email: 'test@example.com',
+		firstName: 'John',
+		lastName: 'Doe',
+		status: 'active',
+	}
 
 	beforeEach(() => {
 		clearAllMocks()
 		mockGetMustChangePassword.mockResolvedValue(false)
+		mockGetSessionUser.mockResolvedValue(storedUser)
 		container.use(
 			new InMemoryContainer({
+				authService: {
+					getSessionUser: mockGetSessionUser,
+				},
 				userRoleService: {
 					getUserRolesWithPermissions: mockGetUserRolesWithPermissions,
 				},
@@ -111,6 +126,51 @@ describe('Auth Controller - /me endpoint', () => {
 		expect(res.status).toBe(200)
 		const data = await res.json()
 		expect(data.mustChangePassword).toBe(true)
+	})
+
+	it('should return the stored identity rather than the token claims', async () => {
+		mockGetUserRolesWithPermissions.mockResolvedValue([])
+		mockGetSessionUser.mockResolvedValue({
+			...storedUser,
+			email: 'renamed@example.com',
+			firstName: 'Johnny',
+			lastName: 'Renamed',
+		})
+
+		const res = await app.request('/auth/me', {
+			headers: { Authorization: 'Bearer valid-token' },
+		})
+
+		expect(res.status).toBe(200)
+		const data = await res.json()
+		expect(data).toMatchObject({ id: 1, email: 'renamed@example.com', firstName: 'Johnny', lastName: 'Renamed' })
+		expect(mockGetSessionUser.calls).toEqual([[1]])
+	})
+
+	it.each([InternalAuthErrorCode.USER_NOT_FOUND, InternalAuthErrorCode.ACCOUNT_DISABLED])(
+		'should return the same generic 401 when the session is rejected with %s',
+		async (internalCode) => {
+			mockGetUserRolesWithPermissions.mockResolvedValue([])
+			mockGetSessionUser.mockRejectedValue(new AuthError(internalCode))
+
+			const res = await app.request('/auth/me', {
+				headers: { Authorization: 'Bearer valid-token' },
+			})
+
+			expect(res.status).toBe(401)
+			expect(await res.json()).toEqual({ error: 'Unauthorized' })
+		},
+	)
+
+	it('should propagate a non-auth failure instead of turning it into a 401', async () => {
+		mockGetUserRolesWithPermissions.mockResolvedValue([])
+		mockGetSessionUser.mockRejectedValue(new Error('Database connection failed'))
+
+		const res = await app.request('/auth/me', {
+			headers: { Authorization: 'Bearer valid-token' },
+		})
+
+		expect(res.status).toBe(500)
 	})
 
 	it('should return empty roles array when user has no roles', async () => {

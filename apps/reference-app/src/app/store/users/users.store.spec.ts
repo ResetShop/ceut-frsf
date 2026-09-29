@@ -220,6 +220,17 @@ describe('UsersStore', () => {
 	})
 
 	describe('updateUser', () => {
+		it('should send a combined profile, roles, and status body in a single request', () => {
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([createMockManagedUser({ id: 5 })], 1)))
+			setupStore()
+			usersApiMock.update.mockReturnValue(of(createMockManagedUser({ id: 5, status: UserStatus.DISABLED })))
+			const body = { firstName: 'Updated', roleIds: [1, 2], status: UserStatus.DISABLED }
+
+			store.updateUser({ id: 5, body })
+
+			expect(usersApiMock.update.calls).toEqual([[5, body]])
+		})
+
 		it('should reload the list from the server on success', () => {
 			const user = createMockManagedUser({ id: 5, firstName: 'Old' })
 			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse([user], 1)))

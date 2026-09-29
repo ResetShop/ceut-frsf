@@ -1,6 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common'
 import {
-	ChangeDetectionStrategy,
 	Component,
 	computed,
 	contentChild,
@@ -29,7 +28,6 @@ export type DrawerDirection = 'left' | 'right' | 'top' | 'bottom'
 	hostDirectives: [DrawerLoading, DrawerTransition, { directive: DrawerPanel, inputs: ['direction'] }],
 	templateUrl: './drawer.html',
 	styleUrl: './drawer.css',
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Drawer implements OnDestroy {
 	public readonly title = input<string>('')

@@ -28,15 +28,24 @@ export interface MockFn<TArgs extends unknown[] = unknown[], TReturn = unknown> 
 	mockClear: () => void
 }
 
+/** The single capability the mock registry exercises — see `mockRegistry` for why it is narrowed. */
+type ClearableMock = Pick<MockFn, 'mockClear'>
+
 /**
  * Registry of all created mock functions for bulk operations.
+ *
+ * Typed as `ClearableMock` rather than `MockFn` because clearing is the only capability the
+ * registry exercises. A `MockFn<TArgs, TReturn>` is not assignable to the default
+ * `MockFn<unknown[], unknown>` under `strictFunctionTypes` — its call signature and setters take
+ * the type parameters in contravariant position — so storing the full interface would force an
+ * assertion at every registration. Narrowing to the one member used keeps `fn()` assertion-free.
  *
  * Module-scoped — Vitest runs each test file in its own worker, so
  * the registry is isolated per file. An afterAll hook registered at
  * module load time automatically clears the registry when the suite
  * completes, preventing memory leaks without manual cleanup.
  */
-const mockRegistry: Set<MockFn> = new Set()
+const mockRegistry: Set<ClearableMock> = new Set()
 
 afterAll(() => {
 	resetAllMocks()
@@ -113,7 +122,7 @@ export function fn<TArgs extends unknown[] = unknown[], TReturn = unknown>(): Mo
 		viFn.mockClear()
 	}
 
-	mockRegistry.add(mockFn as MockFn)
+	mockRegistry.add(mockFn)
 	return mockFn
 }
 

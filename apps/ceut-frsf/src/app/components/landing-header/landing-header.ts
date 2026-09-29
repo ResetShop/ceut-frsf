@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common'
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { Component } from '@angular/core'
 import { RouterLink } from '@angular/router'
 import { ThemeToggle } from '@components/theme-toggle/theme-toggle'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
@@ -41,7 +41,6 @@ import { Button } from '@resetshop/ui/button/button'
 			display: block;
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingHeader {
 	protected readonly instagramUrl = 'https://instagram.com/ceut.frsf'

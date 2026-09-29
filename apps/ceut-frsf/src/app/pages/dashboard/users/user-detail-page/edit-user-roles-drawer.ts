@@ -1,14 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	input,
-	signal,
-	untracked,
-	viewChild,
-} from '@angular/core'
+import { Component, computed, effect, inject, input, signal, untracked, viewChild } from '@angular/core'
 import { form, FormField as SignalFormField } from '@angular/forms/signals'
 import { ADMIN_ROLE_CODE } from '@contracts/role/role.constants'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
@@ -87,7 +77,6 @@ interface RolesFormModel {
 			</ng-template>
 		</app-drawer>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EditUserRolesDrawer {
 	public readonly user = input.required<IManagedUser>()

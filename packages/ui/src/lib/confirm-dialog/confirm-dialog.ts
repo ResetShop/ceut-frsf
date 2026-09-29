@@ -1,14 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	type ElementRef,
-	inject,
-	input,
-	type OnDestroy,
-	output,
-	viewChild,
-} from '@angular/core'
+import { Component, computed, type ElementRef, inject, input, type OnDestroy, output, viewChild } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
 import { filter, fromEvent, Subject, switchMap, take } from 'rxjs'
 import { Button } from '../button/button'
@@ -21,7 +11,6 @@ import { ConfirmDialogTracker } from './confirm-dialog-tracker'
 	host: { '[attr.title]': 'null' },
 	templateUrl: './confirm-dialog.html',
 	styleUrl: './confirm-dialog.css',
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfirmDialog implements OnDestroy {
 	/** Dialog title */

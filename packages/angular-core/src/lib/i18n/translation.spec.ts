@@ -112,16 +112,19 @@ const stubTranslations: Record<string, TranslationSchema> = {
 					FIRST_NAME: 'First',
 					LAST_NAME: 'Last',
 					EMAIL: 'Email',
-					SAVE: 'Save',
-					SUCCESS_TOAST: 'Updated',
 				},
 				ROLES: {
 					TITLE: 'Roles',
 					EMPTY: 'None',
-					EDIT_BUTTON: 'Edit roles',
-					DRAWER_TITLE: 'Edit Roles',
-					ROLES_LABEL: 'Roles',
-					SUCCESS_TOAST: 'Roles updated',
+				},
+				EDIT: {
+					BUTTON: 'Edit user',
+					DRAWER_TITLE: 'Edit User',
+					STATUS_LABEL: 'Status',
+					REVIEW: 'Review',
+					NONE: 'None',
+					SUCCESS_TOAST: 'Updated',
+					CONFIRM_DIALOG: { TITLE: 'Confirm', MESSAGE: 'Review', CONFIRM: 'Save', BEFORE: 'Before', AFTER: 'After' },
 				},
 				ACCOUNT: {
 					TITLE: 'Account',
@@ -174,6 +177,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				CAPTION: 'Permissions',
 				HEADER: { RESOURCE: 'Resource', ACTION: 'Action', IDENTIFIER: 'Id', DESCRIPTION: 'Desc' },
 			},
+			DESCRIPTIONS: { 'admin:users:read': 'View user details' },
 			ERRORS: { ACCESS_DENIED: 'Denied' },
 		},
 		SETTINGS: {
@@ -181,6 +185,15 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			TITLE: 'Settings',
 			DESCRIPTION: 'Configure',
 			LANGUAGE: { LABEL: 'Language', ENGLISH: 'English', SPANISH: 'Spanish' },
+		},
+		ACCOUNT: {
+			NAV: 'Account',
+			TITLE: 'Account',
+			DESCRIPTION: 'Details',
+			PROFILE: { TITLE: 'Profile', FIRST_NAME: 'First', LAST_NAME: 'Last', EMAIL: 'Email' },
+			REVIEW: 'Review',
+			SUCCESS_TOAST: 'Updated',
+			CONFIRM_DIALOG: { TITLE: 'Confirm', MESSAGE: 'Review', CONFIRM: 'Save', BEFORE: 'Before', AFTER: 'After' },
 		},
 		HEALTH: {
 			NAV: 'Health',
@@ -194,16 +207,18 @@ const stubTranslations: Record<string, TranslationSchema> = {
 		},
 		DASHBOARD: {
 			BREADCRUMB: 'Dashboard',
-			SECTIONS: { SETTINGS: 'Settings', ADMIN: 'Admin' },
+			SECTIONS: { MAINTENANCE: 'Maintenance', ADMIN: 'Admin' },
 			HOME: {
 				NO_ACCESS_TITLE: 'No access',
 				NO_ACCESS_MESSAGE: 'Contact admin',
 				DESCRIPTIONS: {
-					SETTINGS: 'Settings',
 					HEALTH: 'Health',
 					USERS: 'Users',
 					AUTHORIZATION: 'Auth',
 				},
+			},
+			USERS: {
+				NAV: 'Users',
 			},
 			AUTHORIZATION: {
 				NAV: 'Auth',
@@ -344,16 +359,25 @@ const stubTranslations: Record<string, TranslationSchema> = {
 					FIRST_NAME: 'Nombre',
 					LAST_NAME: 'Apellido',
 					EMAIL: 'Correo',
-					SAVE: 'Guardar',
-					SUCCESS_TOAST: 'Actualizado',
 				},
 				ROLES: {
 					TITLE: 'Roles',
 					EMPTY: 'Ninguno',
-					EDIT_BUTTON: 'Editar roles',
-					DRAWER_TITLE: 'Editar roles',
-					ROLES_LABEL: 'Roles',
-					SUCCESS_TOAST: 'Roles actualizados',
+				},
+				EDIT: {
+					BUTTON: 'Editar usuario',
+					DRAWER_TITLE: 'Editar usuario',
+					STATUS_LABEL: 'Estado',
+					REVIEW: 'Revisar',
+					NONE: 'Ninguno',
+					SUCCESS_TOAST: 'Actualizado',
+					CONFIRM_DIALOG: {
+						TITLE: 'Confirmar',
+						MESSAGE: 'Revisar',
+						CONFIRM: 'Guardar',
+						BEFORE: 'Antes',
+						AFTER: 'Después',
+					},
 				},
 				ACCOUNT: {
 					TITLE: 'Cuenta',
@@ -406,6 +430,7 @@ const stubTranslations: Record<string, TranslationSchema> = {
 				CAPTION: 'Permisos',
 				HEADER: { RESOURCE: 'Recurso', ACTION: 'Acción', IDENTIFIER: 'Id', DESCRIPTION: 'Desc' },
 			},
+			DESCRIPTIONS: { 'admin:users:read': 'Ver detalles de usuario' },
 			ERRORS: { ACCESS_DENIED: 'Denegado' },
 		},
 		SETTINGS: {
@@ -413,6 +438,15 @@ const stubTranslations: Record<string, TranslationSchema> = {
 			TITLE: 'Ajustes',
 			DESCRIPTION: 'Configurar',
 			LANGUAGE: { LABEL: 'Idioma', ENGLISH: 'Inglés', SPANISH: 'Español' },
+		},
+		ACCOUNT: {
+			NAV: 'Cuenta',
+			TITLE: 'Cuenta',
+			DESCRIPTION: 'Datos',
+			PROFILE: { TITLE: 'Perfil', FIRST_NAME: 'Nombre', LAST_NAME: 'Apellido', EMAIL: 'Correo' },
+			REVIEW: 'Revisar',
+			SUCCESS_TOAST: 'Actualizado',
+			CONFIRM_DIALOG: { TITLE: 'Confirmar', MESSAGE: 'Revisar', CONFIRM: 'Guardar', BEFORE: 'Antes', AFTER: 'Después' },
 		},
 		HEALTH: {
 			NAV: 'Salud',
@@ -426,16 +460,18 @@ const stubTranslations: Record<string, TranslationSchema> = {
 		},
 		DASHBOARD: {
 			BREADCRUMB: 'Panel',
-			SECTIONS: { SETTINGS: 'Ajustes', ADMIN: 'Admin' },
+			SECTIONS: { MAINTENANCE: 'Mantenimiento', ADMIN: 'Admin' },
 			HOME: {
 				NO_ACCESS_TITLE: 'Sin acceso',
 				NO_ACCESS_MESSAGE: 'Contacta al admin',
 				DESCRIPTIONS: {
-					SETTINGS: 'Ajustes',
 					HEALTH: 'Salud',
 					USERS: 'Usuarios',
 					AUTHORIZATION: 'Auth',
 				},
+			},
+			USERS: {
+				NAV: 'Users',
 			},
 			AUTHORIZATION: {
 				NAV: 'Auth',

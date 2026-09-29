@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
+import { Component, computed, input } from '@angular/core'
 import { NgpButton } from 'ng-primitives/button'
 
 export type ButtonVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost' | 'link'
@@ -70,7 +70,6 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon'
 			}
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Button {
 	/**

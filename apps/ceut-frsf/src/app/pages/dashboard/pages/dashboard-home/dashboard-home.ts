@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core'
+import { Component, computed, inject } from '@angular/core'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
 import type { TranslationKey } from '@resetshop/angular-core/i18n/translations.schema'
@@ -10,7 +10,6 @@ import { AuthStore } from '@store/auth/auth.store'
 @Component({
 	selector: 'app-dashboard-home',
 	imports: [Alert, AlertDescription, AlertTitle, NavigationCard, TranslatePipe],
-	changeDetection: ChangeDetectionStrategy.OnPush,
 	template: `
 		<div class="space-y-8">
 			@if (hasNoModuleAccess()) {

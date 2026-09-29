@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, untracked } from '@angular/core'
+import { Component, computed, effect, inject, untracked } from '@angular/core'
 import { ActivatedRoute, Router, RouterLink } from '@angular/router'
 import { PageShell } from '@components/page-shell/page-shell'
 import { NgIcon, provideIcons } from '@ng-icons/core'
@@ -52,7 +52,6 @@ import { UserRolesSection } from './user-roles-section'
 			</section>
 		</app-page-shell>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class UserDetailPage {
 	protected readonly store = inject(UsersStore)

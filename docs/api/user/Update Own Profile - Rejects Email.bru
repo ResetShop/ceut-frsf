@@ -1,0 +1,36 @@
+meta {
+  name: Update Own Profile - Rejects Email
+  type: http
+  seq: 17
+}
+
+patch {
+  url: {{baseUrl}}/users/me
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "firstName": "Updated",
+    "email": "new-address@example.com"
+  }
+}
+
+docs {
+  # Update Own Profile - Rejects Email
+
+  Demonstrates that the self-service endpoint does not accept an email change. The request
+  schema is strict, so the unknown `email` field fails validation with 400 and nothing is
+  written — not even the valid `firstName` alongside it.
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("should return 400 bad request", function() {
+    expect(res.status).to.equal(400);
+  });
+}

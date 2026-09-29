@@ -11,7 +11,7 @@ import type {
 import { createOpenAPIApp, deferAfterResponse, registerRoute } from '@resetshop/hono-core'
 import { logger } from '@resetshop/util'
 import { container } from '../../container/container'
-import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
+import { getAuthenticatedUser } from '../../middlewares/verify-access-token.middleware'
 import {
 	createUserRoute,
 	deleteUserRoute,
@@ -80,7 +80,7 @@ registerRoute(app, getUserRoute, async (c) => {
  */
 registerRoute(app, createUserRoute, async (c) => {
 	const { userManagementService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 	const body: CreateUserRequest = c.req.valid('json')
 
 	try {
@@ -109,7 +109,7 @@ registerRoute(app, createUserRoute, async (c) => {
  */
 registerRoute(app, updateUserRoute, async (c) => {
 	const { userManagementService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 	const { id }: { id: number } = c.req.valid('param')
 	const body: UpdateUserRequest = c.req.valid('json')
 
@@ -139,7 +139,7 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 	const { userManagementService } = container.cradle
 	const { id }: { id: number } = c.req.valid('param')
 	const body: UpdateUserStatusRequest = c.req.valid('json')
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 
 	try {
 		// Prefetch for audit before-state — cost is accepted on error paths for audit fidelity
@@ -172,7 +172,7 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 registerRoute(app, deleteUserRoute, async (c) => {
 	const { userManagementService } = container.cradle
 	const { id }: { id: number } = c.req.valid('param')
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 
 	try {
 		await userManagementService.deleteUser(id, actorId)
@@ -197,7 +197,7 @@ registerRoute(app, deleteUserRoute, async (c) => {
 registerRoute(app, resetPasswordRoute, async (c) => {
 	const { userManagementService } = container.cradle
 	const { id }: { id: number } = c.req.valid('param')
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 
 	try {
 		const { message, sendResetEmail } = await userManagementService.resetPassword(id, actorId)

@@ -1,14 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	ElementRef,
-	forwardRef,
-	inject,
-	input,
-	model,
-	signal,
-} from '@angular/core'
+import { Component, computed, ElementRef, forwardRef, inject, input, model, output, signal } from '@angular/core'
 import type { FormValueControl } from '@angular/forms/signals'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherChevronDown } from '@ng-icons/feather-icons'
@@ -67,7 +57,6 @@ import type { SelectOption } from '../select/select-option'
 		</div>
 	`,
 	styleUrl: './combobox.css',
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Combobox extends FormFieldCustomControl implements FormValueControl<string> {
 	private readonly host = inject(ElementRef).nativeElement as HTMLElement
@@ -76,7 +65,8 @@ export class Combobox extends FormFieldCustomControl implements FormValueControl
 	public readonly value = model<string>('')
 	public readonly placeholder = input<string>('')
 	public readonly isDisabled = input<boolean>(false)
-	public readonly touched = model<boolean>(false)
+	public readonly touched = input<boolean>(false)
+	public readonly touch = output<void>()
 
 	protected readonly filter = signal<string>('')
 
@@ -105,7 +95,7 @@ export class Combobox extends FormFieldCustomControl implements FormValueControl
 			const current = this.value()
 			const label = current ? (this.options().find((o) => o.value === current)?.label ?? '') : ''
 			this.filter.set(label)
-			this.touched.set(true)
+			this.touch.emit()
 		}
 	}
 
@@ -114,7 +104,7 @@ export class Combobox extends FormFieldCustomControl implements FormValueControl
 		// after focusout fires, so we can verify focus truly left the component.
 		setTimeout(() => {
 			if (!this.host.contains(document.activeElement)) {
-				this.touched.set(true)
+				this.touch.emit()
 			}
 		})
 	}

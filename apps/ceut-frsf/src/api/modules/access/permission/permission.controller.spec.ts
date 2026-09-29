@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { container } from '../../../container/container'
 import { InMemoryContainer } from '../../../container/container.mock'
 import type { PaginatedResponse } from '../../../interfaces'
-import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware'
+import { setAuthenticatedUser } from '../../../middlewares/verify-access-token.middleware.mock'
 import type { PermissionData } from '../role/interfaces'
 import type { ListPermissionsParams } from './interfaces'
 import permissionController from './permission.controller'
@@ -56,12 +56,12 @@ describe('Permission Controller', () => {
 
 		app = new Hono()
 		app.use('*', async (c, next) => {
-			;(c as AuthenticatedContext).user = {
+			setAuthenticatedUser(c, {
 				sub: '1',
 				email: 'admin@example.com',
 				firstName: 'Admin',
 				lastName: 'User',
-			}
+			})
 			await next()
 		})
 		app.route('/access/permissions', permissionController)

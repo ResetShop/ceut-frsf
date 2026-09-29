@@ -2,6 +2,8 @@ import { provideHttpClient } from '@angular/common/http'
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing'
 import { TestBed } from '@angular/core/testing'
 import type { LoginRequest, LoginResponse, MeResponse, RefreshResponse } from '@contracts/auth/auth.types'
+import type { AuthUser } from '@contracts/user/user.types'
+import { createMockRoleWithPermissions } from '@providers/roles/roles.mock'
 import { HttpAuthApi } from './auth'
 
 describe('HttpAuthApi', () => {
@@ -118,6 +120,38 @@ describe('HttpAuthApi', () => {
 
 			const req = httpMock.expectOne('/api/auth/login')
 			req.flush({ code: 'INVALID_CREDENTIALS' }, { status: 401, statusText: 'Unauthorized' })
+		})
+	})
+
+	describe('updateProfile', () => {
+		it('should PATCH the changed fields to /api/users/me and return the updated user with its roles', () => {
+			const updated: AuthUser = {
+				id: 7,
+				email: 'ada@example.com',
+				firstName: 'Grace',
+				lastName: 'Hopper',
+				roles: [createMockRoleWithPermissions({ id: 2, code: 'editor', name: 'Editor' })],
+			}
+			let received: AuthUser | undefined
+
+			service.updateProfile({ firstName: 'Grace', lastName: 'Hopper' }).subscribe((response) => (received = response))
+
+			const req = httpMock.expectOne('/api/users/me')
+			expect(req.request.method).toBe('PATCH')
+			expect(req.request.body).toEqual({ firstName: 'Grace', lastName: 'Hopper' })
+
+			req.flush(updated)
+
+			expect(received).toEqual(updated)
+		})
+
+		it('should send only the fields the caller changed', () => {
+			service.updateProfile({ lastName: 'Hopper' }).subscribe()
+
+			const req = httpMock.expectOne('/api/users/me')
+
+			expect(req.request.body).toEqual({ lastName: 'Hopper' })
+			req.flush({ id: 7, email: 'ada@example.com', firstName: 'Ada', lastName: 'Hopper', roles: [] })
 		})
 	})
 })

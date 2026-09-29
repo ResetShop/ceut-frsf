@@ -1,4 +1,4 @@
-<!-- Source: CLAUDE.md | Last updated: 2026-05-08 -->
+<!-- Source: CLAUDE.md | Last updated: 2026-09-27 -->
 
 # Generators Reference
 
@@ -66,7 +66,7 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
   - `apps/reference-app/src/app/store/product/{*.store.ts, *.store.spec.ts, *.types.ts}` (store)
   - `apps/reference-app/src/app/pages/dashboard/product/product-list/{*.ts, *.spec.ts}` (page, with `withStore=false withApiProvider=false`)
 - **Post-step (the generator logs these as TODOs):**
-  1. Add the route to `<appRoot>/src/app/pages/dashboard/dashboard.routes.ts`
+  1. Add the route to `<appRoot>/src/app/pages/dashboard/dashboard.routes.ts`. Put `provide<Class>()` and `<Class>Store` (plus `provideToast()` if the pages fire toasts) in the `providers` of the section's **parent route**, the lowest route that is a common parent of every page using them, and add the generated list page as its `''` child. Child pages share the parent's instances; never repeat the providers on each page (see [`angular-di.md`](angular-di.md) → "Pattern 1 — Route-Scoped Feature Providers")
   2. Add a navigation entry to the `NavigationConfig`
   3. Register the new schema in the drizzle connector at `apps/reference-app/src/db/schema/all.ts`
 - **Spec:** `packages/generators/src/generators/crud/index.spec.ts`.
@@ -109,6 +109,7 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
   - `<kebab-case>.mock.ts` — `InMemory<Class>Api implements <Class>Api` + `provide<Class>Mock()`
   - `<kebab-case>.provider.ts` — `provide<Class>()` returning `EnvironmentProviders` via `makeEnvironmentProviders`
 - **Don't forget:** the methods on the interface and on `Http<Class>Api` / `InMemory<Class>Api` are TODO stubs. The generator's job is the boilerplate (token + provider function + mock skeleton); method bodies are application work.
+- **DI rationale:** why the token has no `providedIn`/`factory`, why `provide<Class>()` returns `EnvironmentProviders`, and where to register it (root vs. route, co-provided with its store) — see [`angular-di.md`](angular-di.md) → "Frontend API Provider Pattern" and "Pattern 1 — Route-Scoped Feature Providers".
 - **Spec:** `packages/generators/src/generators/api-provider/index.spec.ts`.
 
 ### `store`
@@ -136,7 +137,7 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
 - **Output (`--withApiProvider`):** also runs `api-provider` at `<directory>/../../providers/<kebab-case>/`.
 - **Output (`--withStore`):** also runs `store` at `<directory>/../../store/<kebab-case>/`.
 - **Known limitation — sibling path coupling:** the `../../providers` and `../../store` walk-up segments assume `directory` is exactly `src/app/pages/dashboard` (depth 4). Shallower directories under-walk: e.g. `directory: src/app/admin` produces sibling files at `src/providers/...` and `src/store/...`, NOT `src/app/providers/...`. The locked-in test in `page/index.spec.ts` asserts this behaviour. Stick with the default `directory` unless you also disable the sub-generators.
-- **Don't forget:** the route registration is logged as guidance, not auto-wired. Add the suggested `{ path: '<route>', loadComponent: ... }` entry to `dashboard.routes.ts` by hand after running.
+- **Don't forget:** the route registration is logged as guidance, not auto-wired. Add the suggested `{ path: '<route>', loadComponent: ... }` entry to `dashboard.routes.ts` by hand after running. With `--withStore` / `--withApiProvider`, do not put the generated providers on that page route: register `provide<Class>()` and `<Class>Store` once on the section's **parent route** (creating one if the page is the section's first), and nest the page under it, so every page of the section shares one instance (see [`angular-di.md`](angular-di.md) → "Pattern 1 — Route-Scoped Feature Providers").
 - **Spec:** `packages/generators/src/generators/page/index.spec.ts`.
 
 ### `ui-component`
@@ -146,7 +147,7 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
 - **Invocation:** `nx g @resetshop/generators:ui-component tooltip`.
 - **Inputs:** `name` (required), `directory` (default `packages/ui/src/lib`), `exportFromIndex` (boolean, default `true`), `inlineTemplate` (boolean, default `true`), `inlineStyle` (boolean, default `true`).
 - **Output:** three files at `<directory>/<kebab-case>/` (plus optional sidecars — see below):
-  - `<kebab-case>.ts` — `@Component` standalone scaffold with `ChangeDetectionStrategy.OnPush` and an `app-` element selector. Uses an inline `template:` and inline `styles:` block by default; when either of the flags below is `false`, the corresponding sidecar file is emitted and the decorator points at `templateUrl`/`styleUrl` instead.
+  - `<kebab-case>.ts` — `@Component` standalone scaffold with an `app-` element selector (change detection is left at Angular 22's OnPush default — no explicit `changeDetection` is emitted). Uses an inline `template:` and inline `styles:` block by default; when either of the flags below is `false`, the corresponding sidecar file is emitted and the decorator points at `templateUrl`/`styleUrl` instead.
   - `<kebab-case>.spec.ts` — Angular Testing Library `render` scaffold with `clearAllMocks()` from `@resetshop/util/test-utils` in `beforeEach`.
   - `<kebab-case>.stories.ts` — Storybook meta with `tags: ['autodocs']` and `parameters.docs.canvas.sourceState: 'shown'` (enforced project-wide by the `custom-storybook/storybook-source-state` ESLint rule).
 - **Template/style sidecars:**
@@ -156,6 +157,41 @@ All file paths produced by every generator are **kebab-case** (`order-line-item.
 - **Side effect:** when `exportFromIndex` is `true` (default), appends `export { <Class> } from './lib/<kebab>/<kebab>'` to `packages/ui/src/index.ts`. Duplicate appends are guarded — re-running the generator with the same name is idempotent for the index.
 - **Don't forget:** fill in the empty template/styles, replace the stub spec assertion with a semantic query, document each public `input()` in `argTypes`, and adjust the story `title` if the component belongs under a non-`Components/` namespace (e.g., `UI / Card`).
 - **Spec:** `packages/generators/src/generators/ui-component/index.spec.ts`.
+
+---
+
+## Writing or changing a generator: native ESM only
+
+`packages/generators` is `"type": "module"`, and every generator must load and run as a **native ES module**. Nothing in the package may depend on CommonJS.
+
+### How Nx loads a local generator
+
+Nx resolves the generator's `factory` from `generators.json` to its `index.ts` **source** file. On Node 24 it loads that file with Node's native TypeScript type stripping. Because the package is `"type": "module"`, Node treats the file as ESM. Relative imports inside it resolve under ESM rules too.
+
+If that native load throws, Nx does **not** fail. It silently registers swc/ts-node and recompiles the generator to **CommonJS**, where `__dirname` and extension-less `require` exist. This fallback only shows up under `NX_VERBOSE_LOGGING=true`, as a line such as `Native ESM named export linkage failed; falling back to swc/ts-node + tsconfig-paths`. The fallback hides ESM bugs: a generator can work only by accident, and a generator that loads natively can still crash on a CommonJS global. Its known triggers:
+
+| Trigger                                                 | Example                                             | Native ESM error                          |
+| ------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------- |
+| A type imported as a value                              | `import { Tree, generateFiles } from '@nx/devkit'`  | `does not provide an export named 'Tree'` |
+| An extension-less relative import                       | `import storeGenerator from '../store/index'`       | `Cannot find module …/store/index`        |
+| TypeScript syntax that stripping can't erase            | `enum`, constructor parameter properties, namespace | `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX`       |
+| A CommonJS global (fails at run time, with no fallback) | `joinPathFragments(__dirname, 'files')`             | `__dirname is not defined`                |
+
+### The rules
+
+- **Templates:** locate the `files/` directory with `resolveTemplateDir(import.meta.url)` from `packages/generators/src/utils/resolve-template-dir.ts`. Never use `__dirname` / `__filename`; ESLint rejects them anywhere in `packages/generators`, including `vitest.config.ts`.
+- **Type imports:** use `import type` for anything used only as a type (`Tree`, schema interfaces). `verbatimModuleSyntax` in `packages/generators/tsconfig.json` makes a missing `type` a compile error.
+- **Relative imports:** write the explicit `.ts` extension (`'../store/index.ts'`). `moduleResolution: nodenext` rejects extension-less relative imports, and `rewriteRelativeImportExtensions` rewrites them to `.js` in the `build` output.
+- **Syntax:** use only erasable TypeScript. `erasableSyntaxOnly` rejects enums (use `Object.freeze()`), parameter properties and namespaces.
+
+### How it is enforced
+
+- **Statically:** `npm run typecheck` enforces the tsconfig options above, and `npm run lint` enforces the ESLint rule above.
+- **End to end:** the `generators:generators-esm-guard` target (`scripts/check-generators-load-as-esm.mjs`) dry-runs all eight generators with `NX_VERBOSE_LOGGING=true`. It fails if any run errors, lists no files, or prints a fallback notice. It runs in Batch 1 of `npm run ci` / `ci:verify` and in the `check` job of `.github/workflows/ci.yml`.
+
+Vitest specs alone can't catch these bugs. Vitest provides `__dirname` and resolves extension-less imports itself, so a spec passes even when the generator fails under Nx.
+
+Forks that add their own generators to `packages/generators` follow the same rules, and must add them to the `GENERATORS` list in `scripts/check-generators-load-as-esm.mjs`.
 
 ---
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { Component, input } from '@angular/core'
 import { Spinner } from '@resetshop/ui/spinner/spinner'
 
 @Component({
@@ -13,7 +13,6 @@ import { Spinner } from '@resetshop/ui/spinner/spinner'
 		}
 	`,
 	host: { class: 'relative block' },
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppLoadingShell {
 	public readonly loading = input.required<boolean>()

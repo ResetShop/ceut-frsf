@@ -5,8 +5,6 @@ import { appEnv } from '../config/app.env'
 import enWordlistRaw from './wordlists/en-password-seed.txt?raw'
 import esWordlistRaw from './wordlists/es-password-seed.txt?raw'
 
-const wordCountSchema = z.number().int().positive()
-
 /**
  * Parses a diceware wordlist file. The first line is a header count;
  * subsequent lines are one word per line. Returns a frozen array.
@@ -59,7 +57,7 @@ export function getWordList(language: string): readonly string[] {
  * @returns Dot-separated passphrase (e.g., "indigo.rabbit.troop")
  */
 export async function generatePassword(wordCount = 3, language?: string): Promise<string> {
-	const parsed = wordCountSchema.safeParse(wordCount)
+	const parsed = z.number().int().positive().safeParse(wordCount)
 	if (!parsed.success) {
 		logger.warn('generatePassword', `Invalid wordCount (${wordCount}), using default: ${parsed.error.message}`)
 	}

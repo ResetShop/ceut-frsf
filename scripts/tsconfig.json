@@ -5,7 +5,8 @@
 		"moduleResolution": "bundler",
 		"allowJs": true,
 		"checkJs": false,
-		"types": ["node"]
+		"types": ["node"],
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["lib/**/*.ts"],
 	"exclude": ["lib/**/*.spec.ts", "lib/**/*.test.ts", "vitest.config.ts"]

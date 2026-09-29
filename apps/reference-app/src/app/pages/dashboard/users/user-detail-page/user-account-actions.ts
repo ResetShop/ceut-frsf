@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, untracked } from '@angular/core'
+import { Component, computed, effect, inject, input, untracked } from '@angular/core'
 import { UserStatus } from '@contracts/user/user.constants'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IManagedUser } from '@domain/user-management/managed-user.interface'
@@ -55,7 +55,6 @@ import { UsersStore } from '@store/users/users.store'
 			/>
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserAccountActions {
 	public readonly user = input.required<IManagedUser>()

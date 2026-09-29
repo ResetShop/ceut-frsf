@@ -1,0 +1,45 @@
+meta {
+  name: Update User - Combined
+  type: http
+  seq: 15
+}
+
+patch {
+  url: {{baseUrl}}/users/2
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "firstName": "Updated",
+    "roleIds": [1],
+    "status": "disabled"
+  }
+}
+
+docs {
+  # Update User - Combined
+
+  Demonstrates a single request that changes profile fields, role assignments, and account
+  status together. All three writes run in one transaction: either every change is persisted
+  or none is. Changing `status` requires the `admin:users:disable` permission in addition to
+  `admin:users:update`, and the target must not be the authenticated user.
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq disabled
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should apply every change", function() {
+    expect(res.body.firstName).to.equal("Updated");
+    expect(res.body.status).to.equal("disabled");
+    expect(res.body.roles.map(function(role) { return role.id; })).to.deep.equal([1]);
+  });
+}

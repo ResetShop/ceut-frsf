@@ -30,14 +30,6 @@ export interface VerifyHealthDependencies {
 }
 
 /**
- * Default production dependencies.
- */
-const defaultDependencies: VerifyHealthDependencies = {
-	verifyContainer: () => container.verify(),
-	resolveHealthService: () => container.resolve('healthService'),
-}
-
-/**
  * Creates DI container health check.
  */
 function createContainerHealthCheck(deps: VerifyHealthDependencies): HealthCheck {
@@ -81,7 +73,7 @@ function createDatabaseHealthCheck(deps: VerifyHealthDependencies): HealthCheck 
 					name: this.name,
 					status: HealthStatus.HEALTHY,
 					message: 'Connected',
-					durationMs: dbCheck.responseTimeMs,
+					durationMs: dbCheck.responseTimeMs ?? undefined,
 				}
 			}
 
@@ -100,10 +92,15 @@ function createDatabaseHealthCheck(deps: VerifyHealthDependencies): HealthCheck 
  * Fails fast on the first unhealthy check, preventing the server from starting
  * in an invalid state.
  *
- * @param deps - Optional dependencies for testing
+ * @param deps - Dependencies to check; defaults to the production DI container
  * @throws {Error} if any health check fails
  */
-export async function verifyHealth(deps: VerifyHealthDependencies = defaultDependencies): Promise<void> {
+export async function verifyHealth(
+	deps: VerifyHealthDependencies = {
+		verifyContainer: () => container.verify(),
+		resolveHealthService: () => container.resolve('healthService'),
+	},
+): Promise<void> {
 	const healthChecks = [createContainerHealthCheck(deps), createDatabaseHealthCheck(deps)]
 
 	for (const healthCheck of healthChecks) {

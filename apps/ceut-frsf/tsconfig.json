@@ -23,7 +23,8 @@
 			"@providers/*": ["src/app/providers/*"],
 			"@schema/*": ["src/db/schema/*"],
 			"@store/*": ["src/app/store/*"]
-		}
+		},
+		"ignoreDeprecations": "6.0"
 	},
 	"files": [],
 	"include": [],

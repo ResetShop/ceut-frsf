@@ -139,10 +139,6 @@ export const updateUserStatusRoute = createRoute({
 			description: 'Invalid user ID',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
-		403: {
-			description: 'Cannot change status of own account',
-			content: { 'application/json': { schema: errorResponseSchema } },
-		},
 		404: {
 			description: 'User not found',
 			content: { 'application/json': { schema: errorResponseSchema } },
@@ -152,6 +148,10 @@ export const updateUserStatusRoute = createRoute({
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		...commonResponses,
+		403: {
+			description: 'Cannot change status of own account',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 	},
 })
 

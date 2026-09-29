@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common'
-import { ChangeDetectionStrategy, Component, computed, inject, PLATFORM_ID } from '@angular/core'
+import { Component, computed, inject, PLATFORM_ID } from '@angular/core'
 import { NgIcon, provideIcons } from '@ng-icons/core'
 import { featherMoon, featherSun } from '@ng-icons/feather-icons'
 import { ThemeProvider } from '@resetshop/angular-core/theme/theme.abstract'
@@ -44,7 +44,6 @@ import { Button } from '@resetshop/ui/button/button'
 			animation: slide-in-from-right 0.5s ease-out;
 		}
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemeToggle {
 	private readonly theme = inject(ThemeProvider)

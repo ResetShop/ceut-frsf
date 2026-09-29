@@ -1,3 +1,5 @@
+import { mockTranslation, type TranslationStub } from '@providers/i18n/translation.mock'
+import { Translation } from '@resetshop/angular-core/i18n/translation'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
@@ -50,12 +52,13 @@ describe('PermissionSelector', () => {
 		clearAllMocks()
 	})
 
-	async function renderComponent(value: number[] = []) {
+	async function renderComponent(value: number[] = [], translation: TranslationStub = mockTranslation) {
 		return render(PermissionSelector, {
 			inputs: {
 				groups: createMockGroups(),
 				value,
 			},
+			providers: [{ provide: Translation, useValue: translation }],
 		})
 	}
 
@@ -69,10 +72,21 @@ describe('PermissionSelector', () => {
 		expect(screen.getByText('Read Roles')).toBeInTheDocument()
 	})
 
-	it('should display permission descriptions', async () => {
+	it('should fall back to the catalogue description when the identifier has no translation', async () => {
 		await renderComponent()
 
 		expect(screen.getByText(/Can read users/)).toBeInTheDocument()
+		expect(screen.getByText(/Can read roles/)).toBeInTheDocument()
+	})
+
+	it('should display permission descriptions in the active language', async () => {
+		await renderComponent([], {
+			instant: (key, fallback) =>
+				key === 'PERMISSIONS.DESCRIPTIONS.users:read' ? 'Puede leer usuarios' : (fallback ?? key),
+		})
+
+		expect(screen.getByText(/Puede leer usuarios/)).toBeInTheDocument()
+		expect(screen.queryByText(/Can read users/)).not.toBeInTheDocument()
 		expect(screen.getByText(/Can read roles/)).toBeInTheDocument()
 	})
 

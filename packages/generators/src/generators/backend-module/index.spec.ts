@@ -2,7 +2,7 @@ import type { Tree } from '@nx/devkit'
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import backendModuleGenerator from './index'
+import backendModuleGenerator from './index.ts'
 
 describe('backend-module generator', () => {
 	let tree: Tree

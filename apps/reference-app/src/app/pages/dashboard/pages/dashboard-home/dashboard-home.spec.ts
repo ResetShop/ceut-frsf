@@ -7,6 +7,7 @@ import { Navigation } from '@resetshop/angular-core/navigation/navigation'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { AuthStore } from '@store/auth/auth.store'
 import { render, screen } from '@testing-library/angular'
+import { dashboardNavigationConfig } from '../../dashboard.navigation'
 import DashboardHome from './dashboard-home'
 
 describe('DashboardHome', () => {
@@ -61,5 +62,31 @@ describe('DashboardHome', () => {
 		fixture.detectChanges()
 
 		expect(screen.queryByRole('status')).not.toBeInTheDocument()
+	})
+
+	it('links to the health page with its description', async () => {
+		await render(DashboardHome, {
+			providers: [
+				...baseProviders(),
+				{ provide: Navigation, useValue: { ...navigationMock, sections: () => dashboardNavigationConfig.sections } },
+			],
+		})
+
+		const healthCard = screen.getByRole('link', { name: /health/i })
+
+		expect(healthCard).toHaveAttribute('href', '/dashboard/health')
+		expect(healthCard).toHaveTextContent('Monitor the health and status of your application services.')
+	})
+
+	it('offers no Account or Settings card, since both are reached from the sidebar user menu', async () => {
+		await render(DashboardHome, {
+			providers: [
+				...baseProviders(),
+				{ provide: Navigation, useValue: { ...navigationMock, sections: () => dashboardNavigationConfig.sections } },
+			],
+		})
+
+		expect(screen.queryByRole('link', { name: /account/i })).not.toBeInTheDocument()
+		expect(screen.queryByRole('link', { name: /settings/i })).not.toBeInTheDocument()
 	})
 })

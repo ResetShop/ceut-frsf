@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core'
+import { Component, computed, input } from '@angular/core'
 
 export type AlertVariant = 'default' | 'destructive'
 
@@ -13,7 +13,6 @@ export type AlertVariant = 'default' | 'destructive'
 		'[attr.role]': 'role()',
 		'[class]': 'computedClasses()',
 	},
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Alert {
 	public readonly variant = input<AlertVariant>('default')
@@ -59,7 +58,6 @@ export class Alert {
 		'[attr.data-slot]': '"alert-title"',
 		class: 'font-medium group-has-[>svg]/alert:col-start-2',
 	},
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlertTitle {}
 
@@ -74,6 +72,5 @@ export class AlertTitle {}
 		'[attr.data-slot]': '"alert-description"',
 		class: 'text-muted-foreground text-sm [&_p:not(:last-child)]:mb-4',
 	},
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AlertDescription {}

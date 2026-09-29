@@ -2,7 +2,7 @@ import type { Tree } from '@nx/devkit'
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import appGenerator, { slugifyAppName } from './index'
+import appGenerator, { slugifyAppName } from './index.ts'
 
 const REFERENCE_PROJECT_JSON = JSON.stringify(
 	{

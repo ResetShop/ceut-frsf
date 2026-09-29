@@ -2,8 +2,7 @@ import { TestBed } from '@angular/core/testing'
 import { clearAllMocks, fn } from '@resetshop/util/test-utils'
 import { render, screen } from '@testing-library/angular'
 import userEvent from '@testing-library/user-event'
-import { type RowAction } from './row-action-item'
-import { RowActionsMenu } from './row-actions-menu'
+import { type RowAction, RowActionsMenu } from './row-actions-menu'
 
 // Closes the open menu so the library tears down its overlay portal before the next test;
 // TestBed.tick() flushes the signal-driven close under zoneless + happy-dom.
@@ -97,6 +96,23 @@ describe('RowActionsMenu', () => {
 
 		expect(screen.getByRole('menuitem', { name: 'Delete' })).toHaveClass('text-destructive')
 		expect(screen.getByRole('menuitem', { name: 'Edit' })).not.toHaveClass('text-destructive')
+
+		await closeMenu(user)
+	})
+
+	// Regression guard for theming: the panel takes its colors from the theme tokens, which switch
+	// with dark mode, rather than from fixed grays.
+	it('renders the menu panel with the theme color tokens', async () => {
+		const user = userEvent.setup()
+		await render(RowActionsMenu, {
+			inputs: { actions: [{ label: 'Edit', onSelect: fn() }] },
+		})
+
+		await user.click(screen.getByRole('button', { name: 'Actions' }))
+		const menu = screen.getByRole('menu')
+
+		expect(menu).toHaveClass('bg-card', 'text-card-foreground', 'border-border')
+		expect(menu).not.toHaveClass('bg-white')
 
 		await closeMenu(user)
 	})

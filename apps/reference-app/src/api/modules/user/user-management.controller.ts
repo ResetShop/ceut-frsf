@@ -1,5 +1,6 @@
 import type { ErrorResponse, SuccessMessage } from '@contracts/common/error.types'
 import type { PaginatedResponse } from '@contracts/common/pagination.types'
+import { permission } from '@contracts/permission/permission.constants'
 import type {
 	CreateUserRequest,
 	CreateUserResponse,
@@ -11,7 +12,8 @@ import type {
 import { createOpenAPIApp, deferAfterResponse, registerRoute } from '@resetshop/hono-core'
 import { logger } from '@resetshop/util'
 import { container } from '../../container/container'
-import type { AuthenticatedContext } from '../../middlewares/verify-access-token.middleware'
+import { getAuthenticatedUser } from '../../middlewares/verify-access-token.middleware'
+import { hasPermission } from '../../middlewares/verify-permissions.middleware'
 import {
 	createUserRoute,
 	deleteUserRoute,
@@ -24,17 +26,18 @@ import {
 import { USER_MANAGEMENT_ERRORS } from './user-management.service'
 import { USER_ROLE_ERRORS } from './user-role.errors'
 
-const ERROR_STATUS_MAP = [
-	[USER_MANAGEMENT_ERRORS.NOT_FOUND, 404],
-	[USER_MANAGEMENT_ERRORS.EMAIL_EXISTS, 409],
-	[USER_MANAGEMENT_ERRORS.SELF_LOCKOUT, 403],
-	[USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL, 403],
-	[USER_MANAGEMENT_ERRORS.INVALID_TRANSITION, 422],
-] as const
-
-function resolveErrorStatus(error: unknown): { message: string; status: 403 | 404 | 409 | 422 } | null {
+function resolveErrorStatus(error: unknown): { message: string; status: 400 | 403 | 404 | 409 | 422 } | null {
 	if (!(error instanceof Error)) return null
-	for (const [prefix, status] of ERROR_STATUS_MAP) {
+	const errorStatuses = [
+		[USER_MANAGEMENT_ERRORS.NOT_FOUND, 404],
+		[USER_MANAGEMENT_ERRORS.EMAIL_EXISTS, 409],
+		[USER_MANAGEMENT_ERRORS.SELF_LOCKOUT, 403],
+		[USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL, 403],
+		[USER_MANAGEMENT_ERRORS.INVALID_TRANSITION, 422],
+		[USER_ROLE_ERRORS.ROLES_NOT_FOUND, 400],
+		[USER_ROLE_ERRORS.NON_REMOVABLE_ROLES, 400],
+	] as const
+	for (const [prefix, status] of errorStatuses) {
 		if (error.message.startsWith(prefix)) return { message: error.message, status }
 	}
 	return null
@@ -80,7 +83,7 @@ registerRoute(app, getUserRoute, async (c) => {
  */
 registerRoute(app, createUserRoute, async (c) => {
 	const { userManagementService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 	const body: CreateUserRequest = c.req.valid('json')
 
 	try {
@@ -105,31 +108,53 @@ registerRoute(app, createUserRoute, async (c) => {
 
 /**
  * PATCH /api/users/:id
- * Update user details or role assignments
+ * Update profile fields, role assignments, and/or account status atomically
  */
 registerRoute(app, updateUserRoute, async (c) => {
 	const { userManagementService } = container.cradle
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 	const { id }: { id: number } = c.req.valid('param')
 	const body: UpdateUserRequest = c.req.valid('json')
 
+	// The route middleware only requires admin:users:update; a status change carries the same
+	// admin:users:disable requirement as the dedicated status route, so it cannot be bypassed here.
+	const statusPermission = permission('admin:users:disable')
+	if (body.status !== undefined && !(await hasPermission(c, statusPermission))) {
+		logger.security('status_change_blocked', { actorId, userId: id, reason: `Missing ${statusPermission}` })
+		return c.json<ErrorResponse>({ error: 'Forbidden' }, 403)
+	}
+
 	try {
-		const userData = await userManagementService.updateUser(id, body, actorId)
+		const { user, previous } = await userManagementService.updateUser(id, body, actorId)
 		logger.security('user_updated', {
 			userId: id,
-			changes: { email: body.email, firstName: body.firstName, lastName: body.lastName, roleIds: body.roleIds },
+			changes: {
+				email: body.email,
+				firstName: body.firstName,
+				lastName: body.lastName,
+				roleIds: body.roleIds,
+				...(body.status === undefined ? {} : { oldStatus: previous.status, newStatus: user.status }),
+			},
 			actorId,
 		})
-		return c.json<ManagedUser>(userData)
+		return c.json<ManagedUser>(user)
 	} catch (error) {
-		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL)) {
-			logger.security('self_admin_removal_blocked', { actorId, userId: id, reason: error.message })
-		}
+		logUpdateGuardBlock(error, actorId, id)
 		const mapped = resolveErrorStatus(error)
 		if (mapped) return c.json<ErrorResponse>({ error: mapped.message }, mapped.status)
 		throw error
 	}
 })
+
+function logUpdateGuardBlock(error: unknown, actorId: number, userId: number): void {
+	if (!(error instanceof Error)) return
+	if (error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_ADMIN_REMOVAL)) {
+		logger.security('self_admin_removal_blocked', { actorId, userId, reason: error.message })
+	}
+	if (error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
+		logger.security('self_lockout_blocked', { actorId, operation: 'user_updated', reason: error.message })
+	}
+}
 
 /**
  * PATCH /api/users/:id/status
@@ -139,22 +164,20 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 	const { userManagementService } = container.cradle
 	const { id }: { id: number } = c.req.valid('param')
 	const body: UpdateUserStatusRequest = c.req.valid('json')
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 
 	try {
-		// Prefetch for audit before-state — cost is accepted on error paths for audit fidelity
-		const existingUser = await userManagementService.getUser(id)
-		const userData = await userManagementService.updateUserStatus(id, {
+		const { user, previous } = await userManagementService.updateUserStatus(id, {
 			status: body.status,
 			changedBy: actorId,
 		})
 		logger.security('user_status_changed', {
 			userId: id,
-			oldStatus: existingUser.status,
-			newStatus: body.status,
+			oldStatus: previous.status,
+			newStatus: user.status,
 			actorId,
 		})
-		return c.json<ManagedUser>(userData)
+		return c.json<ManagedUser>(user)
 	} catch (error) {
 		if (error instanceof Error && error.message.startsWith(USER_MANAGEMENT_ERRORS.SELF_LOCKOUT)) {
 			logger.security('self_lockout_blocked', { actorId, operation: 'user_status_changed', reason: error.message })
@@ -172,7 +195,7 @@ registerRoute(app, updateUserStatusRoute, async (c) => {
 registerRoute(app, deleteUserRoute, async (c) => {
 	const { userManagementService } = container.cradle
 	const { id }: { id: number } = c.req.valid('param')
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 
 	try {
 		await userManagementService.deleteUser(id, actorId)
@@ -197,7 +220,7 @@ registerRoute(app, deleteUserRoute, async (c) => {
 registerRoute(app, resetPasswordRoute, async (c) => {
 	const { userManagementService } = container.cradle
 	const { id }: { id: number } = c.req.valid('param')
-	const actorId = Number((c as AuthenticatedContext).user.sub)
+	const actorId = Number(getAuthenticatedUser(c).sub)
 
 	try {
 		const { message, sendResetEmail } = await userManagementService.resetPassword(id, actorId)

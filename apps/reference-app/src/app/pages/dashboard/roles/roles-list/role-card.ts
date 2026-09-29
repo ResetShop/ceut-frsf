@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core'
+import { Component, input, output } from '@angular/core'
 import { HasPermissionDirective } from '@directives/has-permission.directive'
 import type { IRole } from '@domain/access/role.interface'
 import { NgIcon, provideIcons } from '@ng-icons/core'
@@ -52,7 +52,6 @@ import { Button } from '@resetshop/ui/button/button'
 			</div>
 		</div>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RoleCard {
 	public readonly role = input.required<IRole>()

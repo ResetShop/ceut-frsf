@@ -33,6 +33,12 @@ export const appRoutes: Route[] = [
 		loadChildren: () => import('./pages/dashboard/dashboard.routes'),
 	},
 	{
+		path: 'account',
+		title: 'ACCOUNT.TITLE',
+		canActivate: [authGuard, forcedPasswordChangeGuard],
+		loadChildren: () => import('./pages/account/account.routes'),
+	},
+	{
 		path: '**',
 		title: 'Wildcard',
 		redirectTo: 'auth/login',

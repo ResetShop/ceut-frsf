@@ -1,13 +1,4 @@
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	effect,
-	inject,
-	signal,
-	untracked,
-	viewChild,
-} from '@angular/core'
+import { Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core'
 import { disabled, form, maxLength, required, schema, FormField as SignalFormField } from '@angular/forms/signals'
 import { TranslatePipe } from '@resetshop/angular-core/i18n/translate.pipe'
 import { Translation } from '@resetshop/angular-core/i18n/translation'
@@ -113,7 +104,6 @@ const EMPTY_MODEL: CreateRoleFormModel = { name: '', code: '', description: '', 
 			#discardDialog
 		/>
 	`,
-	changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateRoleDrawer {
 	private readonly rolesStore = inject(RolesStore)

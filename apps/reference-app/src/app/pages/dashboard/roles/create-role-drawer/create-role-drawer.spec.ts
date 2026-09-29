@@ -102,6 +102,26 @@ describe('CreateRoleDrawer', () => {
 		expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
 	})
 
+	it.each([
+		['name is empty', /name/i, ''],
+		['name is too long', /name/i, 'A'.repeat(101)],
+		['description is too long', /description/i, 'A'.repeat(501)],
+	])('should keep the create button disabled and not submit when %s', async (_, field, value) => {
+		const { fixture } = await renderAndOpenRaw()
+
+		fireEvent.input(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Admin' } })
+		fireEvent.input(screen.getByRole('textbox', { name: field }), { target: { value } })
+		fixture.detectChanges()
+
+		const createButton = screen.getByRole('button', { name: /create/i })
+		expect(createButton).toBeDisabled()
+
+		fireEvent.click(createButton)
+		fixture.detectChanges()
+
+		expect(rolesApiMock.create.calls).toHaveLength(0)
+	})
+
 	it('should call createRoleWithPermissions with correct params on submit', async () => {
 		rolesApiMock.create.mockReturnValue(
 			of({ id: 1, name: 'Admin', code: 'admin', description: null, removable: true, createdAt: null, updatedAt: null }),

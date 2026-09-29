@@ -152,10 +152,24 @@ describe('UsersList', () => {
 		})
 	})
 
-	describe('edit navigation', () => {
-		it('navigates to the user detail page when the Edit row action is selected', async () => {
+	describe('editing and detail navigation', () => {
+		it('opens the edit user drawer for the row in place when the Edit row action is selected', async () => {
 			const users = [createMockManagedUser({ id: 7, firstName: 'John', lastName: 'Doe' })]
 			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+			// The drawer reveals its form once the role catalogue has loaded.
+			rolesApiMock.getAllUnpaginated.mockReturnValue(
+				of([
+					{
+						id: 1,
+						name: 'Admin',
+						code: 'admin',
+						description: null,
+						removable: false,
+						createdAt: null,
+						updatedAt: null,
+					},
+				]),
+			)
 
 			await renderComponent()
 			const navigateSpy = spyOn(TestBed.inject(Router), 'navigate')
@@ -163,9 +177,20 @@ describe('UsersList', () => {
 
 			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
 			TestBed.tick()
+			await advanceTimersByTimeAsync(1000)
 
-			expect(navigateSpy.calls).toHaveLength(1)
-			expect(navigateSpy.calls[0][0]).toEqual(['/dashboard/users', 7])
+			const drawer = screen.getByRole('dialog', { name: 'Edit User' })
+			expect(within(drawer).getByRole('textbox', { name: /first name/i })).toHaveValue('John')
+			expect(navigateSpy.calls).toHaveLength(0)
+		})
+
+		it('links each user name to the user detail page', async () => {
+			const users = [createMockManagedUser({ id: 7, firstName: 'John', lastName: 'Doe' })]
+			usersApiMock.getAll.mockReturnValue(of(createPaginatedResponse(users)))
+
+			await renderComponent()
+
+			expect(screen.getByRole('link', { name: 'John Doe' })).toHaveAttribute('href', '/dashboard/users/7')
 		})
 	})
 
