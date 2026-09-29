@@ -40,6 +40,14 @@ export class InMemoryCardRepository implements CardRepository {
 		return Array.from(this.cards.values()).find((c) => c.legacyId === legacyId) ?? null
 	}
 
+	public async findPinnedAt(pinnedPosition: number): Promise<CardData | null> {
+		return (
+			Array.from(this.cards.values()).find(
+				(c) => c.deletedAt === null && c.isPinned && c.pinnedPosition === pinnedPosition,
+			) ?? null
+		)
+	}
+
 	public async findAll(params?: ListCardsParams): Promise<PaginatedResponse<CardData>> {
 		const limit = params?.limit ?? QUERY_DEFAULTS.LIMIT
 		const offset = params?.offset ?? QUERY_DEFAULTS.OFFSET

@@ -77,6 +77,16 @@ describe('Card endpoints (/api/content/cards)', () => {
 			expect(responses.map((r) => r.status).sort()).toEqual([201, 409])
 		})
 
+		it('returns 409 when pinning into a slot held by another card', async () => {
+			const holderId = await createCardId('it-create-slot-holder', { isPinned: true, pinnedPosition: 2 })
+
+			const response = await createCard({ internalName: 'it-create-slot-taker', isPinned: true, pinnedPosition: 2 })
+
+			expect(response.status).toBe(409)
+			expect((await response.json()).error).toContain('already pinned')
+			await authenticatedRequest(app, `${basePath}/${holderId}`, { method: 'DELETE', cookies: adminCookies })
+		})
+
 		it('returns 409 when the internalName belongs to a soft-deleted card', async () => {
 			const id = await createCardId('it-create-reuse-deleted')
 			await authenticatedRequest(app, `${basePath}/${id}`, { method: 'DELETE', cookies: adminCookies })
@@ -300,6 +310,27 @@ describe('Card endpoints (/api/content/cards)', () => {
 			})
 
 			expect(await response.json()).toMatchObject({ isPinned: false, pinnedPosition: null })
+		})
+
+		it('keeps the slot on a lone isPinned true and rejects moving another card into it', async () => {
+			const holderId = await createCardId('it-update-slot-holder', { isPinned: true, pinnedPosition: 0 })
+			const otherId = await createCardId('it-update-slot-other')
+
+			const resend = await authenticatedRequest(app, `${basePath}/${holderId}`, {
+				method: 'PUT',
+				cookies: adminCookies,
+				body: { isPinned: true },
+			})
+			const steal = await authenticatedRequest(app, `${basePath}/${otherId}`, {
+				method: 'PUT',
+				cookies: adminCookies,
+				body: { isPinned: true, pinnedPosition: 0 },
+			})
+
+			expect(resend.status).toBe(200)
+			expect(await resend.json()).toMatchObject({ isPinned: true, pinnedPosition: 0 })
+			expect(steal.status).toBe(409)
+			await authenticatedRequest(app, `${basePath}/${holderId}`, { method: 'DELETE', cookies: adminCookies })
 		})
 
 		it('returns 400 for a lone pinnedPosition on an unpinned card', async () => {

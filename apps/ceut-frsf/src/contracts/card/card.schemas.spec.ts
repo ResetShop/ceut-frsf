@@ -127,8 +127,14 @@ describe('updateCardRequestSchema', () => {
 		expect(result.success).toBe(false)
 	})
 
-	it('rejects isPinned true with no pinnedPosition when present', () => {
+	it('accepts a lone isPinned true, leaving the merged-state check to the service', () => {
 		const result = updateCardRequestSchema.safeParse({ isPinned: true })
+
+		expect(result.success).toBe(true)
+	})
+
+	it('rejects isPinned false together with a pinnedPosition', () => {
+		const result = updateCardRequestSchema.safeParse({ isPinned: false, pinnedPosition: 1 })
 
 		expect(result.success).toBe(false)
 	})

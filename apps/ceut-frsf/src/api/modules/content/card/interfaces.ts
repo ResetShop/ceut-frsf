@@ -37,12 +37,13 @@ export type UpdateCardParams = UpdateCardRequest
  *
  * Reads by id and list reads exclude soft-deleted cards. The unique-field lookups
  * (`findByInternalName`, `findByLegacyId`) include soft-deleted cards, because the database
- * unique constraints span them too.
+ * unique constraints span them too. `findPinnedAt` only considers live pinned cards.
  */
 export interface CardRepository {
 	findById(id: number): Promise<CardData | null>
 	findByInternalName(internalName: string): Promise<CardData | null>
 	findByLegacyId(legacyId: number): Promise<CardData | null>
+	findPinnedAt(pinnedPosition: number): Promise<CardData | null>
 	findAll(params?: ListCardsParams): Promise<PaginatedResponse<CardData>>
 	create(params: CreateCardParams, actorId: number): Promise<CardData>
 	update(id: number, params: UpdateCardParams, actorId: number): Promise<CardData | null>

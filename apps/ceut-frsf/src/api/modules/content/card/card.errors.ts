@@ -2,6 +2,7 @@ export const CARD_ERRORS = Object.freeze({
 	NOT_FOUND: 'Card not found',
 	INTERNAL_NAME_EXISTS: 'A card with this internal name already exists',
 	LEGACY_ID_EXISTS: 'A card with this legacy ID already exists',
+	PINNED_SLOT_TAKEN: 'Another card is already pinned at this position',
 	INVALID_PINNING: 'pinnedPosition must be set (0-2) when isPinned is true, and unset otherwise',
 } as const)
 
@@ -16,7 +17,8 @@ export class CardNotFoundError extends Error {
 }
 
 /**
- * Error thrown when a unique card field is already held by another card (including a deleted one).
+ * Error thrown when a unique card field is already held by another card (including a deleted one),
+ * or when the requested pinned slot is held by another live card.
  */
 export class CardConflictError extends Error {
 	constructor(message: string) {
@@ -30,6 +32,10 @@ export class CardConflictError extends Error {
 
 	public static legacyId(legacyId: number): CardConflictError {
 		return new CardConflictError(`${CARD_ERRORS.LEGACY_ID_EXISTS} (legacyId: ${legacyId})`)
+	}
+
+	public static pinnedSlot(pinnedPosition: number): CardConflictError {
+		return new CardConflictError(`${CARD_ERRORS.PINNED_SLOT_TAKEN} (pinnedPosition: ${pinnedPosition})`)
 	}
 }
 

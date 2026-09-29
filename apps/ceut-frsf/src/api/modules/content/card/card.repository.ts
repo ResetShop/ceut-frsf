@@ -82,6 +82,22 @@ export class DrizzleCardRepository extends BaseRepository implements CardReposit
 	}
 
 	/**
+	 * Finds the live card pinned at the given slot.
+	 *
+	 * @param pinnedPosition - The pinned slot (0-2)
+	 * @returns The card holding the slot, or null if it is free
+	 */
+	public async findPinnedAt(pinnedPosition: number): Promise<CardData | null> {
+		const result = await this.db
+			.select(cardColumns)
+			.from(card)
+			.where(and(eq(card.isPinned, true), eq(card.pinnedPosition, pinnedPosition), isNull(card.deletedAt)))
+			.limit(1)
+
+		return result[0] ?? null
+	}
+
+	/**
 	 * Retrieves live cards with pagination, ordered by `position` then `id`.
 	 *
 	 * @param params - Optional list parameters

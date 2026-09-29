@@ -146,6 +146,24 @@ describe('CardService', () => {
 				CARD_ERRORS.LEGACY_ID_EXISTS,
 			)
 		})
+
+		it('rejects pinning into a slot held by another live card', async () => {
+			mockCardRepo.addCard(buildCard({ internalName: 'holder', isPinned: true, pinnedPosition: 0 }))
+
+			await expect(
+				cardService.createCard(buildCreateParams({ isPinned: true, pinnedPosition: 0 }), actorId),
+			).rejects.toThrow(CARD_ERRORS.PINNED_SLOT_TAKEN)
+		})
+
+		it('allows pinning into a slot freed by a deleted card', async () => {
+			mockCardRepo.addCard(
+				buildCard({ internalName: 'gone', isPinned: true, pinnedPosition: 0, deletedAt: new Date() }),
+			)
+
+			const result = await cardService.createCard(buildCreateParams({ isPinned: true, pinnedPosition: 0 }), actorId)
+
+			expect(result).toMatchObject({ isPinned: true, pinnedPosition: 0 })
+		})
 	})
 
 	describe('updateCard', () => {
@@ -238,6 +256,36 @@ describe('CardService', () => {
 			const result = await cardService.updateCard(1, { isPinned: false }, actorId)
 
 			expect(result).toMatchObject({ isPinned: false, pinnedPosition: null })
+		})
+
+		it('rejects moving a card into a slot held by another card', async () => {
+			mockCardRepo.addCard(buildCard({ isPinned: true, pinnedPosition: 0 }))
+			mockCardRepo.addCard(buildCard({ id: 2, internalName: 'other', isPinned: true, pinnedPosition: 1 }))
+
+			await expect(cardService.updateCard(1, { pinnedPosition: 1 }, actorId)).rejects.toThrow(CardConflictError)
+		})
+
+		it('keeps an already pinned card in its own slot when isPinned true is resent alone', async () => {
+			mockCardRepo.addCard(buildCard({ isPinned: true, pinnedPosition: 2 }))
+
+			const result = await cardService.updateCard(1, { isPinned: true }, actorId)
+
+			expect(result).toMatchObject({ isPinned: true, pinnedPosition: 2 })
+		})
+
+		it('rejects isPinned true alone on an unpinned card', async () => {
+			mockCardRepo.addCard(buildCard())
+
+			await expect(cardService.updateCard(1, { isPinned: true }, actorId)).rejects.toThrow(CardValidationError)
+		})
+
+		it('does not check the pinned slot when the update does not touch pinning', async () => {
+			mockCardRepo.addCard(buildCard({ isPinned: true, pinnedPosition: 0 }))
+			mockCardRepo.addCard(buildCard({ id: 2, internalName: 'twin', isPinned: true, pinnedPosition: 0 }))
+
+			const result = await cardService.updateCard(2, { title: 'Renamed' }, actorId)
+
+			expect(result.title).toBe('Renamed')
 		})
 
 		it('pins an unpinned card when both fields are sent', async () => {

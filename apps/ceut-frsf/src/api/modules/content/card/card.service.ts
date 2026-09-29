@@ -9,7 +9,9 @@ interface CardServiceDeps {
 
 /**
  * Service for card management operations.
- * Enforces unique `internalName` / `legacyId` values and the pinned-position invariant.
+ * Enforces unique `internalName` / `legacyId` values, the pinned-position invariant and one live
+ * card per pinned slot. The slot rule has no database constraint, so two concurrent requests
+ * pinning the same slot can both succeed.
  * Hiding a card is an update of `enabled`; deleting is a soft-delete.
  */
 export class CardService {
@@ -45,10 +47,11 @@ export class CardService {
 	 * @param params - The validated card creation parameters
 	 * @param actorId - ID of the user performing the action
 	 * @returns The newly created card data
-	 * @throws CardConflictError if the internal name or legacy id is already taken (including by a deleted card)
+	 * @throws CardConflictError if the internal name or legacy id is already taken, or the pinned slot is held (including by a deleted card)
 	 */
 	public async createCard(params: CreateCardParams, actorId: number): Promise<CardData> {
 		await this.assertUniqueFields(params)
+		await this.assertPinnedSlotFree(params.isPinned, params.pinnedPosition)
 		return this.cardRepository.create(params, actorId)
 	}
 
@@ -61,7 +64,7 @@ export class CardService {
 	 * @param actorId - ID of the user performing the action
 	 * @returns The updated card data
 	 * @throws CardNotFoundError if the card is not found
-	 * @throws CardConflictError if a unique field collides with another card
+	 * @throws CardConflictError if a unique field or the pinned slot collides with another card
 	 * @throws CardValidationError if the merged pinning state is inconsistent
 	 */
 	public async updateCard(id: number, params: UpdateCardParams, actorId: number): Promise<CardData> {
@@ -72,6 +75,10 @@ export class CardService {
 
 		await this.assertUniqueFields(params, existing)
 		const patch = this.resolvePinning(existing, params)
+		if (patch.isPinned !== undefined || patch.pinnedPosition !== undefined) {
+			const pinnedPosition = patch.pinnedPosition === undefined ? existing.pinnedPosition : patch.pinnedPosition
+			await this.assertPinnedSlotFree(patch.isPinned ?? existing.isPinned, pinnedPosition, existing.id)
+		}
 
 		const updated = await this.cardRepository.update(id, patch, actorId)
 		if (!updated) {
@@ -115,6 +122,22 @@ export class CardService {
 			if (holder) {
 				throw CardConflictError.legacyId(params.legacyId)
 			}
+		}
+	}
+
+	/**
+	 * Rejects pinning into a slot already held by another live card.
+	 */
+	private async assertPinnedSlotFree(
+		isPinned: boolean,
+		pinnedPosition: number | null | undefined,
+		ownId?: number,
+	): Promise<void> {
+		if (!isPinned || pinnedPosition === null || pinnedPosition === undefined) return
+
+		const holder = await this.cardRepository.findPinnedAt(pinnedPosition)
+		if (holder && holder.id !== ownId) {
+			throw CardConflictError.pinnedSlot(pinnedPosition)
 		}
 	}
 

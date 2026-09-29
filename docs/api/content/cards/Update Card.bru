@@ -34,7 +34,9 @@ docs {
 
   ## Pinning Rules
 
-  - `isPinned: true` must be sent together with `pinnedPosition` (0-2).
+  - Pinning an unpinned card requires `pinnedPosition` (0-2); resending `isPinned: true` alone on
+    a pinned card keeps its current slot.
+  - Each slot holds at most one live card; taking an occupied slot returns 409.
   - `isPinned: false` unpins the card and clears `pinnedPosition`.
   - A lone `pinnedPosition` is accepted only for a card that is already pinned.
 
@@ -46,6 +48,7 @@ docs {
   | 404 | Card not found | Card doesn't exist or is deleted |
   | 409 | A card with this internal name already exists | Name held by another card |
   | 409 | A card with this legacy ID already exists | Legacy ID held by another card |
+  | 409 | Another card is already pinned at this position | Slot held by another live card |
 }
 
 assert {

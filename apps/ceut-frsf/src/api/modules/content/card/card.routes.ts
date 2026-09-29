@@ -88,7 +88,7 @@ export const createCardRoute = createRoute({
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		409: {
-			description: 'Duplicate internal name or legacy ID',
+			description: 'Duplicate internal name or legacy ID, or pinned slot already taken',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		...commonResponses,
@@ -123,7 +123,7 @@ export const updateCardRoute = createRoute({
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		409: {
-			description: 'Duplicate internal name or legacy ID',
+			description: 'Duplicate internal name or legacy ID, or pinned slot already taken',
 			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		...commonResponses,

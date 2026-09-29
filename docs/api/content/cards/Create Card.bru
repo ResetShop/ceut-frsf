@@ -61,6 +61,7 @@ docs {
   | 400 | Validation error | Invalid input, including an inconsistent `isPinned`/`pinnedPosition` pair |
   | 409 | A card with this internal name already exists | Name held by another card, including a deleted one |
   | 409 | A card with this legacy ID already exists | Legacy ID held by another card |
+  | 409 | Another card is already pinned at this position | Each pinned slot holds one live card |
 }
 
 assert {
