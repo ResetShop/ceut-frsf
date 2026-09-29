@@ -30,7 +30,8 @@ docs {
   - Request: `UpdateCardRequest` from `@contracts/card/card.types`
   - Response: `CardData` from `@contracts/card/card.types`
 
-  `position` (integer ≥ 0) reorders the card in the list.
+  `position` (integer ≥ 0) reorders the card in the list. An empty body is a no-op: the card is
+  returned unchanged and no history entry is written.
 
   ## Pinning Rules
 

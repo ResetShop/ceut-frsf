@@ -439,6 +439,23 @@ describe('Card endpoints (/api/content/cards)', () => {
 			])
 		})
 
+		it('writes no history row for an empty update', async () => {
+			const id = await createCardId('it-update-empty')
+
+			const response = await authenticatedRequest(app, `${basePath}/${id}`, {
+				method: 'PUT',
+				cookies: adminCookies,
+				body: {},
+			})
+
+			expect(response.status).toBe(200)
+			const history = await getTestDb()
+				.select({ action: cardHistory.action })
+				.from(cardHistory)
+				.where(eq(cardHistory.cardId, id))
+			expect(history).toEqual([{ action: 'created' }])
+		})
+
 		it('returns 404 when deleting an already deleted card', async () => {
 			const id = await createCardId('it-delete-twice')
 			await authenticatedRequest(app, `${basePath}/${id}`, { method: 'DELETE', cookies: adminCookies })

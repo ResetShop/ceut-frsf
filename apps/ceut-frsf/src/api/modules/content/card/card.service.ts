@@ -57,7 +57,8 @@ export class CardService {
 
 	/**
 	 * Applies a partial update to a live card.
-	 * Sending `isPinned: false` unpins the card and clears its `pinnedPosition`.
+	 * Sending `isPinned: false` unpins the card and clears its `pinnedPosition`. An update with no
+	 * fields is a no-op: the card is returned unchanged and no history row is written.
 	 *
 	 * @param id - The card's primary key
 	 * @param params - Fields to update
@@ -71,6 +72,9 @@ export class CardService {
 		const existing = await this.cardRepository.findById(id)
 		if (!existing) {
 			throw new CardNotFoundError(id)
+		}
+		if (Object.values(params).every((value) => value === undefined)) {
+			return existing
 		}
 
 		await this.assertUniqueFields(params, existing)

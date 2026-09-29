@@ -194,6 +194,20 @@ describe('CardService', () => {
 			expect(await cardService.getCard(1)).toMatchObject({ enabled: false, deletedAt: null })
 		})
 
+		it('returns the stored card without writing when the update has no fields', async () => {
+			const card = buildCard({ updatedAt: new Date('2026-01-01') })
+			mockCardRepo.addCard(card)
+
+			const result = await cardService.updateCard(1, {}, actorId)
+
+			expect(result).toBe(card)
+			expect((await cardService.getCard(1))?.updatedAt).toEqual(new Date('2026-01-01'))
+		})
+
+		it('still reports not found for an empty update of a missing card', async () => {
+			await expect(cardService.updateCard(999, {}, actorId)).rejects.toThrow(CardNotFoundError)
+		})
+
 		it('throws not found for a missing card', async () => {
 			await expect(cardService.updateCard(999, { title: 'x' }, actorId)).rejects.toThrow(CardNotFoundError)
 		})
