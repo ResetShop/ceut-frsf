@@ -68,6 +68,15 @@ describe('Card endpoints (/api/content/cards)', () => {
 			expect((await response.json()).error).toContain('legacy ID')
 		})
 
+		it('returns 409 rather than 500 to the loser of two concurrent identical creates', async () => {
+			const responses = await Promise.all([
+				createCard({ internalName: 'it-create-race' }),
+				createCard({ internalName: 'it-create-race' }),
+			])
+
+			expect(responses.map((r) => r.status).sort()).toEqual([201, 409])
+		})
+
 		it('returns 409 when the internalName belongs to a soft-deleted card', async () => {
 			const id = await createCardId('it-create-reuse-deleted')
 			await authenticatedRequest(app, `${basePath}/${id}`, { method: 'DELETE', cookies: adminCookies })

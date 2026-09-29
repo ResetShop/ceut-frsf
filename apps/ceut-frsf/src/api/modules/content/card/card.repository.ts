@@ -5,7 +5,9 @@ import { CardHistoryAction, cardHistory } from '@schema/card-history'
 import { type SQL, and, count, eq, ilike, isNull, or } from 'drizzle-orm'
 import { BaseRepository } from '../../../helpers/base.repository'
 import type { DrizzleTransaction } from '../../../helpers/drizzle-postgres-connector'
+import { findUniqueViolationConstraint } from '../../../helpers/postgres-errors'
 import type { PaginatedResponse } from '../../../interfaces'
+import { CardConflictError } from './card.errors'
 import type { CardRepository, CreateCardParams, ListCardsParams, UpdateCardParams } from './interfaces'
 
 const cardColumns = {
@@ -33,6 +35,8 @@ const cardColumns = {
  *
  * Deletion is soft (`deletedAt` is set) and every write records a full-row snapshot in
  * `card_history` inside the same transaction, so the audit trail can never diverge from the row.
+ * Unique-constraint violations on writes surface as `CardConflictError`, so a request that loses a
+ * race past the service's uniqueness check still gets the same conflict as a sequential duplicate.
  */
 export class DrizzleCardRepository extends BaseRepository implements CardRepository {
 	/**
@@ -112,6 +116,10 @@ export class DrizzleCardRepository extends BaseRepository implements CardReposit
 	 * @returns The newly created card data
 	 */
 	public async create(params: CreateCardParams, actorId: number): Promise<CardData> {
+		return this.translateUniqueViolation(params, () => this.insertCard(params, actorId))
+	}
+
+	private async insertCard(params: CreateCardParams, actorId: number): Promise<CardData> {
 		return this.db.transaction(async (tx) => {
 			const now = new Date()
 			const [created] = await tx
@@ -134,6 +142,10 @@ export class DrizzleCardRepository extends BaseRepository implements CardReposit
 	 * @returns The updated card data, or null if the card is missing or soft-deleted
 	 */
 	public async update(id: number, params: UpdateCardParams, actorId: number): Promise<CardData | null> {
+		return this.translateUniqueViolation(params, () => this.updateCard(id, params, actorId))
+	}
+
+	private async updateCard(id: number, params: UpdateCardParams, actorId: number): Promise<CardData | null> {
 		return this.db.transaction(async (tx) => {
 			const now = new Date()
 			const definedFields = Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined))
@@ -171,6 +183,28 @@ export class DrizzleCardRepository extends BaseRepository implements CardReposit
 			await this.insertHistory(tx, deleted, CardHistoryAction.DELETED, actorId, now)
 			return true
 		})
+	}
+
+	/**
+	 * Runs a write and rethrows a unique violation on `internal_name` / `legacy_id` as the matching
+	 * `CardConflictError`. Any other error propagates unchanged.
+	 */
+	private async translateUniqueViolation<T>(
+		values: { internalName?: string; legacyId?: number | null },
+		write: () => Promise<T>,
+	): Promise<T> {
+		try {
+			return await write()
+		} catch (error) {
+			const constraint = findUniqueViolationConstraint(error)
+			if (constraint?.includes('internal_name') && values.internalName !== undefined) {
+				throw CardConflictError.internalName(values.internalName)
+			}
+			if (constraint?.includes('legacy_id') && typeof values.legacyId === 'number') {
+				throw CardConflictError.legacyId(values.legacyId)
+			}
+			throw error
+		}
 	}
 
 	/**
