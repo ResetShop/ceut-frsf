@@ -14,6 +14,8 @@ import { DrizzlePasswordResetTokenRepository } from '../modules/auth/password-re
 import { PasswordResetService } from '../modules/auth/password-reset.service'
 import { DrizzleRefreshTokenRepository } from '../modules/auth/refresh-token.repository'
 import { TokenMaintenanceService } from '../modules/auth/token-maintenance.service'
+import { DrizzleCardRepository } from '../modules/content/card/card.repository'
+import { CardService } from '../modules/content/card/card.service'
 import { HealthService } from '../modules/health/health.service'
 import { DrizzleUserManagementRepository } from '../modules/user/user-management.repository'
 import { UserManagementService } from '../modules/user/user-management.service'
@@ -67,6 +69,7 @@ function registerRepositories(c: AwilixContainer<Cradle>): void {
 		permissionRepository: asClass(DrizzlePermissionRepository).singleton(),
 		userRoleRepository: asClass(DrizzleUserRoleRepository).singleton(),
 		userManagementRepository: asClass(DrizzleUserManagementRepository).singleton(),
+		cardRepository: asClass(DrizzleCardRepository).singleton(),
 	})
 }
 
@@ -83,6 +86,7 @@ function registerServices(c: AwilixContainer<Cradle>): void {
 		permissionService: asClass(PermissionService).singleton(),
 		userRoleService: asClass(UserRoleService).singleton(),
 		userManagementService: asClass(UserManagementService).singleton(),
+		cardService: asClass(CardService).singleton(),
 	})
 }
 

@@ -12,6 +12,7 @@ import type {
 	RefreshTokenRepository,
 	TokenMaintenanceService,
 } from '../modules/auth/interfaces'
+import type { CardRepository, CardService } from '../modules/content/card/interfaces'
 import type { HealthService } from '../modules/health/interfaces'
 import type {
 	UserManagementRepository,
@@ -57,6 +58,9 @@ import type { PasetoConfig } from '../services/paseto/paseto.config'
  * PermissionService
  *   └── PermissionRepository ► db
  *
+ * CardService
+ *   └── CardRepository ──────► db
+ *
  * UserRoleService
  *   ├── UserRoleRepository ──► db
  *   ├── UserRepository ──────► db
@@ -97,6 +101,7 @@ export interface Cradle {
 	permissionRepository: PermissionRepository
 	userRoleRepository: UserRoleRepository
 	userManagementRepository: UserManagementRepository
+	cardRepository: CardRepository
 
 	// Services (registerServices)
 	healthService: HealthService
@@ -110,4 +115,5 @@ export interface Cradle {
 	permissionService: PermissionService
 	userRoleService: UserRoleService
 	userManagementService: UserManagementService
+	cardService: CardService
 }

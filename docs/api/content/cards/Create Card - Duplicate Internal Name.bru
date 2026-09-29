@@ -1,0 +1,34 @@
+meta {
+  name: Create Card - Duplicate Internal Name
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/content/cards
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "internalName": "{{cardInternalName}}"
+  }
+}
+
+docs {
+  # Create Card - Duplicate Internal Name
+
+  Re-sends the internal name created by "Create Card" and expects 409. Run "Create Card" first.
+}
+
+assert {
+  res.status: eq 409
+}
+
+tests {
+  test("should return 409 for a duplicate internal name", function() {
+    expect(res.status).to.equal(409);
+    expect(res.body.error).to.contain("A card with this internal name already exists");
+  });
+}

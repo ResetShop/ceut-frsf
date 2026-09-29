@@ -1,0 +1,69 @@
+meta {
+  name: Update Card
+  type: http
+  seq: 8
+}
+
+put {
+  url: {{baseUrl}}/content/cards/{{testCardId}}
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "Becas y ayudas",
+    "isPinned": true,
+    "pinnedPosition": 0
+  }
+}
+
+docs {
+  # Update Card
+
+  Partially updates a card: only the fields sent are changed, and sending `null` clears a nullable
+  field (`legacyId`, `title`, `imageUrl`, `content`, `link`, `footerContent`). Requires the
+  `content:cards:update` permission.
+
+  ## Contract Types
+
+  - Request: `UpdateCardRequest` from `@contracts/card/card.types`
+  - Response: `CardData` from `@contracts/card/card.types`
+
+  `position` (integer ≥ 0) reorders the card in the list. An empty body is a no-op: the card is
+  returned unchanged and no history entry is written.
+
+  ## Pinning Rules
+
+  - Pinning an unpinned card requires `pinnedPosition` (0-2); resending `isPinned: true` alone on
+    a pinned card keeps its current slot.
+  - Each slot holds at most one live card; taking an occupied slot returns 409.
+  - `isPinned: false` unpins the card and clears `pinnedPosition`.
+  - A lone `pinnedPosition` is accepted only for a card that is already pinned.
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Validation error | Invalid input or inconsistent pinning state |
+  | 404 | Card not found | Card doesn't exist or is deleted |
+  | 409 | A card with this internal name already exists | Name held by another card |
+  | 409 | A card with this legacy ID already exists | Legacy ID held by another card |
+  | 409 | Another card is already pinned at this position | Slot held by another live card |
+}
+
+assert {
+  res.status: eq 200
+  res.body.title: eq Becas y ayudas
+}
+
+tests {
+  test("should return 200 on successful update", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should pin the card in the requested slot", function() {
+    expect(res.body.isPinned).to.be.true;
+    expect(res.body.pinnedPosition).to.equal(0);
+  });
+}

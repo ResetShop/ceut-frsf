@@ -12,18 +12,24 @@ export const LinkType = Object.freeze({
 export type LinkType = (typeof LinkType)[keyof typeof LinkType]
 
 /**
- * Reusable link value object: an in-app relative path (`internal`) or an absolute URL
- * (`external`). Internal links are not valid absolute URLs, so each variant validates `url`
- * differently.
+ * Absolute URL restricted to `http` / `https`. Other schemes (`javascript:`, `data:`, …) are
+ * rejected because these values are rendered as `href` / `src` attributes.
+ */
+export const httpUrlSchema = z.url({ protocol: /^https?$/ })
+
+/**
+ * Reusable link value object: an in-app path (`internal`) or an absolute `http(s)` URL
+ * (`external`). An internal path must start with a single `/`, which rules out schemes and
+ * protocol-relative (`//host`) URLs that would leave the app.
  */
 export const linkSchema = z.discriminatedUnion('type', [
 	z.object({
 		type: z.literal(LinkType.INTERNAL),
-		url: z.string().min(1),
+		url: z.string().regex(/^\/(?!\/)/, 'Internal links must be a path starting with a single "/"'),
 	}),
 	z.object({
 		type: z.literal(LinkType.EXTERNAL),
-		url: z.url(),
+		url: httpUrlSchema,
 	}),
 ])
 

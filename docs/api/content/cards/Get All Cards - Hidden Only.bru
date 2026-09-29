@@ -1,0 +1,35 @@
+meta {
+  name: Get All Cards - Hidden Only
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/content/cards
+  body: none
+  auth: none
+}
+
+params:query {
+  enabled: false
+}
+
+docs {
+  # Get All Cards - Hidden Only
+
+  Lists only hidden cards by filtering on `enabled=false`.
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("should only return hidden cards", function() {
+    res.body.data.forEach((card) => expect(card.enabled).to.equal(false));
+  });
+}

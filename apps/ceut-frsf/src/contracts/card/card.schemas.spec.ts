@@ -42,6 +42,12 @@ describe('createCardRequestSchema', () => {
 		expect(result.success).toBe(false)
 	})
 
+	it.each(['javascript:alert(1)', 'data:image/png;base64,AAAA'])('rejects the non-http imageUrl %s', (imageUrl) => {
+		const result = createCardRequestSchema.safeParse({ internalName: 'welcome-card', imageUrl })
+
+		expect(result.success).toBe(false)
+	})
+
 	it.each([0, 1, 2])('accepts pinnedPosition %d when isPinned is true', (pinnedPosition) => {
 		const result = createCardRequestSchema.safeParse({
 			internalName: 'welcome-card',
@@ -86,6 +92,18 @@ describe('createCardRequestSchema', () => {
 		expect(result.isPinned).toBe(false)
 	})
 
+	it('accepts a non-negative position', () => {
+		const result = createCardRequestSchema.safeParse({ internalName: 'welcome-card', position: 3 })
+
+		expect(result.success).toBe(true)
+	})
+
+	it('rejects a negative position', () => {
+		const result = createCardRequestSchema.safeParse({ internalName: 'welcome-card', position: -1 })
+
+		expect(result.success).toBe(false)
+	})
+
 	it('accepts a valid internal link', () => {
 		const result = createCardRequestSchema.safeParse({
 			internalName: 'welcome-card',
@@ -109,14 +127,44 @@ describe('updateCardRequestSchema', () => {
 		expect(result.success).toBe(false)
 	})
 
-	it('rejects isPinned true with no pinnedPosition when present', () => {
+	it('accepts a lone isPinned true, leaving the merged-state check to the service', () => {
 		const result = updateCardRequestSchema.safeParse({ isPinned: true })
+
+		expect(result.success).toBe(true)
+	})
+
+	it('rejects isPinned false together with a pinnedPosition', () => {
+		const result = updateCardRequestSchema.safeParse({ isPinned: false, pinnedPosition: 1 })
 
 		expect(result.success).toBe(false)
 	})
 
 	it('accepts isPinned and pinnedPosition together', () => {
 		const result = updateCardRequestSchema.safeParse({ isPinned: true, pinnedPosition: 1 })
+
+		expect(result.success).toBe(true)
+	})
+
+	it.each(['legacyId', 'title', 'imageUrl', 'content', 'link', 'footerContent'])(
+		'accepts null to clear the nullable %s field',
+		(field) => {
+			const result = updateCardRequestSchema.safeParse({ [field]: null })
+
+			expect(result.success).toBe(true)
+		},
+	)
+
+	it.each(['internalName', 'type', 'enabled', 'footerSeparator'])(
+		'rejects null for the non-nullable %s field',
+		(field) => {
+			const result = updateCardRequestSchema.safeParse({ [field]: null })
+
+			expect(result.success).toBe(false)
+		},
+	)
+
+	it('accepts a position change', () => {
+		const result = updateCardRequestSchema.safeParse({ position: 5 })
 
 		expect(result.success).toBe(true)
 	})

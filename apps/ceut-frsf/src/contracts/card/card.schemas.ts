@@ -1,4 +1,4 @@
-import { linkSchema } from '@contracts/common/link.schemas'
+import { httpUrlSchema, linkSchema } from '@contracts/common/link.schemas'
 import { z } from 'zod'
 import { CARD_FIELD_LIMITS, CardType } from './card.constants'
 
@@ -56,7 +56,7 @@ export const createCardRequestSchema = z
 		internalName: z.string().min(1).max(CARD_FIELD_LIMITS.INTERNAL_NAME_MAX_LENGTH),
 		title: z.string().max(CARD_FIELD_LIMITS.TITLE_MAX_LENGTH).optional(),
 		type: cardTypeSchema.default(CardType.ICON_CORNER),
-		imageUrl: z.url().optional(),
+		imageUrl: httpUrlSchema.optional(),
 		content: z.string().max(CARD_FIELD_LIMITS.CONTENT_MAX_LENGTH).optional(),
 		link: linkSchema.optional(),
 		footerContent: z.string().max(CARD_FIELD_LIMITS.FOOTER_CONTENT_MAX_LENGTH).optional(),
@@ -64,29 +64,35 @@ export const createCardRequestSchema = z
 		enabled: z.boolean().default(true),
 		isPinned: z.boolean().default(false),
 		pinnedPosition: z.number().int().min(0).max(2).nullable().optional(),
+		position: z.number().int().min(0).optional(),
 	})
 	.refine(pinnedPositionMatchesIsPinned, { message: PINNED_POSITION_REFINE_MESSAGE, path: ['pinnedPosition'] })
 
+/**
+ * Partial update: an omitted field is left unchanged, while `null` clears a nullable column
+ * (`legacyId`, `title`, `imageUrl`, `content`, `link`, `footerContent`, `pinnedPosition`).
+ */
 export const updateCardRequestSchema = z
 	.object({
-		legacyId: z.number().int().positive().optional(),
+		legacyId: z.number().int().positive().nullable().optional(),
 		internalName: z.string().min(1).max(CARD_FIELD_LIMITS.INTERNAL_NAME_MAX_LENGTH).optional(),
-		title: z.string().max(CARD_FIELD_LIMITS.TITLE_MAX_LENGTH).optional(),
+		title: z.string().max(CARD_FIELD_LIMITS.TITLE_MAX_LENGTH).nullable().optional(),
 		type: cardTypeSchema.optional(),
-		imageUrl: z.url().optional(),
-		content: z.string().max(CARD_FIELD_LIMITS.CONTENT_MAX_LENGTH).optional(),
-		link: linkSchema.optional(),
-		footerContent: z.string().max(CARD_FIELD_LIMITS.FOOTER_CONTENT_MAX_LENGTH).optional(),
+		imageUrl: httpUrlSchema.nullable().optional(),
+		content: z.string().max(CARD_FIELD_LIMITS.CONTENT_MAX_LENGTH).nullable().optional(),
+		link: linkSchema.nullable().optional(),
+		footerContent: z.string().max(CARD_FIELD_LIMITS.FOOTER_CONTENT_MAX_LENGTH).nullable().optional(),
 		footerSeparator: z.boolean().optional(),
 		enabled: z.boolean().optional(),
 		isPinned: z.boolean().optional(),
 		pinnedPosition: z.number().int().min(0).max(2).nullable().optional(),
+		position: z.number().int().min(0).optional(),
 	})
-	// Only enforced when `isPinned` is explicitly part of the payload — a lone `pinnedPosition`
-	// change (repositioning an already-pinned card) is valid without resending `isPinned`, since
-	// this is a partial update and the coupling is checked against the current row's `isPinned`
-	// value by the service layer that applies it.
-	.refine((data) => data.isPinned === undefined || pinnedPositionMatchesIsPinned(data), {
+	// Only the self-contradictory `isPinned: false` + non-null `pinnedPosition` is rejected here.
+	// Every other combination depends on the stored row (a lone `isPinned: true` keeps an
+	// already-pinned card's slot; a lone `pinnedPosition` repositions it), so the service layer
+	// validates the merged state when it applies the partial update.
+	.refine((data) => data.isPinned !== false || data.pinnedPosition == null, {
 		message: PINNED_POSITION_REFINE_MESSAGE,
 		path: ['pinnedPosition'],
 	})

@@ -1,5 +1,6 @@
 import accessRoutes from './modules/access'
 import authController from './modules/auth/auth.controller'
+import contentRoutes from './modules/content'
 import healthController from './modules/health/health.controller'
 import userRoutes from './modules/user'
 
@@ -34,5 +35,9 @@ export default [
 	{
 		path: '/users',
 		controller: userRoutes,
+	},
+	{
+		path: '/content',
+		controller: contentRoutes,
 	},
 ]

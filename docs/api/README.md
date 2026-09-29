@@ -43,7 +43,9 @@ docs/api/
 │   └── production.bru  # Production (configure before use)
 ├── health/             # Health check endpoints
 ├── auth/               # Authentication endpoints
-└── roles/              # Role management endpoints
+├── roles/              # Role management endpoints
+└── content/
+    └── cards/          # Card content management endpoints
 ```
 
 ## Endpoints
@@ -76,6 +78,18 @@ docs/api/
 | GET    | /api/roles/:id/permissions | Get role permissions       |
 | POST   | /api/roles/:id/permissions | Assign permissions to role |
 
+### Cards
+
+All card endpoints require an authenticated user holding the matching `content:cards:*` permission. Deletion is a soft-delete recorded in the card history; hiding a card is an update of `enabled`.
+
+| Method | Endpoint               | Description                                        |
+| ------ | ---------------------- | -------------------------------------------------- |
+| GET    | /api/content/cards     | List cards (paginated, `search`, `enabled` filter) |
+| GET    | /api/content/cards/:id | Get card by ID                                     |
+| POST   | /api/content/cards     | Create card (409 on duplicate `internalName`)      |
+| PUT    | /api/content/cards/:id | Update card (including hide via `enabled: false`)  |
+| DELETE | /api/content/cards/:id | Soft-delete card                                   |
+
 ## Running Tests
 
 ### Run All Tests
@@ -102,6 +116,7 @@ docs/api/
 | `testEmail`    | Test user email            | `admin@example.com`         |
 | `testPassword` | Test user password         | `admin123`                  |
 | `testRoleId`   | Created role ID (auto-set) | -                           |
+| `testCardId`   | Created card ID (auto-set) | -                           |
 
 ## Workflow Example
 

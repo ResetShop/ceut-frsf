@@ -1,0 +1,40 @@
+meta {
+  name: Delete Card
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{baseUrl}}/content/cards/{{testCardId}}
+  body: none
+  auth: none
+}
+
+docs {
+  # Delete Card
+
+  Soft-deletes a card: it disappears from reads but the row is kept, and a `deleted` entry is
+  written to the card history. The internal name stays reserved. Requires the `content:cards:delete` permission.
+
+  ## Contract Types
+
+  - Response: `SuccessMessage` from `@contracts/common/error.types`
+
+  ## Errors
+
+  | Status | Error | Description |
+  |--------|-------|-------------|
+  | 400 | Validation error | ID format is invalid |
+  | 404 | Card not found | Card doesn't exist or is already deleted |
+}
+
+assert {
+  res.status: eq 200
+  res.body.message: eq Card deleted successfully
+}
+
+tests {
+  test("should return success message", function() {
+    expect(res.body.message).to.equal("Card deleted successfully");
+  });
+}
