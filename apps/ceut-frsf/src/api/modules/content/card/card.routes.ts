@@ -32,6 +32,10 @@ export const listCardsRoute = createRoute({
 			description: 'Paginated list of cards',
 			content: { 'application/json': { schema: paginatedResponseSchema(cardDataSchema) } },
 		},
+		400: {
+			description: 'Invalid query parameters',
+			content: { 'application/json': { schema: errorResponseSchema } },
+		},
 		...commonResponses,
 	},
 })
@@ -78,6 +82,10 @@ export const createCardRoute = createRoute({
 		201: {
 			description: 'Card created',
 			content: { 'application/json': { schema: cardDataSchema } },
+		},
+		400: {
+			description: 'Invalid card payload, including an inconsistent pinning state',
+			content: { 'application/json': { schema: errorResponseSchema } },
 		},
 		409: {
 			description: 'Duplicate internal name or legacy ID',

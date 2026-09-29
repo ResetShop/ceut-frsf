@@ -437,4 +437,20 @@ describe('Card endpoints (/api/content/cards)', () => {
 			expect(response.status).toBe(403)
 		})
 	})
+
+	// ── OpenAPI contract ──────────────────────────────────────────
+	describe('OpenAPI document', () => {
+		it.each([
+			['/api/content/cards', 'get', ['200', '400', '401', '403', '500']],
+			['/api/content/cards', 'post', ['201', '400', '401', '403', '409', '500']],
+			['/api/content/cards/{id}', 'get', ['200', '400', '401', '403', '404', '500']],
+			['/api/content/cards/{id}', 'put', ['200', '400', '401', '403', '404', '409', '500']],
+			['/api/content/cards/{id}', 'delete', ['200', '400', '401', '403', '404', '500']],
+		])('declares every status %s %s can return', async (path, method, statuses) => {
+			const response = await app.request('/api/openapi.json')
+			const document = await response.json()
+
+			expect(Object.keys(document.paths[path][method].responses).sort()).toEqual(statuses)
+		})
+	})
 })
