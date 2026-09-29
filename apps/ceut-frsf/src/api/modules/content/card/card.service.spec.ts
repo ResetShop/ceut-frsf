@@ -2,8 +2,9 @@ import { CardType } from '@contracts/card/card.constants'
 import type { CardData } from '@contracts/card/card.types'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { CARD_ERRORS, CardConflictError, CardNotFoundError, CardValidationError } from './card.errors'
 import { InMemoryCardRepository } from './card.repository.mock'
-import { CARD_ERRORS, CardConflictError, CardNotFoundError, CardService, CardValidationError } from './card.service'
+import { CardService } from './card.service'
 import type { CreateCardParams } from './interfaces'
 
 describe('CardService', () => {

@@ -6,6 +6,7 @@ import { logger } from '@resetshop/util'
 import type { z } from 'zod'
 import { container } from '../../../container/container'
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware'
+import { CARD_ERRORS, CardConflictError, CardNotFoundError, CardValidationError } from './card.errors'
 import {
 	createCardRoute,
 	deleteCardRoute,
@@ -14,7 +15,6 @@ import {
 	listCardsRoute,
 	updateCardRoute,
 } from './card.routes'
-import { CARD_ERRORS, CardConflictError, CardNotFoundError, CardValidationError } from './card.service'
 
 const app = createOpenAPIApp()
 

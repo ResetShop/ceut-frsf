@@ -11,7 +11,7 @@ import type { PaginatedResponse } from '../../../interfaces'
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware'
 import type { PermissionData } from '../../access/role/interfaces'
 import cardController from './card.controller'
-import { CARD_ERRORS, CardConflictError, CardNotFoundError, CardValidationError } from './card.service'
+import { CARD_ERRORS, CardConflictError, CardNotFoundError, CardValidationError } from './card.errors'
 import type { CreateCardParams, ListCardsParams, UpdateCardParams } from './interfaces'
 
 describe('Card Controller', () => {
