@@ -11,7 +11,7 @@ import type { PaginatedResponse } from '../../../interfaces'
 import type { AuthenticatedContext } from '../../../middlewares/verify-access-token.middleware'
 import type { PermissionData } from '../../access/role/interfaces'
 import cardController from './card.controller'
-import { CARD_ERRORS, CardValidationError, cardErrors } from './card.service'
+import { CARD_ERRORS, CardConflictError, CardNotFoundError, CardValidationError } from './card.service'
 import type { CreateCardParams, ListCardsParams, UpdateCardParams } from './interfaces'
 
 describe('Card Controller', () => {
@@ -178,7 +178,7 @@ describe('Card Controller', () => {
 		})
 
 		it('returns 409 on a duplicate internalName', async () => {
-			mockCreateCard.mockRejectedValue(cardErrors.internalNameExists('welcome-card'))
+			mockCreateCard.mockRejectedValue(CardConflictError.internalName('welcome-card'))
 
 			const res = await jsonRequest('/content/cards', 'POST', { internalName: 'welcome-card' })
 
@@ -187,7 +187,7 @@ describe('Card Controller', () => {
 		})
 
 		it('returns 409 on a duplicate legacyId', async () => {
-			mockCreateCard.mockRejectedValue(cardErrors.legacyIdExists(42))
+			mockCreateCard.mockRejectedValue(CardConflictError.legacyId(42))
 
 			const res = await jsonRequest('/content/cards', 'POST', { internalName: 'other', legacyId: 42 })
 
@@ -222,8 +222,8 @@ describe('Card Controller', () => {
 		})
 
 		it.each([
-			['not found', cardErrors.notFound(5), 404],
-			['duplicate internalName', cardErrors.internalNameExists('taken'), 409],
+			['not found', new CardNotFoundError(5), 404],
+			['duplicate internalName', CardConflictError.internalName('taken'), 409],
 			['invalid pinning', new CardValidationError(CARD_ERRORS.INVALID_PINNING), 400],
 		])('maps a %s error to %i', async (_label, error, status) => {
 			mockUpdateCard.mockRejectedValue(error)
@@ -248,7 +248,7 @@ describe('Card Controller', () => {
 		})
 
 		it('returns 404 when the card is not found', async () => {
-			mockDeleteCard.mockRejectedValue(cardErrors.notFound(5))
+			mockDeleteCard.mockRejectedValue(new CardNotFoundError(5))
 
 			const res = await app.request('/content/cards/5', { method: 'DELETE' })
 

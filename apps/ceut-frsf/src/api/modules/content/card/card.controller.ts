@@ -14,23 +14,17 @@ import {
 	listCardsRoute,
 	updateCardRoute,
 } from './card.routes'
-import { CARD_ERRORS, CardValidationError } from './card.service'
+import { CARD_ERRORS, CardConflictError, CardNotFoundError, CardValidationError } from './card.service'
 
 const app = createOpenAPIApp()
 
 /**
- * Maps a known card service error to its HTTP status, or null when the error is unexpected.
+ * Maps a known card service error to its HTTP status and body, or null when the error is unexpected.
  */
-function statusForCardError(error: unknown): 400 | 404 | 409 | null {
-	if (error instanceof CardValidationError) return 400
-	if (!(error instanceof Error)) return null
-	if (error.message.startsWith(CARD_ERRORS.NOT_FOUND)) return 404
-	if (
-		error.message.startsWith(CARD_ERRORS.INTERNAL_NAME_EXISTS) ||
-		error.message.startsWith(CARD_ERRORS.LEGACY_ID_EXISTS)
-	) {
-		return 409
-	}
+function cardErrorResponse(error: unknown): { status: 400 | 404 | 409; body: ErrorResponse } | null {
+	if (error instanceof CardValidationError) return { status: 400, body: { error: error.message } }
+	if (error instanceof CardNotFoundError) return { status: 404, body: { error: error.message } }
+	if (error instanceof CardConflictError) return { status: 409, body: { error: error.message } }
 	return null
 }
 
@@ -76,8 +70,8 @@ registerRoute(app, createCardRoute, async (c) => {
 		logger.security('card_created', { cardId: card.id, internalName: card.internalName, actorId })
 		return c.json<CardData>(card, 201)
 	} catch (error) {
-		if (statusForCardError(error) === 409) {
-			return c.json<ErrorResponse>({ error: (error as Error).message }, 409)
+		if (error instanceof CardConflictError) {
+			return c.json<ErrorResponse>({ error: error.message }, 409)
 		}
 		throw error
 	}
@@ -98,9 +92,9 @@ registerRoute(app, updateCardRoute, async (c) => {
 		logger.security('card_updated', { cardId: id, changedFields: Object.keys(body), actorId })
 		return c.json<CardData>(card)
 	} catch (error) {
-		const status = statusForCardError(error)
-		if (status !== null) {
-			return c.json<ErrorResponse>({ error: (error as Error).message }, status)
+		const mapped = cardErrorResponse(error)
+		if (mapped) {
+			return c.json<ErrorResponse>(mapped.body, mapped.status)
 		}
 		throw error
 	}
@@ -120,8 +114,8 @@ registerRoute(app, deleteCardRoute, async (c) => {
 		logger.security('card_deleted', { cardId: id, actorId })
 		return c.json<SuccessMessage>({ message: 'Card deleted successfully' })
 	} catch (error) {
-		if (statusForCardError(error) === 404) {
-			return c.json<ErrorResponse>({ error: (error as Error).message }, 404)
+		if (error instanceof CardNotFoundError) {
+			return c.json<ErrorResponse>({ error: error.message }, 404)
 		}
 		throw error
 	}

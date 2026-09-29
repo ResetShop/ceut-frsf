@@ -10,14 +10,31 @@ export const CARD_ERRORS = Object.freeze({
 } as const)
 
 /**
- * Error factory functions that include the offending value for better debugging.
- * The error messages start with the base error constant for easy matching in the controller and tests.
+ * Error thrown when a card does not exist or has been soft-deleted.
  */
-export const cardErrors = {
-	notFound: (id: number) => new Error(`${CARD_ERRORS.NOT_FOUND} (id: ${id})`),
-	internalNameExists: (internalName: string) =>
-		new Error(`${CARD_ERRORS.INTERNAL_NAME_EXISTS} (internalName: ${internalName})`),
-	legacyIdExists: (legacyId: number) => new Error(`${CARD_ERRORS.LEGACY_ID_EXISTS} (legacyId: ${legacyId})`),
+export class CardNotFoundError extends Error {
+	constructor(id: number) {
+		super(`${CARD_ERRORS.NOT_FOUND} (id: ${id})`)
+		this.name = 'CardNotFoundError'
+	}
+}
+
+/**
+ * Error thrown when a unique card field is already held by another card (including a deleted one).
+ */
+export class CardConflictError extends Error {
+	constructor(message: string) {
+		super(message)
+		this.name = 'CardConflictError'
+	}
+
+	public static internalName(internalName: string): CardConflictError {
+		return new CardConflictError(`${CARD_ERRORS.INTERNAL_NAME_EXISTS} (internalName: ${internalName})`)
+	}
+
+	public static legacyId(legacyId: number): CardConflictError {
+		return new CardConflictError(`${CARD_ERRORS.LEGACY_ID_EXISTS} (legacyId: ${legacyId})`)
+	}
 }
 
 /**
@@ -73,7 +90,7 @@ export class CardService {
 	 * @param params - The validated card creation parameters
 	 * @param actorId - ID of the user performing the action
 	 * @returns The newly created card data
-	 * @throws Error if the internal name or legacy id is already taken (including by a deleted card)
+	 * @throws CardConflictError if the internal name or legacy id is already taken (including by a deleted card)
 	 */
 	public async createCard(params: CreateCardParams, actorId: number): Promise<CardData> {
 		await this.assertUniqueFields(params)
@@ -88,13 +105,14 @@ export class CardService {
 	 * @param params - Fields to update
 	 * @param actorId - ID of the user performing the action
 	 * @returns The updated card data
-	 * @throws Error if the card is not found or a unique field collides with another card
+	 * @throws CardNotFoundError if the card is not found
+	 * @throws CardConflictError if a unique field collides with another card
 	 * @throws CardValidationError if the merged pinning state is inconsistent
 	 */
 	public async updateCard(id: number, params: UpdateCardParams, actorId: number): Promise<CardData> {
 		const existing = await this.cardRepository.findById(id)
 		if (!existing) {
-			throw cardErrors.notFound(id)
+			throw new CardNotFoundError(id)
 		}
 
 		await this.assertUniqueFields(params, existing)
@@ -102,7 +120,7 @@ export class CardService {
 
 		const updated = await this.cardRepository.update(id, patch, actorId)
 		if (!updated) {
-			throw cardErrors.notFound(id)
+			throw new CardNotFoundError(id)
 		}
 
 		return updated
@@ -113,12 +131,12 @@ export class CardService {
 	 *
 	 * @param id - The card's primary key
 	 * @param actorId - ID of the user performing the action
-	 * @throws Error if the card is not found or already deleted
+	 * @throws CardNotFoundError if the card is not found or already deleted
 	 */
 	public async deleteCard(id: number, actorId: number): Promise<void> {
 		const deleted = await this.cardRepository.softDelete(id, actorId)
 		if (!deleted) {
-			throw cardErrors.notFound(id)
+			throw new CardNotFoundError(id)
 		}
 	}
 
@@ -133,14 +151,14 @@ export class CardService {
 		if (params.internalName !== undefined && params.internalName !== existing?.internalName) {
 			const holder = await this.cardRepository.findByInternalName(params.internalName)
 			if (holder) {
-				throw cardErrors.internalNameExists(params.internalName)
+				throw CardConflictError.internalName(params.internalName)
 			}
 		}
 
 		if (params.legacyId !== undefined && params.legacyId !== existing?.legacyId) {
 			const holder = await this.cardRepository.findByLegacyId(params.legacyId)
 			if (holder) {
-				throw cardErrors.legacyIdExists(params.legacyId)
+				throw CardConflictError.legacyId(params.legacyId)
 			}
 		}
 	}

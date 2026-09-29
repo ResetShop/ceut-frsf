@@ -3,7 +3,7 @@ import type { CardData } from '@contracts/card/card.types'
 import { clearAllMocks } from '@resetshop/util/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { InMemoryCardRepository } from './card.repository.mock'
-import { CARD_ERRORS, CardService, CardValidationError } from './card.service'
+import { CARD_ERRORS, CardConflictError, CardNotFoundError, CardService, CardValidationError } from './card.service'
 import type { CreateCardParams } from './interfaces'
 
 describe('CardService', () => {
@@ -118,9 +118,10 @@ describe('CardService', () => {
 		it('rejects a duplicate internalName', async () => {
 			mockCardRepo.addCard(buildCard({ internalName: 'new-card' }))
 
-			await expect(cardService.createCard(buildCreateParams(), actorId)).rejects.toThrow(
-				CARD_ERRORS.INTERNAL_NAME_EXISTS,
-			)
+			const creation = cardService.createCard(buildCreateParams(), actorId)
+
+			await expect(creation).rejects.toThrow(CardConflictError)
+			await expect(creation).rejects.toThrow(CARD_ERRORS.INTERNAL_NAME_EXISTS)
 		})
 
 		it('rejects an internalName still held by a soft-deleted card', async () => {
@@ -159,7 +160,7 @@ describe('CardService', () => {
 		})
 
 		it('throws not found for a missing card', async () => {
-			await expect(cardService.updateCard(999, { title: 'x' }, actorId)).rejects.toThrow(CARD_ERRORS.NOT_FOUND)
+			await expect(cardService.updateCard(999, { title: 'x' }, actorId)).rejects.toThrow(CardNotFoundError)
 		})
 
 		it('throws not found for a soft-deleted card', async () => {
