@@ -92,6 +92,18 @@ describe('createCardRequestSchema', () => {
 		expect(result.isPinned).toBe(false)
 	})
 
+	it('accepts a non-negative position', () => {
+		const result = createCardRequestSchema.safeParse({ internalName: 'welcome-card', position: 3 })
+
+		expect(result.success).toBe(true)
+	})
+
+	it('rejects a negative position', () => {
+		const result = createCardRequestSchema.safeParse({ internalName: 'welcome-card', position: -1 })
+
+		expect(result.success).toBe(false)
+	})
+
 	it('accepts a valid internal link', () => {
 		const result = createCardRequestSchema.safeParse({
 			internalName: 'welcome-card',
@@ -144,6 +156,12 @@ describe('updateCardRequestSchema', () => {
 			expect(result.success).toBe(false)
 		},
 	)
+
+	it('accepts a position change', () => {
+		const result = updateCardRequestSchema.safeParse({ position: 5 })
+
+		expect(result.success).toBe(true)
+	})
 
 	it('accepts a lone pinnedPosition change without resending isPinned', () => {
 		const result = updateCardRequestSchema.safeParse({ pinnedPosition: 1 })

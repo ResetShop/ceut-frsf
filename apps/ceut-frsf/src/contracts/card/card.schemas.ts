@@ -64,6 +64,7 @@ export const createCardRequestSchema = z
 		enabled: z.boolean().default(true),
 		isPinned: z.boolean().default(false),
 		pinnedPosition: z.number().int().min(0).max(2).nullable().optional(),
+		position: z.number().int().min(0).optional(),
 	})
 	.refine(pinnedPositionMatchesIsPinned, { message: PINNED_POSITION_REFINE_MESSAGE, path: ['pinnedPosition'] })
 
@@ -85,6 +86,7 @@ export const updateCardRequestSchema = z
 		enabled: z.boolean().optional(),
 		isPinned: z.boolean().optional(),
 		pinnedPosition: z.number().int().min(0).max(2).nullable().optional(),
+		position: z.number().int().min(0).optional(),
 	})
 	// Only enforced when `isPinned` is explicitly part of the payload — a lone `pinnedPosition`
 	// change (repositioning an already-pinned card) is valid without resending `isPinned`, since

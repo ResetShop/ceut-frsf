@@ -141,6 +141,19 @@ describe('Card endpoints (/api/content/cards)', () => {
 			expect(body.total).toBe(2)
 		})
 
+		it('orders cards by position', async () => {
+			await createCardId('it-order-second', { position: 20 })
+			await createCardId('it-order-first', { position: 10 })
+
+			const response = await authenticatedRequest(app, `${basePath}?search=it-order`, { cookies: adminCookies })
+
+			const body = await response.json()
+			expect(body.data.map((c: { internalName: string }) => c.internalName)).toEqual([
+				'it-order-first',
+				'it-order-second',
+			])
+		})
+
 		it('searches by title', async () => {
 			const response = await authenticatedRequest(app, `${basePath}?search=Listado%20oculto`, {
 				cookies: adminCookies,

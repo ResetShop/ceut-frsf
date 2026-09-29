@@ -81,7 +81,7 @@ export class InMemoryCardRepository implements CardRepository {
 			enabled: params.enabled,
 			isPinned: params.isPinned,
 			pinnedPosition: params.pinnedPosition ?? null,
-			position: 0,
+			position: params.position ?? 0,
 			deletedAt: null,
 			createdAt: now,
 			updatedAt: now,

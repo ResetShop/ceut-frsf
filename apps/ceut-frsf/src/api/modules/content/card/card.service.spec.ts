@@ -116,6 +116,12 @@ describe('CardService', () => {
 			expect(result).toMatchObject({ internalName: 'new-card', title: 'Hello', enabled: true, deletedAt: null })
 		})
 
+		it('stores the requested position', async () => {
+			const result = await cardService.createCard(buildCreateParams({ position: 4 }), actorId)
+
+			expect(result.position).toBe(4)
+		})
+
 		it('rejects a duplicate internalName', async () => {
 			mockCardRepo.addCard(buildCard({ internalName: 'new-card' }))
 
