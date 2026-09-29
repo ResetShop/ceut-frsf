@@ -1,4 +1,4 @@
-import { linkSchema } from '@contracts/common/link.schemas'
+import { httpUrlSchema, linkSchema } from '@contracts/common/link.schemas'
 import { z } from 'zod'
 import { CARD_FIELD_LIMITS, CardType } from './card.constants'
 
@@ -56,7 +56,7 @@ export const createCardRequestSchema = z
 		internalName: z.string().min(1).max(CARD_FIELD_LIMITS.INTERNAL_NAME_MAX_LENGTH),
 		title: z.string().max(CARD_FIELD_LIMITS.TITLE_MAX_LENGTH).optional(),
 		type: cardTypeSchema.default(CardType.ICON_CORNER),
-		imageUrl: z.url().optional(),
+		imageUrl: httpUrlSchema.optional(),
 		content: z.string().max(CARD_FIELD_LIMITS.CONTENT_MAX_LENGTH).optional(),
 		link: linkSchema.optional(),
 		footerContent: z.string().max(CARD_FIELD_LIMITS.FOOTER_CONTENT_MAX_LENGTH).optional(),
@@ -77,7 +77,7 @@ export const updateCardRequestSchema = z
 		internalName: z.string().min(1).max(CARD_FIELD_LIMITS.INTERNAL_NAME_MAX_LENGTH).optional(),
 		title: z.string().max(CARD_FIELD_LIMITS.TITLE_MAX_LENGTH).nullable().optional(),
 		type: cardTypeSchema.optional(),
-		imageUrl: z.url().nullable().optional(),
+		imageUrl: httpUrlSchema.nullable().optional(),
 		content: z.string().max(CARD_FIELD_LIMITS.CONTENT_MAX_LENGTH).nullable().optional(),
 		link: linkSchema.nullable().optional(),
 		footerContent: z.string().max(CARD_FIELD_LIMITS.FOOTER_CONTENT_MAX_LENGTH).nullable().optional(),

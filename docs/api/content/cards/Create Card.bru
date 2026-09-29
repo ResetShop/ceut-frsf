@@ -44,9 +44,9 @@ docs {
   | legacyId | number | No | - | Unique migration source ID |
   | title | string | No | - | Display title (max 200 chars) |
   | type | string | No | `icon-corner` | `icon-corner`, `header-image` or `full-image` |
-  | imageUrl | string | No | - | Absolute image URL |
+  | imageUrl | string | No | - | Absolute `http`/`https` image URL |
   | content | string | No | - | Body content (max 5000 chars) |
-  | link | object | No | - | `{ type: 'internal', url: '/path' }` or `{ type: 'external', url: 'https://…' }` |
+  | link | object | No | - | `{ type: 'internal', url: '/path' }` (path starting with a single `/`) or `{ type: 'external', url: 'https://…' }` (`http`/`https` only) |
   | footerContent | string | No | - | Footer text (max 300 chars) |
   | footerSeparator | boolean | No | false | Separator above the footer |
   | enabled | boolean | No | true | Visibility flag |

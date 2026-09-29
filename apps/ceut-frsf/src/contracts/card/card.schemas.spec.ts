@@ -42,6 +42,12 @@ describe('createCardRequestSchema', () => {
 		expect(result.success).toBe(false)
 	})
 
+	it.each(['javascript:alert(1)', 'data:image/png;base64,AAAA'])('rejects the non-http imageUrl %s', (imageUrl) => {
+		const result = createCardRequestSchema.safeParse({ internalName: 'welcome-card', imageUrl })
+
+		expect(result.success).toBe(false)
+	})
+
 	it.each([0, 1, 2])('accepts pinnedPosition %d when isPinned is true', (pinnedPosition) => {
 		const result = createCardRequestSchema.safeParse({
 			internalName: 'welcome-card',

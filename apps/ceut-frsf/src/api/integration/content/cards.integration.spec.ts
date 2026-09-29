@@ -90,6 +90,11 @@ describe('Card endpoints (/api/content/cards)', () => {
 			['a missing internalName', {}],
 			['isPinned without pinnedPosition', { internalName: 'it-create-bad-pin', isPinned: true }],
 			['a non-URL imageUrl', { internalName: 'it-create-bad-url', imageUrl: 'not-a-url' }],
+			['a javascript: imageUrl', { internalName: 'it-create-js-url', imageUrl: 'javascript:alert(1)' }],
+			[
+				'an internal link that is not a path',
+				{ internalName: 'it-create-js-link', link: { type: 'internal', url: 'javascript:alert(1)' } },
+			],
 		])('returns 400 for %s', async (_label, body) => {
 			const response = await createCard(body)
 			expect(response.status).toBe(400)
