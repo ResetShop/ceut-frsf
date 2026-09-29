@@ -21,7 +21,9 @@ body:json {
 docs {
   # Update Card
 
-  Partially updates a card: only the fields sent are changed. Requires the `content:cards:update` permission.
+  Partially updates a card: only the fields sent are changed, and sending `null` clears a nullable
+  field (`legacyId`, `title`, `imageUrl`, `content`, `link`, `footerContent`). Requires the
+  `content:cards:update` permission.
 
   ## Contract Types
 

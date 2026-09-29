@@ -121,6 +121,24 @@ describe('updateCardRequestSchema', () => {
 		expect(result.success).toBe(true)
 	})
 
+	it.each(['legacyId', 'title', 'imageUrl', 'content', 'link', 'footerContent'])(
+		'accepts null to clear the nullable %s field',
+		(field) => {
+			const result = updateCardRequestSchema.safeParse({ [field]: null })
+
+			expect(result.success).toBe(true)
+		},
+	)
+
+	it.each(['internalName', 'type', 'enabled', 'footerSeparator'])(
+		'rejects null for the non-nullable %s field',
+		(field) => {
+			const result = updateCardRequestSchema.safeParse({ [field]: null })
+
+			expect(result.success).toBe(false)
+		},
+	)
+
 	it('accepts a lone pinnedPosition change without resending isPinned', () => {
 		const result = updateCardRequestSchema.safeParse({ pinnedPosition: 1 })
 

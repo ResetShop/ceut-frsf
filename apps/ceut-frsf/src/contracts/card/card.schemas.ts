@@ -67,16 +67,20 @@ export const createCardRequestSchema = z
 	})
 	.refine(pinnedPositionMatchesIsPinned, { message: PINNED_POSITION_REFINE_MESSAGE, path: ['pinnedPosition'] })
 
+/**
+ * Partial update: an omitted field is left unchanged, while `null` clears a nullable column
+ * (`legacyId`, `title`, `imageUrl`, `content`, `link`, `footerContent`, `pinnedPosition`).
+ */
 export const updateCardRequestSchema = z
 	.object({
-		legacyId: z.number().int().positive().optional(),
+		legacyId: z.number().int().positive().nullable().optional(),
 		internalName: z.string().min(1).max(CARD_FIELD_LIMITS.INTERNAL_NAME_MAX_LENGTH).optional(),
-		title: z.string().max(CARD_FIELD_LIMITS.TITLE_MAX_LENGTH).optional(),
+		title: z.string().max(CARD_FIELD_LIMITS.TITLE_MAX_LENGTH).nullable().optional(),
 		type: cardTypeSchema.optional(),
-		imageUrl: z.url().optional(),
-		content: z.string().max(CARD_FIELD_LIMITS.CONTENT_MAX_LENGTH).optional(),
-		link: linkSchema.optional(),
-		footerContent: z.string().max(CARD_FIELD_LIMITS.FOOTER_CONTENT_MAX_LENGTH).optional(),
+		imageUrl: z.url().nullable().optional(),
+		content: z.string().max(CARD_FIELD_LIMITS.CONTENT_MAX_LENGTH).nullable().optional(),
+		link: linkSchema.nullable().optional(),
+		footerContent: z.string().max(CARD_FIELD_LIMITS.FOOTER_CONTENT_MAX_LENGTH).nullable().optional(),
 		footerSeparator: z.boolean().optional(),
 		enabled: z.boolean().optional(),
 		isPinned: z.boolean().optional(),

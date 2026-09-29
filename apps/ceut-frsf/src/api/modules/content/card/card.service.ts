@@ -100,7 +100,7 @@ export class CardService {
 	 * Values unchanged from `existing` are skipped.
 	 */
 	private async assertUniqueFields(
-		params: { internalName?: string; legacyId?: number },
+		params: { internalName?: string; legacyId?: number | null },
 		existing?: CardData,
 	): Promise<void> {
 		if (params.internalName !== undefined && params.internalName !== existing?.internalName) {
@@ -110,7 +110,7 @@ export class CardService {
 			}
 		}
 
-		if (params.legacyId !== undefined && params.legacyId !== existing?.legacyId) {
+		if (typeof params.legacyId === 'number' && params.legacyId !== existing?.legacyId) {
 			const holder = await this.cardRepository.findByLegacyId(params.legacyId)
 			if (holder) {
 				throw CardConflictError.legacyId(params.legacyId)

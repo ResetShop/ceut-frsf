@@ -240,6 +240,23 @@ describe('Card endpoints (/api/content/cards)', () => {
 			})
 		})
 
+		it('clears nullable fields sent as null', async () => {
+			const id = await createCardId('it-update-clear', {
+				title: 'Con título',
+				imageUrl: 'https://cdn.example.com/a.png',
+				link: { type: 'external', url: 'https://example.com' },
+			})
+
+			const response = await authenticatedRequest(app, `${basePath}/${id}`, {
+				method: 'PUT',
+				cookies: adminCookies,
+				body: { title: null, imageUrl: null, link: null },
+			})
+
+			expect(response.status).toBe(200)
+			expect(await response.json()).toMatchObject({ title: null, imageUrl: null, link: null })
+		})
+
 		it('hides a card via enabled=false without deleting it', async () => {
 			const id = await createCardId('it-update-hide')
 

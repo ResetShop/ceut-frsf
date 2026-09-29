@@ -151,6 +151,16 @@ describe('CardService', () => {
 			expect(result).toMatchObject({ title: 'Changed', internalName: 'welcome-card' })
 		})
 
+		it('clears nullable fields sent as null and keeps omitted ones', async () => {
+			mockCardRepo.addCard(
+				buildCard({ legacyId: 42, content: 'Body', link: { type: 'internal', url: '/becas' }, footerContent: 'Pie' }),
+			)
+
+			const result = await cardService.updateCard(1, { title: null, legacyId: null, link: null }, actorId)
+
+			expect(result).toMatchObject({ title: null, legacyId: null, link: null, content: 'Body', footerContent: 'Pie' })
+		})
+
 		it('hides a card by updating enabled without deleting it', async () => {
 			mockCardRepo.addCard(buildCard())
 
