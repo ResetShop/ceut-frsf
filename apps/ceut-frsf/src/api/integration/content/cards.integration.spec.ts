@@ -309,6 +309,20 @@ describe('Card endpoints (/api/content/cards)', () => {
 			expect(response.status).toBe(409)
 		})
 
+		it('returns 409 when setting a legacyId held by another card', async () => {
+			await createCardId('it-update-legacy-holder', { legacyId: 9100 })
+			const id = await createCardId('it-update-legacy-target')
+
+			const response = await authenticatedRequest(app, `${basePath}/${id}`, {
+				method: 'PUT',
+				cookies: adminCookies,
+				body: { legacyId: 9100 },
+			})
+
+			expect(response.status).toBe(409)
+			expect((await response.json()).error).toContain('legacy ID')
+		})
+
 		it('returns 404 for a non-existent card', async () => {
 			const response = await authenticatedRequest(app, `${basePath}/999999`, {
 				method: 'PUT',
